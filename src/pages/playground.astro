@@ -1,0 +1,105 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/home/Sidebar.astro";
+import Footer from "../components/home/Footer.astro";
+import CustomCursor from "../components/home/CustomCursor.astro";
+import Starfield from "../components/welcome/Starfield.astro";
+import { getCurrentVisitor } from "../lib/visitor-server";
+
+export const prerender = false;
+
+const visitor = await getCurrentVisitor(Astro);
+const cursorColor = visitor?.color ?? "pink";
+---
+
+<BaseLayout title="Playground — Megan Yap">
+  <div class="flex items-stretch min-h-screen">
+    <Sidebar active="playground" />
+
+    <main class="pg-main relative flex flex-1 min-w-0 overflow-hidden items-center justify-center p-10">
+      <!-- Cosmic backdrop: solid cosmos color + ambient starfield. Animates
+           in on page arrival (see `.pg-cosmic-veil` keyframes below). -->
+      <div class="pg-cosmic-veil" aria-hidden="true">
+        <Starfield />
+      </div>
+
+      <!-- Single translucent overlay dead-center: mono "coming soon". -->
+      <div class="pg-coming-soon relative z-[1]">
+        <span>coming soon</span>
+      </div>
+    </main>
+  </div>
+
+  <Footer color={cursorColor} active="playground" />
+
+  <CustomCursor color={cursorColor} />
+</BaseLayout>
+
+<style>
+  /*
+    Cosmic stage for the Playground page. Sidebar stays cream (site
+    identity); the main area flips to a deep-ink reading-room with a
+    drifting starfield. Content is a single "coming soon" mono chip on
+    a translucent overlay, centered. An entrance animation fades the
+    veil in on mount so arriving feels like "stepping out into cosmos".
+  */
+  .pg-main {
+    background:
+      radial-gradient(
+        1100px 760px at 22% -10%,
+        var(--color-cosmos-1, #1b1f30) 0%,
+        var(--color-cosmos, #0a0d16) 55%,
+        var(--color-cosmos-2, #05060d) 100%
+      );
+    color: var(--color-ink-inverted);
+  }
+
+  .pg-cosmic-veil {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: 0;
+    transform: scale(1.08);
+    animation: pg-veil-arrive 720ms var(--ease-out-soft) forwards;
+  }
+
+  /*
+    The lone "coming soon" plaque. Translucent cream wash + backdrop
+    blur so the starfield shines through softly. Mono caps, tracked
+    out, quiet. Fades in after the veil settles.
+  */
+  .pg-coming-soon {
+    padding: 14px 26px;
+    border-radius: 10px;
+    background: rgba(234, 230, 219, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(234, 230, 219, 0.22);
+    backdrop-filter: blur(12px) saturate(1.05);
+    -webkit-backdrop-filter: blur(12px) saturate(1.05);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-starlight, #d8dde8);
+    opacity: 0;
+    animation: pg-content-arrive 560ms var(--ease-out-soft) 280ms forwards;
+  }
+
+  @keyframes pg-veil-arrive {
+    from { opacity: 0; transform: scale(1.08); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes pg-content-arrive {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pg-cosmic-veil,
+    .pg-coming-soon {
+      animation: none;
+    }
+    .pg-cosmic-veil { opacity: 1; transform: none; }
+    .pg-coming-soon { opacity: 1; transform: none; }
+  }
+</style>

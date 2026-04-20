@@ -1,0 +1,601 @@
+---
+import MiniLibraryCard from "./MiniLibraryCard.astro";
+import type { VisitorRecord } from "../../lib/visitor-server";
+
+interface Props {
+  visitors: VisitorRecord[];
+  youId?: string;
+  /** Center cards horizontally when there aren't enough to fill a row. */
+  centered?: boolean;
+}
+
+const { visitors, youId, centered = false } = Astro.props;
+---
+
+<div
+  data-gallery-grid
+  data-you-id={youId ?? ""}
+  class:list={[
+    "gallery-grid flex flex-wrap content-start items-start gap-y-8 gap-x-4 w-full",
+    centered && "justify-center",
+  ]}
+>
+  {
+    visitors.map((v) => (
+      <MiniLibraryCard
+        id={v.id}
+        name={v.name}
+        color={v.color}
+        number={v.number}
+        issuedAt={v.issuedAt}
+        isYou={v.id === youId}
+        signature={v.signature}
+      />
+    ))
+  }
+</div>
+
+<!-- Detail modal — blurred backdrop + a container the grid animates a clone into. -->
+<div
+  data-gallery-detail
+  class="gallery-detail fixed inset-0 z-[60] pointer-events-none opacity-0"
+  aria-hidden="true"
+>
+  <div
+    data-gallery-backdrop
+    class="gallery-detail__backdrop absolute inset-0 bg-black/30 backdrop-blur-md opacity-0 transition-opacity duration-300"
+  ></div>
+  <button
+    data-gallery-close
+    type="button"
+    aria-label="Close"
+    class="gallery-detail__close absolute top-6 right-6 z-[2] size-10 grid place-items-center rounded-full bg-white/80 text-[var(--color-ink)] hover:bg-white transition-colors shadow-[0_4px_12px_rgba(0,0,0,0.15)] opacity-0"
+  >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 6L6 18" />
+      <path d="M6 6l12 12" />
+    </svg>
+  </button>
+  <div
+    data-gallery-stage
+    class="gallery-detail__stage absolute inset-0 pointer-events-none"
+    style="perspective: 1400px;"
+  ></div>
+</div>
+
+<style is:global>
+  .gallery-grid {
+    perspective: 1000px;
+  }
+  .gallery-detail {
+    transition: opacity 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .gallery-detail[data-open] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .gallery-detail[data-open] .gallery-detail__backdrop,
+  .gallery-detail[data-open] .gallery-detail__close {
+    opacity: 1;
+  }
+
+  /* Large detail card — reuses the mini-card visual system but scaled up so
+     the signature and typography read clearly in the centered spotlight. */
+  .gallery-detail__stage [data-mini-card-wrap] {
+    position: absolute;
+    transform-origin: top left;
+    transition: none;
+  }
+  .gallery-detail__stage .mini-card {
+    cursor: default;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mini-card-wrap,
+    .mini-card {
+      transition: none !important;
+    }
+  }
+</style>
+
+<script>
+  /*
+    Visitor-gallery interactions:
+      1. Hover  — scale + 3D parallax tilt that tracks the cursor, plus a
+                  cursor-following glossy highlight. Springs back on leave.
+      2. Click  — FLIP animation into a centered large detail view with a
+                  blurred backdrop. Reversal on close uses the same spring.
+      3. Shuffle — staggered FLIP reorder. The current visitor (if any) has
+                  an ~80% chance of landing in the top-6 positions.
+  */
+
+  type CardEl = HTMLElement;
+
+  const grid = document.querySelector<HTMLElement>("[data-gallery-grid]");
+  const detail = document.querySelector<HTMLElement>("[data-gallery-detail]");
+  const stage = detail?.querySelector<HTMLElement>("[data-gallery-stage]");
+  const backdrop = detail?.querySelector<HTMLElement>("[data-gallery-backdrop]");
+  const closeBtn = detail?.querySelector<HTMLButtonElement>("[data-gallery-close]");
+
+  if (!grid || !detail || !stage || !backdrop || !closeBtn) {
+    console.warn("gallery: missing required nodes");
+  } else {
+    const youId = grid.dataset.youId || null;
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+    const SPRING_EASE = "cubic-bezier(0.34, 1.56, 0.64, 1)";
+
+    /* ---------- hover tilt + gloss ------------------------------------ */
+    const attachHover = (wrap: CardEl) => {
+      let raf = 0;
+      let pending: { x: number; y: number } | null = null;
+
+      const apply = () => {
+        raf = 0;
+        if (!pending) return;
+        const rect = wrap.getBoundingClientRect();
+        const px = (pending.x - rect.left) / rect.width;  // 0..1
+        const py = (pending.y - rect.top) / rect.height;  // 0..1
+        const rotY = (px - 0.5) * 16;   // ±8deg
+        const rotX = (0.5 - py) * 16;   // ±8deg
+        wrap.style.transform = `perspective(1000px) scale(1.04) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
+        const gloss = wrap.querySelector<HTMLElement>("[data-mini-gloss]");
+        if (gloss) {
+          gloss.style.setProperty("--gloss-x", `${(px * 100).toFixed(1)}%`);
+          gloss.style.setProperty("--gloss-y", `${(py * 100).toFixed(1)}%`);
+        }
+      };
+
+      const onMove = (e: MouseEvent) => {
+        if (wrap.dataset.flying !== undefined) return;
+        pending = { x: e.clientX, y: e.clientY };
+        wrap.dataset.tilting = "";
+        if (!raf) raf = requestAnimationFrame(apply);
+      };
+
+      const onLeave = () => {
+        pending = null;
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0;
+        delete wrap.dataset.tilting;
+        wrap.style.transform = "";
+      };
+
+      wrap.addEventListener("mousemove", onMove);
+      wrap.addEventListener("mouseleave", onLeave);
+    };
+
+    /* ---------- click → FLIP detail view ------------------------------- */
+    type OpenState = {
+      source: HTMLElement;
+      clone: HTMLElement;
+      startRect: DOMRect;
+      targetRect: { left: number; top: number; width: number; height: number };
+      scale: number;
+    };
+    let open: OpenState | null = null;
+
+    const DETAIL_SCALE = 1.7;
+
+    const computeTarget = (rect: DOMRect) => {
+      // Center the clone on screen, clamped so it doesn't overflow. The
+      // base card is already full-size, so keep the scale modest.
+      const maxW = Math.min(window.innerWidth - 80, rect.width * DETAIL_SCALE);
+      const maxH = Math.min(window.innerHeight - 80, rect.height * DETAIL_SCALE);
+      const scale = Math.max(
+        1.1,
+        Math.min(DETAIL_SCALE, maxW / rect.width, maxH / rect.height),
+      );
+      const width = rect.width * scale;
+      const height = rect.height * scale;
+      return {
+        left: window.innerWidth / 2 - width / 2,
+        top: window.innerHeight / 2 - height / 2,
+        width,
+        height,
+        scale,
+      };
+    };
+
+    /**
+     * Build a centered, scaled clone of a card and append it to the stage.
+     * Uses transform-origin: 50% 50% so subsequent hover rotations pivot
+     * around the card's center rather than its top-left corner.
+     */
+    const buildClone = (source: HTMLElement, scale: number, initialOpacity = 1, initialOffsetX = 0): HTMLElement => {
+      const rect = source.getBoundingClientRect();
+      const W = rect.width;
+      const H = rect.height;
+      const left = window.innerWidth / 2 - W / 2;
+      const top = window.innerHeight / 2 - H / 2;
+
+      const clone = source.cloneNode(true) as HTMLElement;
+      clone.dataset.flying = "";
+      delete clone.dataset.tilting;
+      clone.style.position = "absolute";
+      clone.style.transformOrigin = "50% 50%";
+      clone.style.width = `${W}px`;
+      clone.style.height = `${H}px`;
+      clone.style.left = `${left}px`;
+      clone.style.top = `${top}px`;
+      clone.style.transform = initialOffsetX
+        ? `perspective(1200px) scale(${scale}) translateX(${initialOffsetX}px)`
+        : `perspective(1200px) scale(${scale})`;
+      clone.style.opacity = String(initialOpacity);
+      clone.style.pointerEvents = "auto";
+      clone.style.cursor = "default";
+      stage!.appendChild(clone);
+      return clone;
+    };
+
+    /**
+     * Hover handler for the open detail clone — preserves the detail scale,
+     * adds tilt around the card's center, and tracks the cursor for gloss.
+     * Removed when navigating away or closing.
+     */
+    type DetailHover = { remove: () => void };
+    const attachDetailHover = (clone: HTMLElement, baseScale: number): DetailHover => {
+      let raf = 0;
+      let pending: { x: number; y: number } | null = null;
+      const gloss = clone.querySelector<HTMLElement>("[data-mini-gloss]");
+      let active = true;
+
+      const apply = () => {
+        raf = 0;
+        if (!pending || !active) return;
+        const rect = clone.getBoundingClientRect();
+        const px = (pending.x - rect.left) / rect.width;
+        const py = (pending.y - rect.top) / rect.height;
+        const rotY = (px - 0.5) * 12;
+        const rotX = (0.5 - py) * 12;
+        clone.style.transform = `perspective(1200px) scale(${baseScale}) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
+        if (gloss) {
+          gloss.style.opacity = "1";
+          gloss.style.setProperty("--gloss-x", `${(px * 100).toFixed(1)}%`);
+          gloss.style.setProperty("--gloss-y", `${(py * 100).toFixed(1)}%`);
+        }
+      };
+
+      const onMove = (e: MouseEvent) => {
+        pending = { x: e.clientX, y: e.clientY };
+        if (!raf) raf = requestAnimationFrame(apply);
+      };
+      const onLeave = () => {
+        pending = null;
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0;
+        if (!active) return;
+        clone.style.transform = `perspective(1200px) scale(${baseScale})`;
+        if (gloss) gloss.style.opacity = "0";
+      };
+      clone.addEventListener("mousemove", onMove);
+      clone.addEventListener("mouseleave", onLeave);
+      return {
+        remove: () => {
+          active = false;
+          if (raf) cancelAnimationFrame(raf);
+          clone.removeEventListener("mousemove", onMove);
+          clone.removeEventListener("mouseleave", onLeave);
+        },
+      };
+    };
+
+    let openHover: DetailHover | null = null;
+
+    const openDetail = (wrap: HTMLElement) => {
+      if (open) return;
+      const startRect = wrap.getBoundingClientRect();
+      const target = computeTarget(startRect);
+      const W = startRect.width;
+      const H = startRect.height;
+
+      // Center-origin clone — start positioned over the source at scale 1,
+      // then animate scale up to target. With origin: 50% 50%, the visual
+      // center stays put during scaling; we just need the layout box (left,
+      // top) at the right place for both endpoints.
+      const startLeft = startRect.left;
+      const startTop = startRect.top;
+      const endLeft = window.innerWidth / 2 - W / 2;
+      const endTop = window.innerHeight / 2 - H / 2;
+
+      const clone = wrap.cloneNode(true) as HTMLElement;
+      clone.dataset.flying = "";
+      delete clone.dataset.tilting;
+      clone.style.position = "absolute";
+      clone.style.transformOrigin = "50% 50%";
+      clone.style.width = `${W}px`;
+      clone.style.height = `${H}px`;
+      clone.style.left = `${startLeft}px`;
+      clone.style.top = `${startTop}px`;
+      clone.style.transform = `perspective(1200px) scale(1)`;
+      clone.style.pointerEvents = "auto";
+      clone.style.cursor = "default";
+      stage!.appendChild(clone);
+      wrap.style.visibility = "hidden";
+      detail!.setAttribute("data-open", "");
+      detail!.setAttribute("aria-hidden", "false");
+
+      open = {
+        source: wrap,
+        clone,
+        startRect,
+        targetRect: { left: endLeft, top: endTop, width: W * target.scale, height: H * target.scale },
+        scale: target.scale,
+      };
+
+      const keyframes: Keyframe[] = [
+        {
+          left: `${startLeft}px`,
+          top: `${startTop}px`,
+          transform: `perspective(1200px) scale(1)`,
+        },
+        {
+          left: `${endLeft}px`,
+          top: `${endTop}px`,
+          transform: `perspective(1200px) scale(${target.scale})`,
+        },
+      ];
+      const anim = clone.animate(keyframes, {
+        duration: reduced ? 0 : 520,
+        easing: SPRING_EASE,
+        fill: "forwards",
+      });
+      anim.onfinish = () => {
+        openHover = attachDetailHover(clone, target.scale);
+      };
+    };
+
+    /** Slide-swap to the next/prev card while staying in detail mode. */
+    const navigateDetail = (dir: 1 | -1) => {
+      if (!open) return;
+      const o = open;
+
+      const cards = Array.from(grid!.children).filter(
+        (n): n is HTMLElement => n instanceof HTMLElement,
+      );
+      const currentIdx = cards.indexOf(o.source);
+      if (currentIdx === -1) return;
+      const nextIdx = (currentIdx + dir + cards.length) % cards.length;
+      const nextSource = cards[nextIdx];
+      if (nextSource === o.source) return;
+
+      // Tear down old hover so it doesn't fight the exit animation.
+      openHover?.remove();
+      openHover = null;
+
+      // Restore old source visibility, hide the next one (it's about to take
+      // the spotlight).
+      o.source.style.visibility = "";
+      nextSource.style.visibility = "hidden";
+
+      // Direction convention: pressing → moves the deck leftward — old card
+      // exits to the left, new card enters from the right.
+      const slidePx = 80;
+      const exitOffset = -dir * slidePx;
+      const enterOffset = dir * slidePx;
+
+      const oldClone = o.clone;
+      const exitAnim = oldClone.animate(
+        [
+          { opacity: 1, transform: `perspective(1200px) scale(${o.scale}) translateX(0px)` },
+          { opacity: 0, transform: `perspective(1200px) scale(${o.scale}) translateX(${exitOffset}px)` },
+        ],
+        {
+          duration: reduced ? 0 : 240,
+          easing: "cubic-bezier(0.4, 0, 1, 1)",
+          fill: "forwards",
+        },
+      );
+      exitAnim.onfinish = () => oldClone.remove();
+
+      const nextRect = nextSource.getBoundingClientRect();
+      const nextTarget = computeTarget(nextRect);
+      const newClone = buildClone(nextSource, nextTarget.scale, 0, enterOffset);
+
+      const enterAnim = newClone.animate(
+        [
+          { opacity: 0, transform: `perspective(1200px) scale(${nextTarget.scale}) translateX(${enterOffset}px)` },
+          { opacity: 1, transform: `perspective(1200px) scale(${nextTarget.scale}) translateX(0px)` },
+        ],
+        {
+          duration: reduced ? 0 : 320,
+          easing: SPRING_EASE,
+          fill: "forwards",
+        },
+      );
+      enterAnim.onfinish = () => {
+        openHover = attachDetailHover(newClone, nextTarget.scale);
+      };
+
+      open = {
+        source: nextSource,
+        clone: newClone,
+        startRect: nextRect,
+        targetRect: {
+          left: window.innerWidth / 2 - nextRect.width / 2,
+          top: window.innerHeight / 2 - nextRect.height / 2,
+          width: nextRect.width * nextTarget.scale,
+          height: nextRect.height * nextTarget.scale,
+        },
+        scale: nextTarget.scale,
+      };
+    };
+
+    const closeDetail = () => {
+      if (!open) return;
+      const o = open;
+      open = null;
+      openHover?.remove();
+      openHover = null;
+
+      // Reset transform to the un-tilted scaled state before measuring so the
+      // close animation starts from a known orientation.
+      o.clone.style.transform = `perspective(1200px) scale(${o.scale})`;
+
+      const sourceRect = o.source.getBoundingClientRect();
+      const W = parseFloat(o.clone.style.width);
+      const H = parseFloat(o.clone.style.height);
+      const currentLeft = parseFloat(o.clone.style.left);
+      const currentTop = parseFloat(o.clone.style.top);
+      const endLeft = sourceRect.left + sourceRect.width / 2 - W / 2;
+      const endTop = sourceRect.top + sourceRect.height / 2 - H / 2;
+
+      const keyframes: Keyframe[] = [
+        {
+          left: `${currentLeft}px`,
+          top: `${currentTop}px`,
+          transform: `perspective(1200px) scale(${o.scale})`,
+        },
+        {
+          left: `${endLeft}px`,
+          top: `${endTop}px`,
+          transform: `perspective(1200px) scale(1)`,
+        },
+      ];
+
+      detail!.removeAttribute("data-open");
+      detail!.setAttribute("aria-hidden", "true");
+
+      const anim = o.clone.animate(keyframes, {
+        duration: reduced ? 0 : 460,
+        easing: SPRING_EASE,
+        fill: "forwards",
+      });
+      anim.onfinish = () => {
+        o.clone.remove();
+        o.source.style.visibility = "";
+      };
+    };
+
+    backdrop.addEventListener("click", closeDetail);
+    closeBtn.addEventListener("click", closeDetail);
+    window.addEventListener("keydown", (e) => {
+      if (!open) return;
+      if (e.key === "Escape") {
+        closeDetail();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        navigateDetail(1);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        navigateDetail(-1);
+      }
+    });
+
+    /* ---------- staggered FLIP shuffle -------------------------------- */
+
+    /** Fisher-Yates, mutating a copy and returning it. */
+    function fisherYates<T>(arr: T[]): T[] {
+      const out = arr.slice();
+      for (let i = out.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [out[i], out[j]] = [out[j], out[i]];
+      }
+      return out;
+    }
+
+    /** Weighted shuffle: 80% chance the current visitor lands in top-6. */
+    function shuffleWithBias(cards: HTMLElement[]): HTMLElement[] {
+      const shuffled = fisherYates(cards);
+      if (!youId) return shuffled;
+      const youIdx = shuffled.findIndex((el) => el.dataset.id === youId);
+      if (youIdx === -1) return shuffled;
+      const topCap = Math.min(6, shuffled.length);
+      if (Math.random() < 0.8) {
+        const targetSlot = Math.floor(Math.random() * topCap);
+        if (youIdx !== targetSlot) {
+          const [mine] = shuffled.splice(youIdx, 1);
+          shuffled.splice(targetSlot, 0, mine);
+        }
+      }
+      return shuffled;
+    }
+
+    const runShuffle = () => {
+      if (open) closeDetail();
+      const cards = Array.from(grid!.children).filter(
+        (n): n is HTMLElement => n instanceof HTMLElement,
+      );
+      if (cards.length < 2) return;
+
+      // FIRST — capture original rects.
+      const first = new Map<HTMLElement, DOMRect>();
+      for (const c of cards) first.set(c, c.getBoundingClientRect());
+
+      // Reorder DOM.
+      const next = shuffleWithBias(cards);
+      for (const c of next) grid!.appendChild(c);
+
+      // LAST — rects after reflow.
+      const last = new Map<HTMLElement, DOMRect>();
+      for (const c of next) last.set(c, c.getBoundingClientRect());
+
+      // INVERT + PLAY with stagger.
+      next.forEach((c, i) => {
+        const f = first.get(c)!;
+        const l = last.get(c)!;
+        const dx = f.left - l.left;
+        const dy = f.top - l.top;
+        if (dx === 0 && dy === 0) return;
+        c.dataset.flying = "";
+        const anim = c.animate(
+          [
+            { transform: `translate(${dx}px, ${dy}px)` },
+            { transform: `translate(0, 0)` },
+          ],
+          {
+            duration: reduced ? 0 : 560,
+            delay: reduced ? 0 : i * 20,
+            easing: SPRING_EASE,
+            fill: "both",
+          },
+        );
+        anim.onfinish = () => {
+          // Clear the fill so the hover handler's inline transform isn't
+          // masked by the animation's retained endpoint (WAAPI animations
+          // override inline styles unless the effect is cancelled).
+          try {
+            anim.cancel();
+          } catch {}
+          delete c.dataset.flying;
+          c.style.transform = "";
+        };
+      });
+    };
+
+    window.addEventListener("gallery:shuffle", runShuffle);
+
+    /* ---------- wiring per card --------------------------------------- */
+    const wireCards = () => {
+      grid!.querySelectorAll<HTMLElement>("[data-mini-card-wrap]").forEach((wrap) => {
+        if (wrap.dataset.wired) return;
+        wrap.dataset.wired = "1";
+        attachHover(wrap);
+        wrap.addEventListener("click", (e) => {
+          // Ignore clicks on the "That's you!" pill children.
+          if ((e.target as HTMLElement).closest("[data-gallery-close]")) return;
+          openDetail(wrap);
+        });
+      });
+    };
+    wireCards();
+
+    // If the detail is resized (e.g. viewport change), reposition.
+    window.addEventListener("resize", () => {
+      if (!open) return;
+      const W = parseFloat(open.clone.style.width);
+      const H = parseFloat(open.clone.style.height);
+      const target = computeTarget(open.startRect);
+      open.scale = target.scale;
+      open.targetRect = {
+        left: window.innerWidth / 2 - W / 2,
+        top: window.innerHeight / 2 - H / 2,
+        width: W * target.scale,
+        height: H * target.scale,
+      };
+      open.clone.style.left = `${window.innerWidth / 2 - W / 2}px`;
+      open.clone.style.top = `${window.innerHeight / 2 - H / 2}px`;
+      open.clone.style.transform = `perspective(1200px) scale(${target.scale})`;
+    });
+  }
+</script>
