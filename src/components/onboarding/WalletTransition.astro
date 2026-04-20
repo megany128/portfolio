@@ -592,7 +592,7 @@
         "transition:transform 820ms cubic-bezier(0.22,1,0.36,1),opacity 820ms cubic-bezier(0.22,1,0.36,1)",
         `text-shadow:0 0 10px ${color}, 0 0 4px rgba(255,255,255,0.85)`,
       ].join(";");
-      overlay.appendChild(s);
+      overlay!.appendChild(s);
       requestAnimationFrame(() => {
         s.style.opacity = "1";
         s.style.transform = `translate(calc(-50% + ${driftX * 0.35}px), calc(-50% + ${driftY * 0.35}px)) scale(1.2) rotate(${rot * 0.4}deg)`;

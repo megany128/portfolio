@@ -122,10 +122,10 @@
   };
 
   const root = document.querySelector<HTMLElement>("[data-sandbox]");
-  const canvas = document.querySelector<HTMLCanvasElement>("[data-sandbox-canvas]");
+  const canvas = document.querySelector<HTMLCanvasElement>("[data-sandbox-canvas]")!;
   if (!root || !canvas) throw new Error("Sandbox elements missing");
 
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d")!;
   if (!ctx) throw new Error("2D context unavailable");
 
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

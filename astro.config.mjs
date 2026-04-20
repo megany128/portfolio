@@ -9,7 +9,7 @@ export default defineConfig({
     platformProxy: { enabled: true },
   }),
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [/** @type {any} */ (tailwindcss())],
     server: {
       // Miniflare (platformProxy) churns SQLite WAL/SHM files under
       // .wrangler/state on every D1 read. Without this, each /onboarding

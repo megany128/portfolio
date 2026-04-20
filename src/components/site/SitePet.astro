@@ -197,8 +197,9 @@
   .site-pet__hit {
     display: block;
     position: relative;
-    padding: 0;
-    margin: 0;
+    /* Extra hit slop so taps don't miss and pass through to cards below */
+    padding: 12px;
+    margin: -12px;
     border: 0;
     background: transparent;
     cursor: grab;
@@ -210,6 +211,10 @@
   }
   .site-pet[data-dragging] .site-pet__hit {
     cursor: grabbing;
+  }
+  .site-pet[data-on-clickable] .site-pet__hit {
+    padding: 20px;
+    margin: -20px;
   }
   .site-pet__svg {
     display: block;
@@ -642,7 +647,7 @@
 
     const PET_W = 44;
     const PET_H = 56;
-    const MARGIN_R = 12;
+    const _MARGIN_R = 12;
     const SPEED = 34; // px / sec
 
     // Quips keyed by event. Picked at random each time.
@@ -710,6 +715,8 @@
       "psst",
       "megan hasn't fed me\nin three days",
       "have you tried putting\na hat on me yet?",
+      "i bet i could stand\non one of those...",
+      "try dropping me\non something!",
     ];
     const CASE_STUDY_PHRASES = [
       "ooh interesting",
@@ -720,6 +727,144 @@
       "fascinating",
       "i love this project",
       "wait how'd she do that",
+    ];
+    const PLAYGROUND_PHRASES = [
+      "whooaaa",
+      "what's gonna be here?",
+      "curious...",
+      "coming soon huh",
+      "i wanna play!",
+      "the stars are pretty",
+      "feels cosmic in here",
+      "are we in space??",
+    ];
+    const ABOUT_PHRASES = [
+      "wow a sticker shop?!?",
+      "brandon sanderson fan!\ngood taste",
+      "she plays hades?? nice",
+      "terraforming mars is\nso good",
+      "ooh arcane",
+      "malaysia sounds cool",
+      "so many communities",
+      "laufey! good song",
+      "wingspan is my fave too",
+      "cornell huh. fancy",
+    ];
+    const GALLERY_PHRASES = [
+      "so many visitors!",
+      "ooh who's this one",
+      "i wonder who'll\ncome next",
+      "look at all\nthese people",
+      "everyone has\nsuch cool colors",
+      "am i a visitor too?",
+      "it's a party in here",
+      "the gallery is growing!",
+    ];
+    const LEDGE_LAND_PHRASES = [
+      "nice view up here",
+      "i can see everything!",
+      "ooh a perch",
+      "cozy spot",
+      "i live here now",
+      "higher ground!",
+      "king of the hill",
+      "don't look down",
+    ];
+    const LEDGE_IDLE_PHRASES = [
+      "kinda high up huh",
+      "wonder what's below",
+      "living on the edge",
+      "i'm supervising",
+      "overseeing operations",
+      "this is my domain now",
+      "megan can't reach me\nup here",
+      "contemplating existence",
+    ];
+    // Context-specific perch phrases keyed by selector match
+    const PERCH_CONTEXT: { match: string; phrases: string[] }[] = [
+      { match: "[data-toc]", phrases: [
+        "i'm the explore guide now",
+        "which page next?",
+        "navigation assistant\nreporting for duty",
+        "pick a page, any page",
+      ]},
+      { match: "[data-latest-log]", phrases: [
+        "ooh fresh updates",
+        "breaking news!",
+        "i'm on top of\nthe news",
+        "latest scoop right here",
+      ]},
+      { match: ".index-card", phrases: [
+        "this project looks cool",
+        "i'm guarding this one",
+        "click it! click it!",
+        "megan worked hard\non this",
+        "i helped (i didn't)",
+      ]},
+      { match: "[data-portrait]", phrases: [
+        "nice photo!",
+        "she's so photogenic",
+        "sitting on her head hehe",
+        "portrait guardian",
+      ]},
+      { match: "[data-community-card]", phrases: [
+        "ooh a club!",
+        "megan's so involved",
+        "community vibes",
+        "she's busy huh",
+      ]},
+      { match: "[data-fave]", phrases: [
+        "good taste confirmed",
+        "i approve of this pick",
+        "ooh what's this one?",
+        "megan's favorites\nare elite",
+      ]},
+      { match: "[data-mini-card-wrap]", phrases: [
+        "hi visitor!",
+        "whose card is this?",
+        "nice color choice",
+        "welcome welcome",
+      ]},
+      { match: ".cs-solution-card", phrases: [
+        "smart solution",
+        "design brain activated",
+        "this is clever",
+        "i see what she did here",
+      ]},
+      { match: ".cs-hero", phrases: [
+        "hero shot! dramatic",
+        "big picture energy",
+        "the main event",
+        "sitting on the banner",
+      ]},
+      { match: ".cs-phone", phrases: [
+        "tiny phone! cute",
+        "can i download this?",
+        "app looks nice",
+        "mobile vibes",
+      ]},
+      { match: ".cs-feature-tile", phrases: [
+        "feature spotted",
+        "ooh what's this do?",
+        "fancy feature",
+        "reading the specs",
+      ]},
+      { match: ".cs-reflection-tile", phrases: [
+        "reflective moment",
+        "deep thoughts",
+        "she learned things!",
+        "growth mindset",
+      ]},
+    ];
+    const LEDGE_FALL_PHRASES = [
+      "AHHH",
+      "woah woah woah—",
+      "not again!",
+      "gravity why",
+      "i slipped!!",
+      "floor is lava— wait no",
+      "mayday mayday",
+      "aaand down we go",
     ];
 
     let x = 40;
@@ -754,6 +899,150 @@
     // Pointer velocity tracking — feeds the launch velocity on drop so a
     // quick flick actually throws the pet instead of dropping it.
     let ptrHistory: { t: number; x: number; y: number }[] = [];
+
+    // Ledge system — pet can be dropped onto DOM elements and walk on them.
+    const LEDGE_SELECTORS = [
+      // Home
+      "[data-toc], .index-card, [data-latest-log]",
+      // About
+      "[data-portrait], [data-community-card], [data-fave]",
+      // Visitor Gallery
+      "[data-mini-card-wrap]",
+      // Case studies
+      ".cs-solution-card, .cs-feature-tile, .cs-phone, .cs-reflection-tile",
+      ".cs-hero",
+    ].join(", ");
+    let currentLedge: HTMLElement | null = null; // element the pet is perched on
+    let ledgeGroundY = 0; // viewport-bottom-relative ground when on a ledge
+    let ledgeLeftWall = 0;
+    let ledgeRightWall = 0;
+    const LEDGE_FALL_CHANCE = 0.03; // 3% chance to slip off on wall bump
+    let isScrolling = false;
+    let lastLedgeTop = 0; // track ledge vertical position for wobble detection
+    let ledgeWobbleAccum = 0; // accumulated scroll movement while perched
+    let lastWobbleQuipAt = 0; // throttle wobble quips
+    const LEDGE_WOBBLE_PHRASES = [
+      "w-woah!",
+      "hey! steady!",
+      "earthquake!!",
+      "whoaaa",
+      "i'm gonna fall!",
+      "hold on hold on",
+      "the ground is moving!",
+      "stop scrolling!",
+      "ahhh shaky!",
+      "too wobbly!!",
+    ];
+
+    function findLedgeAtPosition(px: number, py: number): HTMLElement | null {
+      // Find all ledge elements and check if the pet's feet overlap any.
+      const candidates = document.querySelectorAll<HTMLElement>(LEDGE_SELECTORS);
+      let best: HTMLElement | null = null;
+      let bestDist = Infinity;
+      for (const el of candidates) {
+        const r = el.getBoundingClientRect();
+        // Pet feet position: px is left edge, py is bottom of pet (feet).
+        // Check horizontal overlap: pet center within element bounds
+        const petCenter = px + PET_W / 2;
+        if (petCenter < r.left - 10 || petCenter > r.right + 10) continue;
+        // Check vertical: pet feet should be near the top edge of element
+        // (within 30px above or 15px below the top)
+        const distToTop = Math.abs(py - r.top);
+        if (distToTop < 30 && distToTop < bestDist) {
+          best = el;
+          bestDist = distToTop;
+        }
+      }
+      return best;
+    }
+
+    function mountLedge(ledge: HTMLElement) {
+      currentLedge = ledge;
+      lastLedgeTop = ledge.getBoundingClientRect().top;
+      ledgeWobbleAccum = 0;
+      updateLedgeBounds();
+      // Flag for extra hit slop when perched on clickable elements
+      const pet = el();
+      if (pet) {
+        if (ledge.matches("a, [data-cursor]")) {
+          pet.setAttribute("data-on-clickable", "");
+        } else {
+          pet.removeAttribute("data-on-clickable");
+        }
+      }
+    }
+
+    function updateLedgeBounds() {
+      if (!currentLedge) return;
+      const r = currentLedge.getBoundingClientRect();
+      // Detect vertical movement of ledge (scrolling) for wobble quips
+      const newTop = r.top;
+      if (lastLedgeTop !== 0) {
+        const delta = Math.abs(newTop - lastLedgeTop);
+        if (delta > 1) {
+          ledgeWobbleAccum += delta;
+          const now = performance.now();
+          // Trigger wobble quip after 40px of accumulated movement, throttled to every 3s
+          if (ledgeWobbleAccum > 40 && now - lastWobbleQuipAt > 3000) {
+            const pet = el();
+            if (pet && !dragging && !dizzy) {
+              saySomething(pet, LEDGE_WOBBLE_PHRASES, 1600);
+              lastWobbleQuipAt = now;
+            }
+            ledgeWobbleAccum = 0;
+          }
+        }
+      }
+      lastLedgeTop = newTop;
+      // Ground offset from viewport bottom to the ledge's top edge
+      ledgeGroundY = window.innerHeight - r.top;
+      // Walk walls = ledge horizontal bounds (with padding)
+      ledgeLeftWall = Math.max(0, r.left + 4);
+      ledgeRightWall = Math.max(ledgeLeftWall + 4, r.right - PET_W - 4);
+    }
+
+    let fallSuspended = false; // true during the "hang time" before a ledge fall
+    let fallResumeAt = 0;
+
+    function dismountLedge() {
+      // Convert current absolute position to ground-relative y so pet
+      // doesn't teleport — it should fall from where it was.
+      const oldGroundOffset = ledgeGroundY;
+      currentLedge = null;
+      ledgeGroundY = 0;
+      const pet = el();
+      if (pet) pet.removeAttribute("data-on-clickable");
+      // Compute what the new groundOffset will be (footer-based)
+      const footer = document.querySelector<HTMLElement>("footer[data-footer-root]");
+      let newGround = 0;
+      if (footer) {
+        const fr = footer.getBoundingClientRect();
+        if (fr.top < window.innerHeight && fr.bottom > 0) {
+          newGround = Math.max(0, window.innerHeight - fr.top);
+        }
+      }
+      // Pet was at y=0 relative to ledge ground. Its absolute viewport-bottom
+      // distance was oldGroundOffset. New y = oldGroundOffset - newGround.
+      const rawY = Math.max(0, oldGroundOffset - newGround + y);
+      // If pet would start above viewport, give it initial downward velocity
+      // so it enters the screen already moving fast (no appearing-then-falling).
+      const viewportTop = window.innerHeight - PET_H - newGround;
+      if (rawY > viewportTop) {
+        y = rawY;
+        // Pre-calculate velocity needed to look like it's been falling
+        // from above: v = sqrt(2 * g * distance_above_viewport)
+        const distAbove = rawY - viewportTop;
+        fallSuspended = false;
+        yVel = -Math.sqrt(2 * 9000 * distAbove); // already at speed
+      } else {
+        y = rawY;
+        // Cartoon coyote moment — freeze 350ms, then plummet.
+        fallSuspended = true;
+        fallResumeAt = performance.now() + 350;
+        yVel = 0;
+      }
+      measureWalls();
+    }
 
     /*
       Pet starts confined to the sidebar — walks between its left and right
@@ -791,6 +1080,11 @@
       return Math.max(lo, Math.min(hi, v));
     }
 
+    // If dizzy, override any quip pool with dizzy phrases.
+    function dizzyOr(pool: string[]): string[] {
+      return dizzy ? DIZZY_PHRASES : pool;
+    }
+
     function saySomething(pet: HTMLElement, pool: string[], ms = 1800) {
       const bubble = pet.querySelector<HTMLElement>("[data-pet-bubble]");
       if (!bubble) return;
@@ -812,6 +1106,9 @@
     let bumpedRight = false;
 
     function bump(pet: HTMLElement, direction: 1 | -1) {
+      // On a ledge edge — just turn around silently, no bump animation/quip.
+      if (currentLedge) return;
+
       const now = performance.now();
       if (now - lastBumpAt < 600) return;
       lastBumpAt = now;
@@ -833,15 +1130,32 @@
 
     function measureGround() {
       const footer = document.querySelector<HTMLElement>("footer[data-footer-root]");
-      if (!footer) {
-        groundOffset = 0;
-        return;
+      let footerOffset = 0;
+      if (footer) {
+        const fr = footer.getBoundingClientRect();
+        if (fr.top < window.innerHeight && fr.bottom > 0) {
+          footerOffset = Math.max(0, window.innerHeight - fr.top);
+        }
       }
-      const fr = footer.getBoundingClientRect();
-      if (fr.top < window.innerHeight && fr.bottom > 0) {
-        groundOffset = Math.max(0, window.innerHeight - fr.top);
+
+      if (currentLedge) {
+        updateLedgeBounds();
+        const r = currentLedge.getBoundingClientRect();
+        // Only dismount after scroll settles — prevents glitchy mid-scroll drops.
+        // While scrolling, just track the ledge position silently.
+        const petTopVP = r.top - PET_H;
+        const offScreen = petTopVP < -20 || r.top > window.innerHeight + 10 ||
+            r.width === 0 || r.height === 0;
+        if (!dragging && offScreen && !isScrolling) {
+          const pet = el();
+          if (pet) saySomething(pet, dizzyOr(LEDGE_FALL_PHRASES), 1800);
+          dismountLedge();
+          groundOffset = footerOffset;
+          return;
+        }
+        groundOffset = ledgeGroundY;
       } else {
-        groundOffset = 0;
+        groundOffset = footerOffset;
       }
     }
 
@@ -866,14 +1180,17 @@
 
       if (!hovered && !dragging && !reduced && !inDizzy) {
         const step = SPEED * (dt / 1000);
+        // Use ledge walls when perched, otherwise normal walls.
+        const wL = currentLedge ? ledgeLeftWall : leftWall;
+        const wR = currentLedge ? ledgeRightWall : rightWall;
         // If the pet ended up outside its current walls (after a throw /
         // resize / sidebar collapse) walk it back toward the nearest wall
         // until it's inside again, then resume the normal bounce cycle.
-        if (x < leftWall) {
-          x = Math.min(leftWall, x + step);
+        if (x < wL) {
+          x = Math.min(wL, x + step);
           dir = 1;
-        } else if (x > rightWall) {
-          x = Math.max(rightWall, x - step);
+        } else if (x > wR) {
+          x = Math.max(wR, x - step);
           dir = -1;
         } else {
           // Carry any residual launch velocity first, then fall back to
@@ -886,13 +1203,28 @@
             xVel = 0;
             x += dir * step;
           }
-          if (x <= leftWall) {
-            x = leftWall;
-            if (dir === -1) bump(pet, 1);
+          if (x <= wL) {
+            x = wL;
+            if (dir === -1) {
+              // Chance to slip off ledge on wall bump
+              if (currentLedge && Math.random() < LEDGE_FALL_CHANCE) {
+                saySomething(pet, dizzyOr(LEDGE_FALL_PHRASES), 1800);
+                dismountLedge();
+              } else {
+                bump(pet, 1);
+              }
+            }
             dir = 1;
-          } else if (x >= rightWall) {
-            x = rightWall;
-            if (dir === 1) bump(pet, -1);
+          } else if (x >= wR) {
+            x = wR;
+            if (dir === 1) {
+              if (currentLedge && Math.random() < LEDGE_FALL_CHANCE) {
+                saySomething(pet, dizzyOr(LEDGE_FALL_PHRASES), 1800);
+                dismountLedge();
+              } else {
+                bump(pet, -1);
+              }
+            }
             dir = -1;
           }
         }
@@ -905,14 +1237,50 @@
         convincingly.
       */
       if (!dragging) {
+        // Hang time after ledge fall — freeze in air briefly, then kick.
+        if (fallSuspended) {
+          if (now >= fallResumeAt) {
+            fallSuspended = false;
+            yVel = 0; // start from zero — gravity does the work
+          }
+          // While suspended: no gravity, no movement — cartoon hang.
+        } else {
         const dtSec = dt / 1000;
-        // Asymmetric gravity — softer rise so big scrolls spring up
-        // convincingly, heavier fall so the landing reads snappy
-        // instead of drifting.
-        const g = yVel > 0 ? 2000 : 3200;
+        // Use much heavier gravity after a ledge fall so it reads as
+        // genuine freefall (accelerates dramatically) not a push.
+        const isFallingFromLedge = !currentLedge && yVel <= 0 && y > 40;
+        const g = yVel > 0 ? 2000 : (isFallingFromLedge ? 9000 : 3200);
         yVel -= g * dtSec;
         y += yVel * dtSec;
+
+        // Mid-flight ledge catch — while falling (not on a ledge already),
+        // check if the pet's feet cross through a ledge surface this frame.
+        if (!currentLedge && yVel < 0 && !dizzy) {
+          const petFeetVP = window.innerHeight - groundOffset - y;
+          const ledge = findLedgeAtPosition(x, petFeetVP);
+          if (ledge) {
+            const r = ledge.getBoundingClientRect();
+            // Only catch if pet is descending past the top edge (not rising through it)
+            const ledgeTopFromBottom = window.innerHeight - r.top;
+            const petAltitude = groundOffset + y;
+            // Pet should be within ~20px of ledge surface to "land"
+            if (Math.abs(petAltitude - ledgeTopFromBottom) < 20) {
+              mountLedge(ledge);
+              y = 0;
+              xVel *= 0.3; // dampen horizontal on ledge catch
+              yVel = 0;
+              if (!freeRoam) {
+                freeRoam = true;
+                try { localStorage.setItem("sitepet:freeRoam", "1"); } catch {}
+              }
+              saySomething(pet, dizzyOr(LEDGE_LAND_PHRASES), 2200);
+            }
+          }
+        }
+
         if (y <= 0) {
+          // Reset dizzy timer on first landing so full effect plays on ground
+          if (dizzy && yVel < -100) dizzyUntil = performance.now() + 2200;
           y = 0;
           if (yVel < -160) {
             yVel = -yVel * 0.1; // tiny bounce on hard landings
@@ -920,6 +1288,7 @@
             yVel = 0;
           }
         }
+        } // end else (not fallSuspended)
       }
 
       pet.style.setProperty("--pet-x", `${x}px`);
@@ -959,11 +1328,17 @@
       lift. Sign of the delta seeds jitter so the landing feels organic.
     */
     let lastScrollY = window.scrollY;
+    let scrollIdleTimer = 0;
     window.addEventListener(
       "scroll",
       () => {
+        isScrolling = true;
+        if (scrollIdleTimer) window.clearTimeout(scrollIdleTimer);
+        scrollIdleTimer = window.setTimeout(() => {
+          isScrolling = false;
+        }, 150);
 
-        if (reduced || dragging) {
+        if (reduced || dragging || currentLedge) {
           lastScrollY = window.scrollY;
           return;
         }
@@ -1001,9 +1376,9 @@
       function triggerDizzy() {
         if (dizzy) return;
         dizzy = true;
-        dizzyUntil = performance.now() + 3500;
+        dizzyUntil = performance.now() + 2200;
         pet.setAttribute("data-dizzy", "");
-        saySomething(pet, DIZZY_PHRASES, 3200);
+        saySomething(pet, DIZZY_PHRASES, 2000);
         if (emotes) {
           for (let i = 0; i < 3; i++) {
             const star = document.createElement("span");
@@ -1075,6 +1450,16 @@
           // sideways drag beyond THRESH. Small jitter stays a click.
           if (dy < -DRAG_THRESHOLD || Math.abs(dx) > DRAG_THRESHOLD * 2) {
             dragging = true;
+            // Dismount ledge on drag start — preserve absolute position
+            // so there's no visual jump before drag positioning takes over.
+            if (currentLedge) {
+              const oldGround = groundOffset;
+              currentLedge = null;
+              ledgeGroundY = 0;
+              // Convert y to be relative to viewport bottom (no ledge)
+              y = y + oldGround;
+              groundOffset = 0;
+            }
             const r = pet.getBoundingClientRect();
             dragOffsetX = ds.x - r.left;
             dragOffsetY = ds.y - r.top;
@@ -1148,40 +1533,62 @@
             yVel = 0;
           }
 
-          // Unlock/lock free roam based on drop position relative to sidebar.
-          const sidebar = document.querySelector<HTMLElement>(".site-sidebar");
-          const sidebarRight = sidebar?.getBoundingClientRect().right ?? 0;
-          if (x > sidebarRight + 20) {
+          // Ledge detection — check if pet was dropped onto a DOM element.
+          // Pet feet position in viewport coords:
+          const petFeetY = window.innerHeight - groundOffset - y;
+          const ledge = findLedgeAtPosition(x, petFeetY);
+          if (ledge && !dizzy) {
+            // Land on ledge — cancel velocity, snap to surface.
+            xVel = 0;
+            yVel = 0;
+            mountLedge(ledge);
+            // Snap y to ledge surface
+            y = 0;
+            // Ensure free roam is on (must be to walk on ledges in main area)
             if (!freeRoam) {
               freeRoam = true;
-              try {
-                localStorage.setItem("sitepet:freeRoam", "1");
-              } catch {}
-              measureWalls();
-              saySomething(
-                pet,
-                [
-                  "ooo i've never been here before",
-                  "whoa... the world is big",
-                  "first time out here",
-                  "oh! outside",
-                ],
-                2400,
-              );
-            } else {
-              saySomething(pet, DROP_PHRASES, 1400);
+              try { localStorage.setItem("sitepet:freeRoam", "1"); } catch {}
             }
+            saySomething(pet, dizzyOr(LEDGE_LAND_PHRASES), 2200);
           } else {
-            // Dropped back inside sidebar — re-constrain.
-            if (freeRoam) {
-              freeRoam = false;
-              try {
-                localStorage.setItem("sitepet:freeRoam", "0");
-              } catch {}
-              measureWalls();
-              saySomething(pet, ["back home", "cozy in here", "okay okay i'll stay"], 1400);
+            // Normal drop — dismount any current ledge
+            if (currentLedge) dismountLedge();
+
+            // Unlock/lock free roam based on drop position relative to sidebar.
+            const sidebar = document.querySelector<HTMLElement>(".site-sidebar");
+            const sidebarRight = sidebar?.getBoundingClientRect().right ?? 0;
+            if (x > sidebarRight + 20) {
+              if (!freeRoam) {
+                freeRoam = true;
+                try {
+                  localStorage.setItem("sitepet:freeRoam", "1");
+                } catch {}
+                measureWalls();
+                saySomething(
+                  pet,
+                  [
+                    "ooo i've never been here before",
+                    "whoa... the world is big",
+                    "first time out here",
+                    "oh! outside",
+                  ],
+                  2400,
+                );
+              } else {
+                saySomething(pet, dizzyOr(DROP_PHRASES), 1400);
+              }
             } else {
-              saySomething(pet, DROP_PHRASES, 1400);
+              // Dropped back inside sidebar — re-constrain.
+              if (freeRoam) {
+                freeRoam = false;
+                try {
+                  localStorage.setItem("sitepet:freeRoam", "0");
+                } catch {}
+                measureWalls();
+                saySomething(pet, dizzyOr(["back home", "cozy in here", "okay okay i'll stay"]), 1400);
+              } else {
+                saySomething(pet, dizzyOr(DROP_PHRASES), 1400);
+              }
             }
           }
         } else {
@@ -1200,7 +1607,7 @@
       // Safety net — if the pointer is released anywhere in the window
       // (e.g. after a lost pointer-capture), make sure the pet doesn't
       // stay pinned in "dragging" state.
-      window.addEventListener("pointerup", (e) => {
+      window.addEventListener("pointerup", (_e) => {
         if (!pressActive && !dragging) return;
         pressActive = false;
         dragPointerId = null;
@@ -1208,9 +1615,24 @@
           dragging = false;
           pet.removeAttribute("data-dragging");
           pet.removeAttribute("data-paused");
-          // Drop cleanly — let gravity handle the fall from current y.
-          yVel = 0;
-          saySomething(pet, DROP_PHRASES, 1200);
+          // Check for ledge landing even on safety-net drop
+          const petFeetY = window.innerHeight - groundOffset - y;
+          const ledge = findLedgeAtPosition(x, petFeetY);
+          if (ledge && !dizzy) {
+            xVel = 0;
+            yVel = 0;
+            mountLedge(ledge);
+            y = 0;
+            if (!freeRoam) {
+              freeRoam = true;
+              try { localStorage.setItem("sitepet:freeRoam", "1"); } catch {}
+            }
+            saySomething(pet, dizzyOr(LEDGE_LAND_PHRASES), 2200);
+          } else {
+            // Drop cleanly — let gravity handle the fall from current y.
+            yVel = 0;
+            saySomething(pet, dizzyOr(DROP_PHRASES), 1200);
+          }
         }
       });
 
@@ -1237,10 +1659,24 @@
         dizzy). Seeds the first quip 12s after the page loads so the
         behavior is discoverable.
       */
+      function perchPool(): string[] {
+        if (!currentLedge) return LEDGE_IDLE_PHRASES;
+        for (const ctx of PERCH_CONTEXT) {
+          if (currentLedge.matches(ctx.match)) {
+            // 50/50 split between context-specific and generic ledge quips
+            return Math.random() < 0.5 ? ctx.phrases : LEDGE_IDLE_PHRASES;
+          }
+        }
+        return LEDGE_IDLE_PHRASES;
+      }
       function idlePool(): string[] {
-        return window.location.pathname.startsWith("/work/")
-          ? CASE_STUDY_PHRASES
-          : IDLE_PHRASES;
+        if (currentLedge) return perchPool();
+        const path = window.location.pathname;
+        if (path.startsWith("/work/")) return CASE_STUDY_PHRASES;
+        if (path.startsWith("/playground")) return PLAYGROUND_PHRASES;
+        if (path.startsWith("/about")) return ABOUT_PHRASES;
+        if (path.startsWith("/visitor-gallery")) return GALLERY_PHRASES;
+        return IDLE_PHRASES;
       }
       function scheduleIdle() {
         const delay = 18000 + Math.random() * 16000;

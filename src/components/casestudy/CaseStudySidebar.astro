@@ -87,7 +87,7 @@ const initialActive = active ?? sections[0]?.id;
         style="height: 29px; transform: translateY(0)"
       ></span>
       {
-        sections.map((section, idx) => {
+        sections.map((section: SectionLink, idx: number) => {
           const label = `${String(idx + 1).padStart(2, "0")}. ${section.label}`;
           return (
             <li class="relative">
