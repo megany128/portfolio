@@ -27,7 +27,7 @@ const {
 } = Astro.props;
 ---
 
-<div class="mini-card-wrap relative" data-color={color} data-mini-card-wrap data-id={id}>
+<div class="mini-card-wrap relative" data-color={color} data-cursor-bg={color} data-mini-card-wrap data-id={id}>
   {isYou && (
     <span
       class="mini-card-pill absolute -top-3 left-1/2 -translate-x-1/2 z-20 font-[family-name:var(--font-mono)] font-bold text-[12px] uppercase px-1.5 py-0.5 rounded-[2.5px] tracking-wide"
@@ -38,9 +38,8 @@ const {
 
   <div
     data-color={color}
-    data-cursor-bg={color}
     data-mini-card
-    class={`mini-card relative rounded-[24px] cursor-pointer ${
+    class={`mini-card rounded-[24px] cursor-pointer ${
       isYou ? "ring-1 ring-white shadow-[0_14px_28px_-8px_rgba(0,0,0,0.28),0_4px_10px_-2px_rgba(0,0,0,0.18)]" : ""
     }`}
   >
@@ -69,8 +68,26 @@ const {
     off on will-change + preserve-3d until the user actually interacts so the
     resting state stays on the text layer (no GPU rasterization blur).
   */
+  /*
+    Gallery-card scaling — the underlying LibraryCard is fixed 388x252. We
+    scale the inner .mini-card via CSS transform and give the wrap a matching
+    layout box so flex sees the scaled size (3-4 cards fit per row).
+    Scale factor matches --mini-card-scale below.
+  */
   .mini-card-wrap {
+    --mini-card-scale: 0.72;
+    width: calc(388px * var(--mini-card-scale));
+    height: calc(252px * var(--mini-card-scale));
     transition: transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .mini-card-wrap .mini-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 388px;
+    height: 252px;
+    transform: scale(var(--mini-card-scale));
+    transform-origin: top left;
   }
   .mini-card-wrap:hover,
   .mini-card-wrap[data-tilting],

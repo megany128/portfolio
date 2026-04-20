@@ -79,6 +79,7 @@
     name: string;
     color: CardColor;
     issuedAt?: string;
+    signature?: string | null;
   };
 
   // --- Art data (mirrors LibraryCard's ARTS record) --------------------------
@@ -296,10 +297,11 @@
       })
       .join("");
 
-    // Signature overlay — only on the hero card (the rest have no stored
-    // ink yet; that's a future feature).
-    const sigHtml = signatureDataUrl
-      ? `<img class="wallet-signature" src="${signatureDataUrl}" alt="" aria-hidden="true" />`
+    // Signature overlay — hero uses the live canvas snapshot; other cards
+    // use their stored signature from the DB if present.
+    const sig = signatureDataUrl ?? card.signature ?? null;
+    const sigHtml = sig
+      ? `<img class="wallet-signature" src="${sig}" alt="" aria-hidden="true" />`
       : "";
 
     el.innerHTML = `

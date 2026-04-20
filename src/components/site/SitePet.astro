@@ -185,7 +185,7 @@
     pointer-events: none;
     --pet-x: 40px;
     --pet-y: 0px;
-    --pet-ground: 0px; /* height of the footer-top above the viewport bottom */
+    --pet-ground: 0px;
     --pet-flip: 1;
     transform: translate3d(
       var(--pet-x),
@@ -426,6 +426,7 @@
     font-size: 11px;
     line-height: 1.2;
     letter-spacing: 0.01em;
+    text-align: center;
     white-space: nowrap;
     pointer-events: none;
     opacity: 0;
@@ -645,7 +646,7 @@
     const SPEED = 34; // px / sec
 
     // Quips keyed by event. Picked at random each time.
-    const BUMP_PHRASES = ["ow!", "oof", "ouch!", "ough.", "argh", "oof!"];
+    const BUMP_PHRASES = ["ow!", "oof", "ouch!", "argh", "oof!"];
     // Click quips escalate as the user pokes the pet repeatedly. The
     // `clickCount` decays (resets) after ~5s of no clicks so the pet
     // returns to being friendly once left alone.
@@ -664,7 +665,7 @@
       "pspsps",
     ];
     const CLICK_PHRASES_ANNOYED = [
-      "why do you keep poking me?",
+      "why do you keep\npoking me?",
       "stop that",
       "okay okay",
       "quit it",
@@ -692,7 +693,7 @@
       "hello",
     ];
     const DRAG_PHRASES = [
-      "where are you taking me?",
+      "where are you\ntaking me?",
       "put me down!",
       "wheeee",
       "careful, careful",
@@ -705,10 +706,20 @@
       "just walking",
       "dum de dum",
       "anyone there?",
-      "hire megan :)",
       "hmm",
       "psst",
-      "megan hasn't fed me in three days",
+      "megan hasn't fed me\nin three days",
+      "have you tried putting\na hat on me yet?",
+    ];
+    const CASE_STUDY_PHRASES = [
+      "ooh interesting",
+      "wow she made this??",
+      "this is so cool",
+      "i'm learning things",
+      "tell me more",
+      "fascinating",
+      "i love this project",
+      "wait how'd she do that",
     ];
 
     let x = 40;
@@ -784,7 +795,11 @@
       const bubble = pet.querySelector<HTMLElement>("[data-pet-bubble]");
       if (!bubble) return;
       const phrase = pool[Math.floor(Math.random() * pool.length)];
-      bubble.textContent = phrase;
+      if (phrase.includes("\n")) {
+        bubble.innerHTML = phrase.replace(/\n/g, "<br>");
+      } else {
+        bubble.textContent = phrase;
+      }
       bubble.setAttribute("data-show", "");
       if (bubbleTimer) window.clearTimeout(bubbleTimer);
       bubbleTimer = window.setTimeout(() => bubble.removeAttribute("data-show"), ms);
@@ -823,8 +838,6 @@
         return;
       }
       const fr = footer.getBoundingClientRect();
-      // If footer's top is inside the viewport, treat it as the ground
-      // line. Otherwise (scrolled above the fold) use the viewport bottom.
       if (fr.top < window.innerHeight && fr.bottom > 0) {
         groundOffset = Math.max(0, window.innerHeight - fr.top);
       } else {
@@ -949,6 +962,7 @@
     window.addEventListener(
       "scroll",
       () => {
+
         if (reduced || dragging) {
           lastScrollY = window.scrollY;
           return;
@@ -1134,12 +1148,11 @@
             yVel = 0;
           }
 
-          // Unlock free roam the first time the pet is dropped outside
-          // the sidebar's right wall.
-          if (!freeRoam) {
-            const sidebar = document.querySelector<HTMLElement>(".site-sidebar");
-            const sidebarRight = sidebar?.getBoundingClientRect().right ?? 0;
-            if (x > sidebarRight + 20) {
+          // Unlock/lock free roam based on drop position relative to sidebar.
+          const sidebar = document.querySelector<HTMLElement>(".site-sidebar");
+          const sidebarRight = sidebar?.getBoundingClientRect().right ?? 0;
+          if (x > sidebarRight + 20) {
+            if (!freeRoam) {
               freeRoam = true;
               try {
                 localStorage.setItem("sitepet:freeRoam", "1");
@@ -1159,7 +1172,17 @@
               saySomething(pet, DROP_PHRASES, 1400);
             }
           } else {
-            saySomething(pet, DROP_PHRASES, 1400);
+            // Dropped back inside sidebar — re-constrain.
+            if (freeRoam) {
+              freeRoam = false;
+              try {
+                localStorage.setItem("sitepet:freeRoam", "0");
+              } catch {}
+              measureWalls();
+              saySomething(pet, ["back home", "cozy in here", "okay okay i'll stay"], 1400);
+            } else {
+              saySomething(pet, DROP_PHRASES, 1400);
+            }
           }
         } else {
           // No drag — short tap / click. Hop + escalating quip.
@@ -1214,18 +1237,23 @@
         dizzy). Seeds the first quip 12s after the page loads so the
         behavior is discoverable.
       */
+      function idlePool(): string[] {
+        return window.location.pathname.startsWith("/work/")
+          ? CASE_STUDY_PHRASES
+          : IDLE_PHRASES;
+      }
       function scheduleIdle() {
         const delay = 18000 + Math.random() * 16000;
         window.setTimeout(() => {
           if (!hovered && !dragging && !dizzy) {
-            saySomething(pet, IDLE_PHRASES, 2200);
+            saySomething(pet, idlePool(), 2200);
           }
           scheduleIdle();
         }, delay);
       }
       window.setTimeout(() => {
         if (!hovered && !dragging && !dizzy) {
-          saySomething(pet, IDLE_PHRASES, 2200);
+          saySomething(pet, idlePool(), 2200);
         }
         scheduleIdle();
       }, 12000);

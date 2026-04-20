@@ -30,6 +30,8 @@ const { active = "work" } = Astro.props;
 <aside
   id="site-sidebar"
   data-sidebar
+  transition:name="sidebar"
+  transition:animate="none"
   class="site-sidebar bg-[var(--color-bg-light)] flex flex-col gap-6 p-10 w-[303px] flex-shrink-0"
 >
   <button
@@ -90,7 +92,14 @@ const { active = "work" } = Astro.props;
 </aside>
 
 <style>
-  /* Desktop: static rail, tab and backdrop hidden */
+  /* Desktop: static rail, tab and backdrop hidden.
+     Sidebar gets a stacking context so ToC hover previews
+     float above main content (which uses transforms/opacity). */
+  .site-sidebar {
+    position: relative;
+    z-index: 10;
+  }
+
   .sidebar-tab,
   .sidebar-backdrop,
   .sidebar-close {

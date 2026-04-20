@@ -29,7 +29,7 @@ const cursorColor = visitor?.color ?? "pink";
           class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed flex flex-col gap-4 max-w-[897px]"
         >
           <p>
-            I grew up in sunny Malaysia and am now exploring the magical world of tech and design as a junior at Cornell. I started off with designing stickers and stationery products (fun fact: I made <span class="about-emph" data-about-emph>$10K in revenue</span> back in high school!), but now I spend most of my spare time in the digital world <span class="about-emph" data-about-emph>flibbertigibetting</span> away (iykyk).
+            I grew up in sunny Malaysia and am now exploring the magical world of tech and design as a junior at Cornell. I started off with designing stickers and stationery products, but now I spend most of my spare time in the digital world <span class="about-emph" data-about-emph>flibbertigibetting</span> away (iykyk).
           </p>
           <p>When I&rsquo;m not dreaming up product ideas, you can find me:</p>
           <ul class="about-list list-none pl-0 flex flex-col gap-1">
@@ -65,7 +65,7 @@ const cursorColor = visitor?.color ?? "pink";
           <div
             class="portrait-wrap"
             data-portrait
-            data-cursor="case-study"
+            data-cursor="photo"
             data-cursor-label="hi there!"
             style="--base-rot: -2.5deg;"
           >
@@ -78,8 +78,8 @@ const cursorColor = visitor?.color ?? "pink";
           <div
             class="portrait-wrap"
             data-portrait
-            data-cursor="case-study"
-            data-cursor-label="caught in the wild"
+            data-cursor="photo"
+            data-cursor-label="caught in the wild. photo by simon"
             style="--base-rot: 1.5deg;"
           >
             <img
@@ -91,8 +91,8 @@ const cursorColor = visitor?.color ?? "pink";
           <div
             class="portrait-wrap"
             data-portrait
-            data-cursor="case-study"
-            data-cursor-label="a sunny day"
+            data-cursor="photo"
+            data-cursor-label="ipoh, malaysia"
             style="--base-rot: -1.75deg;"
           >
             <img
@@ -245,28 +245,18 @@ const cursorColor = visitor?.color ?? "pink";
 
   /* ===========================================================
      "When I'm not dreaming up product ideas" list.
-     Custom marker swaps dot → themed emoji on hover, row nudges right.
      =========================================================== */
   .about-list li {
     display: flex;
     gap: 0.625rem;
     align-items: baseline;
-    transition: transform var(--duration-fast) var(--ease-out-soft);
   }
   .about-list__marker {
-    position: relative;
     display: inline-block;
     width: 1.25rem;
     flex-shrink: 0;
     line-height: 1;
     text-align: center;
-  }
-  .about-list__dot,
-  .about-list__emoji {
-    display: inline-block;
-    transition:
-      opacity var(--duration-fast) var(--ease-out-soft),
-      transform var(--duration-base) var(--ease-out-soft);
   }
   .about-list__dot {
     color: var(--color-ink-mute);
@@ -274,46 +264,14 @@ const cursorColor = visitor?.color ?? "pink";
     line-height: 1;
   }
   .about-list__emoji {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    font-size: 0.95rem;
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.6) rotate(-12deg);
-  }
-  .about-list li:hover {
-    transform: translateX(4px);
-  }
-  .about-list li:hover .about-list__dot {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-  .about-list li:hover .about-list__emoji {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    display: none;
   }
 
   /* ===========================================================
-     Emphasis words — subtle hand-drawn underline-on-hover.
-     Uses a gradient underline that grows from left to right.
+     Emphasis words — just ink color, no decoration.
      =========================================================== */
   .about-emph {
-    position: relative;
     color: var(--color-ink);
-    background-image: linear-gradient(
-      to right,
-      var(--color-pink-1),
-      var(--color-pink-1)
-    );
-    background-repeat: no-repeat;
-    background-position: 0 100%;
-    background-size: 0% 6px;
-    padding-bottom: 1px;
-    transition: background-size var(--duration-base) var(--ease-out-soft);
-    cursor: default;
-  }
-  .about-emph:hover {
-    background-size: 100% 6px;
   }
 
   /* ===========================================================
@@ -350,25 +308,32 @@ const cursorColor = visitor?.color ?? "pink";
 
 <script>
   /*
-    Section entry via IntersectionObserver. The Astro module script runs once
-    per document; after a ClientRouter swap the new /about sections need a
-    fresh IO otherwise they stay at `opacity: 0` (the "about page doesn't
-    load" bug). Idempotent via `data-about-io` on each observed section.
+    Section entry via IntersectionObserver. On initial page load, sections
+    fade+slide in as they enter the viewport. On SPA navigation (returning
+    to /about), sections are shown immediately — no re-animation.
   */
+  let hasVisitedAbout = false;
+
   function initAboutSections() {
-    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const sections = document.querySelectorAll<HTMLElement>(
       "[data-about-section]:not([data-about-io])"
     );
     if (sections.length === 0) return;
 
-    if (reduced || !("IntersectionObserver" in window)) {
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+    // On SPA re-visit or reduced motion: show immediately, no stagger.
+    if (reduced || hasVisitedAbout || !("IntersectionObserver" in window)) {
       sections.forEach((s) => {
         s.setAttribute("data-about-io", "1");
         s.setAttribute("data-visible", "");
       });
+      hasVisitedAbout = true;
       return;
     }
+
+    hasVisitedAbout = true;
+
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -384,7 +349,7 @@ const cursorColor = visitor?.color ?? "pink";
       s.setAttribute("data-about-io", "1");
       io.observe(s);
     });
-    // Safety: after 800ms, force any still-hidden in-viewport sections visible.
+    // Safety: after 800ms, force any still-hidden sections visible.
     window.setTimeout(() => {
       document
         .querySelectorAll<HTMLElement>("[data-about-section]:not([data-visible])")

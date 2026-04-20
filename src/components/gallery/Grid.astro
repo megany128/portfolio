@@ -38,7 +38,7 @@ const { visitors, youId, centered = false } = Astro.props;
 <!-- Detail modal — blurred backdrop + a container the grid animates a clone into. -->
 <div
   data-gallery-detail
-  class="gallery-detail fixed inset-0 z-[60] pointer-events-none opacity-0"
+  class="gallery-detail fixed inset-0 z-[100] pointer-events-none opacity-0"
   aria-hidden="true"
 >
   <div
@@ -88,6 +88,13 @@ const { visitors, youId, centered = false } = Astro.props;
   }
   .gallery-detail__stage .mini-card {
     cursor: default;
+  }
+  /* Suppress grid hover effects in the detail stage — tilt/gloss handled via JS. */
+  .gallery-detail__stage .mini-card-wrap:hover .mini-card {
+    box-shadow: none;
+  }
+  .gallery-detail__stage .mini-card-wrap:hover .mini-gloss {
+    opacity: 0;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -341,6 +348,11 @@ const { visitors, youId, centered = false } = Astro.props;
         fill: "forwards",
       });
       anim.onfinish = () => {
+        // Cancel fill:forwards so inline styles (hover tilt) can take effect.
+        clone.style.left = `${endLeft}px`;
+        clone.style.top = `${endTop}px`;
+        clone.style.transform = `perspective(1200px) scale(${target.scale})`;
+        try { anim.cancel(); } catch {}
         openHover = attachDetailHover(clone, target.scale);
       };
     };
@@ -364,9 +376,8 @@ const { visitors, youId, centered = false } = Astro.props;
       openHover = null;
 
       // Restore old source visibility, hide the next one (it's about to take
-      // the spotlight).
+      // the spotlight). Hide AFTER cloning below to avoid cloning hidden state.
       o.source.style.visibility = "";
-      nextSource.style.visibility = "hidden";
 
       // Direction convention: pressing → moves the deck leftward — old card
       // exits to the left, new card enters from the right.
@@ -391,6 +402,7 @@ const { visitors, youId, centered = false } = Astro.props;
       const nextRect = nextSource.getBoundingClientRect();
       const nextTarget = computeTarget(nextRect);
       const newClone = buildClone(nextSource, nextTarget.scale, 0, enterOffset);
+      nextSource.style.visibility = "hidden";
 
       const enterAnim = newClone.animate(
         [
@@ -404,6 +416,10 @@ const { visitors, youId, centered = false } = Astro.props;
         },
       );
       enterAnim.onfinish = () => {
+        // Cancel fill:forwards so inline tilt transforms can take effect.
+        newClone.style.opacity = "1";
+        newClone.style.transform = `perspective(1200px) scale(${nextTarget.scale})`;
+        try { enterAnim.cancel(); } catch {}
         openHover = attachDetailHover(newClone, nextTarget.scale);
       };
 

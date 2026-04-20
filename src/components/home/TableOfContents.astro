@@ -422,7 +422,16 @@ const items: { key: ActiveKey; label: string; href: string }[] = [
         return list!.querySelector<HTMLElement>(`[data-toc-item][data-key="${active}"]`);
       }
 
-      requestAnimationFrame(() => moveTo(activeItem()));
+      // Position pill instantly on mount (no transition), then enable
+      // transitions for hover interactions only.
+      pill.style.transition = "none";
+      requestAnimationFrame(() => {
+        moveTo(activeItem());
+        // Re-enable transitions after the initial placement frame.
+        requestAnimationFrame(() => {
+          pill.style.transition = "";
+        });
+      });
 
       list.querySelectorAll<HTMLElement>("[data-toc-item]").forEach((item) => {
         item.addEventListener("mouseenter", () => moveTo(item));

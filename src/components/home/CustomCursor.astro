@@ -25,6 +25,7 @@ const { color = "pink" } = Astro.props;
   class="custom-cursor pointer-events-none fixed top-0 left-0 z-[100] hidden"
 >
   <div data-cursor-shape class="custom-cursor__shape">
+    <svg data-cursor-icon class="cursor-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
     <span data-cursor-label class="cursor-label">View case study</span>
   </div>
 </div>
@@ -65,6 +66,7 @@ const { color = "pink" } = Astro.props;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
     overflow: hidden;
     transition:
       width 0.22s var(--ease-out-soft, cubic-bezier(0.22,1,0.36,1)),
@@ -80,6 +82,12 @@ const { color = "pink" } = Astro.props;
      in the negative space between interactive elements. */
   .custom-cursor[data-mode="dot"] .custom-cursor__shape {
     transition-duration: 0.14s;
+  }
+
+  .cursor-icon {
+    opacity: 0;
+    flex-shrink: 0;
+    transition: opacity 0.18s ease-out;
   }
 
   .cursor-label {
@@ -98,17 +106,45 @@ const { color = "pink" } = Astro.props;
   }
 
   .custom-cursor[data-mode="case-study"] .custom-cursor__shape {
-    width: 156px;
+    width: 172px;
     height: 36px;
-    margin-left: -78px;
+    margin-left: -86px;
     margin-top: -18px;
     border-radius: 18px;
     padding: 0 16px;
   }
 
+  .custom-cursor[data-mode="case-study"] .cursor-icon {
+    opacity: 1;
+    transition: opacity 0.18s 0.08s ease-out;
+  }
+
   .custom-cursor[data-mode="case-study"] .cursor-label {
     opacity: 1;
     transition: opacity 0.18s 0.08s ease-out;
+  }
+
+  /* Photo tag — replaces cursor entirely as a centered pill. */
+  .custom-cursor[data-mode="photo"] .custom-cursor__shape {
+    width: auto;
+    min-width: 72px;
+    height: 24px;
+    padding: 0 10px;
+    margin-left: -36px;
+    margin-top: -12px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 10px;
+    backdrop-filter: blur(4px);
+  }
+  .custom-cursor[data-mode="photo"] .cursor-label {
+    opacity: 1;
+    transition: opacity 0.18s 0.08s ease-out;
+  }
+  .custom-cursor[data-conflict][data-mode="photo"] .custom-cursor__shape {
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
   }
 
   /* Color conflict — swap to contrast over matching bg. */
@@ -272,7 +308,12 @@ const { color = "pink" } = Astro.props;
     // new page originally rendered with `hidden`).
     document.addEventListener("astro:page-load", () => {
       const c = el();
-      if (c) c.classList.remove("hidden");
+      if (c) {
+        c.classList.remove("hidden");
+        // Restore visibility — mouseleave may have fired during the page
+        // swap and mouseenter won't re-fire if pointer is already inside.
+        if (initialized) c.style.opacity = "1";
+      }
       document.documentElement.setAttribute("data-custom-cursor-active", "");
     });
   })();

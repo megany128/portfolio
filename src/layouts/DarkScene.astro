@@ -18,7 +18,7 @@ const {
 } = Astro.props;
 ---
 
-<BaseLayout title={title} description={description} bodyClass="bg-[var(--color-ink)] text-[var(--color-ink-inverted)]">
+<BaseLayout title={title} description={description} bodyClass="bg-[var(--color-ink)] text-[var(--color-ink-inverted)]" showPet={false}>
   <div class="relative min-h-dvh overflow-hidden">
     {showSparkles && <Sparkles />}
     <slot />

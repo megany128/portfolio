@@ -7,12 +7,14 @@ interface Props {
   title?: string;
   description?: string;
   bodyClass?: string;
+  showPet?: boolean;
 }
 
 const {
   title = "Megan Yap",
   description = "Portfolio of Megan Yap.",
   bodyClass = "",
+  showPet = true,
 } = Astro.props;
 ---
 
@@ -35,31 +37,12 @@ const {
 
     <style is:global>
       /*
-        View Transitions — global customizations.
-        Root page crossfade is handled by Astro's defaults, but we soften the
-        duration and use the same ease as the rest of the motion vocabulary.
+        View Transitions — disable all default animations so page swaps
+        are instant. Named groups (wallet-veil) can opt back in.
       */
-      @view-transition {
-        navigation: auto;
-      }
-
       ::view-transition-old(root),
       ::view-transition-new(root) {
-        animation-duration: 420ms;
-        animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-      }
-
-      /* The welcome ↔ onboarding sunrise runs as a DOM overlay pinned to
-         <html> that's already fully covering the screen by the time we
-         navigate. Astro's default 420ms root crossfade underneath would
-         just be dead time behind the cover, so we collapse the pseudo
-         animations to a single frame for this flow only — gated via the
-         `data-sunrise-play` attribute. The attribute is cleared once the
-         overlay finishes its cross-reveal, so every other navigation
-         keeps the default crossfade. */
-      html[data-sunrise-play]::view-transition-old(root),
-      html[data-sunrise-play]::view-transition-new(root) {
-        animation-duration: 1ms !important;
+        animation: none !important;
       }
 
       /* Wallet finale: the cream overlay on onboarding shares `wallet-veil`
@@ -71,16 +54,23 @@ const {
         animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
       }
 
-      @media (prefers-reduced-motion: reduce) {
-        ::view-transition-old(*),
-        ::view-transition-new(*) {
-          animation-duration: 0.001ms !important;
-        }
+      /* Sunrise flow — already covered by instant root, but keep for safety. */
+      html[data-sunrise-play]::view-transition-old(root),
+      html[data-sunrise-play]::view-transition-new(root) {
+        animation: none !important;
+      }
+
+      /* Named groups (sidebar, footer) — no animation either. */
+      ::view-transition-old(sidebar),
+      ::view-transition-new(sidebar),
+      ::view-transition-old(footer),
+      ::view-transition-new(footer) {
+        animation: none !important;
       }
     </style>
   </head>
   <body class={bodyClass}>
     <slot />
-    <SitePet />
+    {showPet && <SitePet />}
   </body>
 </html>
