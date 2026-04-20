@@ -1,0 +1,436 @@
+---
+type ActiveKey = "work" | "about" | "playground" | "gallery";
+
+interface Props {
+  active?: ActiveKey;
+}
+
+const { active = "work" } = Astro.props;
+
+const items: { key: ActiveKey; label: string; href: string }[] = [
+  { key: "work", label: "01. My Work", href: "/home" },
+  { key: "about", label: "02. About Me", href: "/about" },
+  { key: "playground", label: "03. Playground", href: "/playground" },
+  { key: "gallery", label: "04. Visitor Gallery", href: "/visitor-gallery" },
+];
+---
+
+<nav
+  data-toc
+  data-active={active}
+  class="rounded-[12px] p-3 w-[223px] max-w-full"
+  style="background: #ddd6c0;"
+>
+  <p class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink)] mb-2">
+    Explore
+  </p>
+  <ul data-toc-list class="relative flex flex-col gap-1">
+    <!-- Animated active pill, JS positions it under the active <li>. -->
+    <span
+      data-toc-pill
+      aria-hidden="true"
+      class="absolute left-0 right-0 rounded-[8px] transition-[transform,height,opacity] duration-[var(--duration-base)] ease-[var(--ease-out-soft)] pointer-events-none opacity-0"
+      data-pill-bg
+      style="background: #c3ba9c;"
+      style="height: 24px; transform: translateY(0)"
+    ></span>
+    {
+      items.map((item) => (
+        <li class="relative">
+          <a
+            href={item.href}
+            data-toc-item
+            data-key={item.key}
+            class={`group relative flex items-center justify-between px-1.5 py-1 rounded-[8px] text-base transition-[color,padding] duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:pl-2.5 ${
+              item.key === active
+                ? "text-[var(--color-ink)]"
+                : "text-[var(--color-ink-dim)] hover:text-[var(--color-ink)]"
+            }`}
+          >
+            <span>{item.label}</span>
+            <span aria-hidden="true" class="transition-transform duration-[var(--duration-fast)] group-hover:translate-x-1">→</span>
+          </a>
+
+          {/*
+            Hover preview: a small stylized miniature of the actual page,
+            floats to the right of the nav into the main content area.
+            Purely decorative — aria-hidden so screen readers skip it.
+          */}
+          <div class:list={["toc-preview", `toc-preview--${item.key}`]} aria-hidden="true">
+            {item.key === "work" && (
+              <>
+                <span class="tp-log" aria-hidden="true">
+                  <svg viewBox="0 0 180 8" preserveAspectRatio="none">
+                    <path
+                      d="M6,5 Q14,2 22,5 T38,5 L52,3 Q58,7 64,3 L78,5 Q86,2 96,5 l12,-1 q10,4 18,0 l12,1 q10,-3 20,0 l10,2"
+                      stroke="#f3f1eb"
+                      stroke-width="1.2"
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      opacity="0.55"
+                    />
+                  </svg>
+                </span>
+                <div class="tp-grid">
+                  <span class="tp-card tp-card--a">
+                    <span class="tp-card__image"></span>
+                    <span class="tp-card__title"></span>
+                  </span>
+                  <span class="tp-card tp-card--b">
+                    <span class="tp-card__image"></span>
+                    <span class="tp-card__title"></span>
+                  </span>
+                  <span class="tp-card tp-card--c">
+                    <span class="tp-card__image"></span>
+                    <span class="tp-card__title"></span>
+                  </span>
+                  <span class="tp-card tp-card--d">
+                    <span class="tp-card__image"></span>
+                    <span class="tp-card__title"></span>
+                  </span>
+                </div>
+              </>
+            )}
+            {item.key === "about" && (
+              <>
+                <span class="tp-about__title">Hi, I&rsquo;m Megan!</span>
+                <span class="tp-about__line tp-about__line--a"></span>
+                <span class="tp-about__line tp-about__line--b"></span>
+                <div class="tp-about__photos">
+                  <span class="tp-photo tp-photo--a"></span>
+                  <span class="tp-photo tp-photo--b"></span>
+                  <span class="tp-photo tp-photo--c"></span>
+                </div>
+              </>
+            )}
+            {item.key === "playground" && (
+              <>
+                <span class="tp-pg__star tp-pg__star--a"></span>
+                <span class="tp-pg__star tp-pg__star--b"></span>
+                <span class="tp-pg__star tp-pg__star--c"></span>
+                <span class="tp-pg__star tp-pg__star--d"></span>
+                <span class="tp-pg__star tp-pg__star--e"></span>
+                <span class="tp-pg__chip">coming soon</span>
+              </>
+            )}
+            {item.key === "gallery" && (
+              <>
+                <span class="tp-gal__title">Visitor Gallery</span>
+                <div class="tp-gal__grid">
+                  <span class="tp-gcard tp-gcard--pink"></span>
+                  <span class="tp-gcard tp-gcard--teal"></span>
+                  <span class="tp-gcard tp-gcard--orange"></span>
+                  <span class="tp-gcard tp-gcard--green"></span>
+                </div>
+              </>
+            )}
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  /*
+    Hover preview: absolute-positioned card that floats to the right of each
+    nav item and escapes the sidebar into the main content area on hover.
+    Each preview is a distinct mini-composition that echoes its destination:
+
+      - work       → mini index cards (matches the gallery)
+      - about      → sparkle + text lines + color swatches (matches /about)
+      - playground → dark cosmic + stars + "coming soon" chip
+      - gallery    → 2x2 grid of library-card color swatches
+  */
+  .toc-preview {
+    position: absolute;
+    left: calc(100% + 32px);
+    top: 50%;
+    width: 200px;
+    height: 130px;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow:
+      0 18px 36px -16px rgba(36, 36, 36, 0.35),
+      0 4px 10px -4px rgba(36, 36, 36, 0.2);
+    background: var(--color-bg-light);
+    border: 1px solid color-mix(in oklab, var(--color-ink) 10%, transparent);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-50%) translateX(-8px);
+    transition:
+      opacity 220ms var(--ease-out-soft),
+      transform 280ms var(--ease-out-soft);
+    z-index: 40;
+  }
+  li:hover > .toc-preview {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+
+  /* === Work preview ===
+     Mirrors the home gallery: a dark LatestLog strip at top + a 2x2 grid
+     of tilted archival index cards below. */
+  .toc-preview--work {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: var(--color-bg);
+  }
+  /* LatestLog strip: solid ink block with a quiet white scribble inside —
+     reads as "a line of handwritten log" rather than a dead rectangle. */
+  .tp-log {
+    display: block;
+    height: 16px;
+    border-radius: 3px;
+    background: var(--color-ink);
+    padding: 4px 8px;
+    overflow: hidden;
+  }
+  .tp-log svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .tp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 6px;
+    flex: 1;
+  }
+  .tp-card {
+    position: relative;
+    background: var(--color-bg-light);
+    border-radius: 4px;
+    border: 1px solid color-mix(in oklab, var(--color-ink) 10%, transparent);
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    transform: rotate(var(--tp-tilt, 0deg));
+  }
+  .tp-card--a { --tp-tilt: -1deg; }
+  .tp-card--b { --tp-tilt: 1deg; }
+  .tp-card--c { --tp-tilt: -1.5deg; }
+  .tp-card--d { --tp-tilt: 0.8deg; }
+  .tp-card__hole {
+    position: absolute;
+    top: 3px;
+    left: 4px;
+    width: 3px;
+    height: 3px;
+    border-radius: 9999px;
+    background: var(--color-bg);
+    box-shadow: inset 0 0.5px 0.5px rgba(36, 36, 36, 0.4);
+  }
+  .tp-card__image {
+    margin-top: 4px;
+    flex: 1;
+    min-height: 14px;
+    border-radius: 2px;
+    background: linear-gradient(135deg, var(--color-pink-1) 0%, var(--color-teal-3) 100%);
+  }
+  .tp-card--b .tp-card__image { background: linear-gradient(135deg, var(--color-orange-1) 0%, var(--color-pink-2) 100%); }
+  .tp-card--c .tp-card__image { background: linear-gradient(135deg, var(--color-teal-3) 0%, var(--color-green-1) 100%); }
+  .tp-card--d .tp-card__image { background: linear-gradient(135deg, var(--color-ink) 0%, var(--color-pink-1) 100%); }
+  .tp-card__title {
+    height: 3px;
+    width: 55%;
+    border-radius: 2px;
+    background: color-mix(in oklab, var(--color-ink) 60%, transparent);
+  }
+
+  /* === About preview ===
+     Mirrors /about: serif heading on top, body-copy lines, and a row of
+     three tilted polaroid-style photos (the real page has 3 photos). */
+  .toc-preview--about {
+    background: var(--color-bg);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 12px 12px 10px;
+  }
+  .tp-about__title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 13px;
+    color: var(--color-ink);
+    line-height: 1;
+  }
+  .tp-about__line {
+    display: block;
+    height: 3px;
+    border-radius: 2px;
+    background: color-mix(in oklab, var(--color-ink) 30%, transparent);
+  }
+  .tp-about__line--a { width: 90%; margin-top: 2px; }
+  .tp-about__line--b { width: 70%; }
+  .tp-about__photos {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr 1fr;
+    gap: 4px;
+    margin-top: auto;
+    padding-top: 4px;
+  }
+  .tp-photo {
+    height: 44px;
+    border-radius: 3px;
+    border: 1px solid color-mix(in oklab, var(--color-ink) 10%, transparent);
+    background: linear-gradient(160deg, var(--color-orange-1) 0%, var(--color-pink-2) 100%);
+    box-shadow: 0 2px 4px -2px rgba(36, 36, 36, 0.25);
+    transform: rotate(var(--tp-photo-tilt, 0deg));
+  }
+  .tp-photo--a { --tp-photo-tilt: -3deg; background: linear-gradient(160deg, #e3a06b, #8e6a4a); }
+  .tp-photo--b { --tp-photo-tilt: 1deg; background: linear-gradient(160deg, var(--color-teal-3), var(--color-teal)); }
+  .tp-photo--c { --tp-photo-tilt: 2.5deg; background: linear-gradient(160deg, var(--color-pink-1), var(--color-orange-0)); }
+
+  /* === Playground preview === */
+  .toc-preview--playground {
+    background: linear-gradient(135deg, var(--color-cosmos-1, #1b1f30) 0%, var(--color-cosmos, #0a0d16) 100%);
+    border-color: rgba(234, 230, 219, 0.1);
+    overflow: hidden;
+  }
+  .tp-pg__star {
+    position: absolute;
+    background: #fff;
+    border-radius: 9999px;
+    box-shadow: 0 0 3px rgba(255,255,255,0.6);
+    width: 2px;
+    height: 2px;
+  }
+  .tp-pg__star--a { top: 18px; left: 30px; }
+  .tp-pg__star--b { top: 40px; left: 150px; width: 2.5px; height: 2.5px; }
+  .tp-pg__star--c { top: 85px; left: 50px; }
+  .tp-pg__star--d { top: 95px; left: 160px; }
+  .tp-pg__star--e { top: 28px; left: 100px; width: 1.5px; height: 1.5px; }
+  .tp-pg__chip {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: rgba(234, 230, 219, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(234, 230, 219, 0.24);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-starlight, #d8dde8);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  /* === Gallery preview ===
+     Mirrors /visitor-gallery: a title strip at top, then a loose 2x2 grid
+     of library-card colors with slight tilt + a faint signature line. */
+  .toc-preview--gallery {
+    background: var(--color-bg);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px;
+  }
+  .tp-gal__title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 13px;
+    color: var(--color-ink);
+    line-height: 1;
+  }
+  .tp-gal__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    flex: 1;
+  }
+  .tp-gcard {
+    position: relative;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 5px;
+    transform: rotate(var(--tp-gcard-tilt, 0deg));
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  /* A tiny white signature line at the bottom of each card, mirroring the
+     actual LibraryCard's bottom border "x _______" rhythm. */
+  .tp-gcard::after {
+    content: "";
+    display: block;
+    height: 1px;
+    width: 70%;
+    background: rgba(255, 255, 255, 0.6);
+    margin-left: auto;
+  }
+  .tp-gcard--pink   { background: var(--color-pink); --tp-gcard-tilt: -1.5deg; }
+  .tp-gcard--teal   { background: var(--color-teal); --tp-gcard-tilt: 1deg; }
+  .tp-gcard--orange { background: var(--color-orange); --tp-gcard-tilt: 1.2deg; }
+  .tp-gcard--green  { background: var(--color-green); --tp-gcard-tilt: -1deg; }
+
+  /* Hide previews on narrow screens — the sidebar is a drawer there and
+     the preview would either overflow the drawer or float over the page. */
+  @media (max-width: 1023px) {
+    .toc-preview { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .toc-preview {
+      transition: opacity 120ms var(--ease-out-soft);
+      transform: translateY(-50%);
+    }
+    li:hover > .toc-preview {
+      transform: translateY(-50%);
+    }
+  }
+</style>
+
+<script>
+  /*
+    Wire TOC hover pill. Runs on initial load AND every Astro view-transition
+    swap — the module scope persists but the DOM is replaced, so a one-time
+    bind would leak listeners on a detached node and leave the new sidebar
+    inert (the "explore highlight disappears after nav" bug).
+  */
+  function wireToc() {
+    document.querySelectorAll<HTMLElement>("[data-toc]").forEach((toc) => {
+      if (toc.dataset.tocWired === "1") return;
+      toc.dataset.tocWired = "1";
+      const list = toc.querySelector<HTMLElement>("[data-toc-list]");
+      const pill = toc.querySelector<HTMLElement>("[data-toc-pill]");
+      if (!list || !pill) return;
+
+      const active = toc.dataset.active;
+
+      function moveTo(item: HTMLElement | null) {
+        if (!item) {
+          pill!.style.opacity = "0";
+          return;
+        }
+        const itemRect = item.getBoundingClientRect();
+        const listRect = list!.getBoundingClientRect();
+        const top = itemRect.top - listRect.top;
+        pill!.style.transform = `translateY(${top}px)`;
+        pill!.style.height = `${itemRect.height}px`;
+        pill!.style.opacity = "1";
+      }
+
+      function activeItem(): HTMLElement | null {
+        return list!.querySelector<HTMLElement>(`[data-toc-item][data-key="${active}"]`);
+      }
+
+      requestAnimationFrame(() => moveTo(activeItem()));
+
+      list.querySelectorAll<HTMLElement>("[data-toc-item]").forEach((item) => {
+        item.addEventListener("mouseenter", () => moveTo(item));
+      });
+      list.addEventListener("mouseleave", () => moveTo(activeItem()));
+      window.addEventListener("resize", () => moveTo(activeItem()));
+    });
+  }
+  wireToc();
+  document.addEventListener("astro:page-load", wireToc);
+</script>

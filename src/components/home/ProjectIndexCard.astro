@@ -1,0 +1,332 @@
+---
+/*
+  Project index card — Figma spec (node 178:615 default / 179:639 expanded).
+  Cream paper block with a small hole-punch + "No. NN" badge, hero image,
+  title + tags, short description. On hover the title scales up, a hairline
+  divider appears, and a ROLE / TEAM / TIMEFRAME grid slides in.
+*/
+
+import Tag from "../ui/Tag.astro";
+
+type Status = "SHIPPED" | "INTERNSHIP" | "HANDED OVER" | "IN PROGRESS";
+
+interface Props {
+  title: string;
+  number: number;
+  role: string;
+  team: string;
+  shipped: string;
+  status: Status;
+  sideProject?: boolean;
+  /** One-line summary shown below the title. */
+  description?: string;
+  image?: string;
+  imageHeight?: number;
+  href?: string;
+  /** Small idle rotation so a row of cards reads as a loose stack. */
+  tilt?: number;
+}
+
+const {
+  title,
+  number,
+  role,
+  team,
+  shipped,
+  status,
+  sideProject = false,
+  description,
+  image,
+  imageHeight = 228,
+  href,
+  tilt = 0,
+} = Astro.props;
+
+const Wrapper = href ? "a" : "article";
+const num = String(number).padStart(2, "0");
+---
+
+<Wrapper
+  href={href}
+  data-cursor={href ? "case-study" : undefined}
+  style={`--card-tilt: ${tilt}deg;`}
+  class:list={[
+    "index-card group relative flex flex-col",
+    href ? "cursor-none" : "cursor-default",
+  ]}
+>
+  <div class="index-card__top">
+    <span class="index-card__hole" aria-hidden="true"></span>
+    <span class="index-card__num">No. {num}</span>
+  </div>
+
+  {image && (
+    <div class="index-card__frame" style={`height: ${imageHeight}px;`}>
+      <div class="index-card__media" style={`background: url(${image}) center/cover;`} />
+    </div>
+  )}
+
+  <div class="index-card__body">
+    <div class="index-card__heading">
+      <div class="index-card__header">
+        <h3 class="index-card__title">{title}</h3>
+        <div class="index-card__tags">
+          {sideProject && <Tag>Side Project</Tag>}
+          <Tag>{status}</Tag>
+        </div>
+      </div>
+
+      {description && (
+        <p class="index-card__description">{description}</p>
+      )}
+    </div>
+
+    <div class="index-card__details">
+      <div class="index-card__details-inner">
+        <span class="index-card__rule" aria-hidden="true"></span>
+        <dl class="index-card__meta">
+          <div class="index-card__meta-row">
+            <dt>Role</dt>
+            <dd>{role}</dd>
+          </div>
+          <div class="index-card__meta-row">
+            <dt>Team</dt>
+            <dd>{team}</dd>
+          </div>
+          <div class="index-card__meta-row">
+            <dt>Timeframe</dt>
+            <dd>{shipped}</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</Wrapper>
+
+<style>
+  /*
+    Paper card. Background cream (--color-bg-light), soft warm drop shadow
+    (0 0 4px #999079 from Figma), 16px corner radius, 16px padding. The
+    inside stacks vertically with 8px gap between top row, image+body, and
+    expands on hover to reveal the meta grid.
+  */
+  .index-card {
+    background: var(--color-bg-light);
+    color: var(--color-ink);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transform: rotate(var(--card-tilt, 0deg));
+    transform-origin: 50% 40%;
+    box-shadow: 0 0 4px 0 #999079;
+    transition:
+      transform 320ms var(--ease-out-soft),
+      box-shadow 480ms var(--ease-out-soft);
+  }
+  .index-card:hover {
+    transform: rotate(0deg) translateY(-3px);
+    box-shadow: 0 12px 22px -14px rgba(36, 36, 36, 0.35), 0 0 4px 0 #999079;
+  }
+
+  /* Top row — hole punch on the left, "No. NN" on the right. */
+  .index-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .index-card__hole {
+    width: 13px;
+    height: 13px;
+    border-radius: 9999px;
+    background: var(--color-bg);
+    box-shadow:
+      inset 0 1px 1.5px rgba(36, 36, 36, 0.35),
+      inset 0 -0.5px 0.5px rgba(255, 255, 255, 0.4),
+      0 0 0 1px color-mix(in oklab, var(--color-ink) 14%, transparent);
+  }
+  .index-card__num {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--color-ink-dim);
+  }
+
+  /* Media frame. */
+  .index-card__frame {
+    position: relative;
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .index-card__media {
+    position: absolute;
+    inset: 0;
+    transform: translateZ(0);
+    transition: transform 480ms var(--ease-out-soft);
+  }
+  .index-card:hover .index-card__media {
+    transform: scale(1.03);
+  }
+
+  /* Body wrapper — single flex column with 12px gap between heading group
+     and the hidden meta (shown on hover). */
+  .index-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  .index-card__heading {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .index-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  /* Title locked to a single size across default + expanded so the card
+     doesn't pop when meta reveals on hover. */
+  .index-card__title {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 20px;
+    line-height: 1.15;
+    color: var(--color-ink);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .index-card__tags {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .index-card__description {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 12px;
+    line-height: 1.4;
+    color: #6b6553;
+  }
+
+  /*
+    Expandable meta block — collapsed to 0 height at rest, reveals on hover.
+    Grid with a single inner wrapper so the 0fr track actually collapses
+    (two direct children would flow into an auto-sized second row).
+  */
+  .index-card__details {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 320ms var(--ease-out-soft);
+  }
+  .index-card__details-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+  .index-card:hover .index-card__details {
+    grid-template-rows: 1fr;
+  }
+
+  /* Dashed divider — thin, low-contrast dots à la the Figma spec so it
+     reads as a quiet separator, not a bold line. */
+  .index-card__rule {
+    display: block;
+    width: 100%;
+    height: 1px;
+    margin-bottom: 12px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='1'><line x1='0' y1='0.5' x2='3' y2='0.5' stroke='%23242424' stroke-opacity='0.22' stroke-width='1' stroke-linecap='round'/></svg>");
+    background-repeat: repeat-x;
+    background-position: left center;
+    background-size: 8px 1px;
+    opacity: 0;
+    transition: opacity 200ms 80ms var(--ease-out-soft);
+  }
+  .index-card:hover .index-card__rule {
+    opacity: 1;
+  }
+
+  .index-card__meta {
+    margin: 0;
+    padding-bottom: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity 260ms var(--ease-out-soft),
+      transform 260ms var(--ease-out-soft);
+  }
+  .index-card:hover .index-card__meta {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Each row: mono label (width 90px) + body value, same grammar as the
+     Figma expanded card. `display: contents` on the wrapper div would
+     collapse too aggressively, so keep per-row grid columns. */
+  .index-card__meta-row {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    column-gap: 40px;
+    font-size: 12px;
+    /* line-height must leave room for descenders (g/y/p) — otherwise the
+       parent's `overflow: hidden` clips the tail of the last row. */
+    line-height: 1.4;
+  }
+  .index-card__meta dt {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--color-ink-dim);
+  }
+  .index-card__meta dd {
+    margin: 0;
+    font-family: var(--font-body);
+    color: #6b6553;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .index-card,
+    .index-card__media,
+    .index-card__title,
+    .index-card__details,
+    .index-card__rule,
+    .index-card__meta {
+      transition: none;
+    }
+    .index-card:hover {
+      transform: rotate(0deg);
+    }
+    .index-card:hover .index-card__media {
+      transform: none;
+    }
+    /* Reduced motion: keep the archival details always visible so the
+       info isn't hidden behind an interaction people can't trigger. */
+    .index-card__details {
+      grid-template-rows: 1fr;
+    }
+    .index-card__rule,
+    .index-card__meta {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>

@@ -1,0 +1,279 @@
+---
+import type { CardColor } from "../../lib/visitor";
+
+interface Props {
+  /** The visitor's selected card color. Defaults to pink for first-timers. */
+  color?: CardColor;
+}
+
+const { color = "pink" } = Astro.props;
+---
+
+<!--
+  Two-element cursor:
+    [data-custom-cursor] = positioning anchor (0×0). JS sets transform here.
+    [data-cursor-shape]  = visual. Uses negative margins for centering so the
+                           offset transitions in lockstep with width/height
+                           (no percentage translate that would jump on size
+                           change or click).
+-->
+<div
+  data-custom-cursor
+  data-color={color}
+  data-mode="dot"
+  transition:persist="custom-cursor"
+  class="custom-cursor pointer-events-none fixed top-0 left-0 z-[100] hidden"
+>
+  <div data-cursor-shape class="custom-cursor__shape">
+    <span data-cursor-label class="cursor-label">View case study</span>
+  </div>
+</div>
+
+<style is:global>
+  .custom-cursor[data-color="pink"]    { --cursor-color: var(--color-pink); }
+  .custom-cursor[data-color="teal"]    { --cursor-color: var(--color-teal); }
+  .custom-cursor[data-color="green"]   { --cursor-color: var(--color-green); }
+  .custom-cursor[data-color="orange"]  { --cursor-color: var(--color-orange); }
+  .custom-cursor[data-color="neutral"] { --cursor-color: var(--color-bg-neutral-2); }
+
+  .custom-cursor[data-color="neutral"] .custom-cursor__shape {
+    color: var(--color-ink);
+  }
+
+  /* Anchor: only transform (set by JS each frame). No size, no margin. */
+  .custom-cursor {
+    will-change: transform;
+  }
+
+  /* Visual: absolutely positioned within the 0×0 anchor and centered using
+     negative margins. width/height/margin all transition together. */
+  .custom-cursor__shape {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 16px;
+    height: 16px;
+    margin-left: -8px;
+    margin-top: -8px;
+    background: var(--cursor-color, var(--color-pink));
+    border-radius: 9999px;
+    color: var(--color-ink-inverted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition:
+      width 0.22s var(--ease-out-soft, cubic-bezier(0.22,1,0.36,1)),
+      height 0.22s var(--ease-out-soft, cubic-bezier(0.22,1,0.36,1)),
+      margin 0.22s var(--ease-out-soft, cubic-bezier(0.22,1,0.36,1)),
+      border-radius 0.22s var(--ease-out-soft, cubic-bezier(0.22,1,0.36,1)),
+      padding 0.22s var(--ease-out-soft, cubic-bezier(0.22,1,0.36,1)),
+      background-color 0.18s ease-out;
+    will-change: width, height, margin;
+  }
+
+  /* Returning to the dot form is snappier so the circle reads clearly
+     in the negative space between interactive elements. */
+  .custom-cursor[data-mode="dot"] .custom-cursor__shape {
+    transition-duration: 0.14s;
+  }
+
+  .cursor-label {
+    opacity: 0;
+    white-space: nowrap;
+    transition: opacity 0.18s ease-out;
+  }
+
+  /* === Modes === */
+  .custom-cursor[data-mode="link"] .custom-cursor__shape {
+    width: 28px;
+    height: 28px;
+    margin-left: -14px;
+    margin-top: -14px;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--cursor-color, var(--color-pink)) 25%, transparent);
+  }
+
+  .custom-cursor[data-mode="case-study"] .custom-cursor__shape {
+    width: 156px;
+    height: 36px;
+    margin-left: -78px;
+    margin-top: -18px;
+    border-radius: 18px;
+    padding: 0 16px;
+  }
+
+  .custom-cursor[data-mode="case-study"] .cursor-label {
+    opacity: 1;
+    transition: opacity 0.18s 0.08s ease-out;
+  }
+
+  /* Color conflict — swap to contrast over matching bg. */
+  .custom-cursor[data-conflict] .custom-cursor__shape {
+    background: var(--color-ink-inverted);
+    color: var(--color-ink);
+  }
+  .custom-cursor[data-conflict][data-color="neutral"] .custom-cursor__shape {
+    background: var(--color-ink);
+    color: var(--color-ink-inverted);
+  }
+
+  /* Pressed state — quick brightness pop on the inner shape only,
+     so position is never affected. */
+  .custom-cursor[data-pressed] .custom-cursor__shape {
+    animation: cursor-press 0.22s var(--ease-out-soft, cubic-bezier(0.22,1,0.36,1));
+  }
+  @keyframes cursor-press {
+    0%   { filter: brightness(1); }
+    35%  { filter: brightness(1.5); }
+    100% { filter: brightness(1); }
+  }
+
+  /* Hide native cursor wherever the custom one is active. */
+  html[data-custom-cursor-active] *,
+  html[data-custom-cursor-active] {
+    cursor: none !important;
+  }
+</style>
+
+<script>
+  /*
+    Global custom cursor. The cursor element carries `transition:persist` so
+    Astro's ClientRouter keeps the same DOM node across page swaps — that
+    way the pointer position + initialized flag don't reset every navigation
+    (which was causing the "cursor disappears after nav" bug).
+
+    The document-level pointer listeners are attached once per document via
+    the __customCursorInit flag and re-query the live cursor element each
+    event so even a fresh cursor render (on first entry to a page that has
+    one) picks up behavior without re-binding.
+  */
+  (function setup() {
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+    if ((window as any).__customCursorInit) {
+      // Second mount — just make sure any newly-rendered cursor element is
+      // visible + active. (Persist should keep the original; this handles
+      // edge cases where a non-cursor page swapped it out.)
+      const c = document.querySelector<HTMLElement>("[data-custom-cursor]");
+      if (c) c.classList.remove("hidden");
+      document.documentElement.setAttribute("data-custom-cursor-active", "");
+      return;
+    }
+    (window as any).__customCursorInit = true;
+
+    const DEFAULT_LABEL = "View case study";
+
+    function el(): HTMLElement | null {
+      return document.querySelector<HTMLElement>("[data-custom-cursor]");
+    }
+    function labelOf(c: HTMLElement | null): HTMLElement | null {
+      return c?.querySelector<HTMLElement>("[data-cursor-label]") ?? null;
+    }
+
+    const first = el();
+    if (first) {
+      first.classList.remove("hidden");
+      first.style.opacity = "0";
+    }
+    document.documentElement.setAttribute("data-custom-cursor-active", "");
+
+    let targetX = 0;
+    let targetY = 0;
+    let currX = 0;
+    let currY = 0;
+    let initialized = false;
+
+    function tick() {
+      currX += (targetX - currX) * 0.35;
+      currY += (targetY - currY) * 0.35;
+      const c = el();
+      if (c) c.style.transform = `translate3d(${currX}px, ${currY}px, 0)`;
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    function place(e: PointerEvent | MouseEvent) {
+      targetX = e.clientX;
+      targetY = e.clientY;
+      if (!initialized) {
+        currX = targetX;
+        currY = targetY;
+        const c = el();
+        if (c) c.style.opacity = "1";
+        initialized = true;
+      }
+    }
+    window.addEventListener("pointermove", place);
+
+    document.addEventListener("mouseleave", () => {
+      const c = el();
+      if (c) c.style.opacity = "0";
+    });
+    document.addEventListener("mouseenter", (e) => {
+      const c = el();
+      if (c) c.style.opacity = initialized ? "1" : "0";
+      place(e);
+    });
+
+    function modeAndLabel(target: EventTarget | null): { mode: string; label: string | null } {
+      if (!(target instanceof Element)) return { mode: "dot", label: null };
+      const explicit = target.closest<HTMLElement>("[data-cursor]");
+      if (explicit) {
+        return {
+          mode: explicit.dataset.cursor ?? "dot",
+          label: explicit.dataset.cursorLabel ?? null,
+        };
+      }
+      const interactive = target.closest("a, button, [role='button'], label, input, textarea, select");
+      return { mode: interactive ? "link" : "dot", label: null };
+    }
+    function applyMode(target: EventTarget | null) {
+      const c = el();
+      if (!c) return;
+      const { mode, label } = modeAndLabel(target);
+      c.dataset.mode = mode;
+      const lab = labelOf(c);
+      if (lab) lab.textContent = label ?? DEFAULT_LABEL;
+    }
+    document.addEventListener("mouseover", (e) => applyMode(e.target));
+    document.addEventListener("mouseout", (e) => applyMode(e.relatedTarget));
+
+    function refreshConflict(target: EventTarget | null) {
+      const c = el();
+      if (!c) return;
+      if (!(target instanceof Element)) {
+        c.removeAttribute("data-conflict");
+        return;
+      }
+      const hit = target.closest<HTMLElement>("[data-cursor-bg]");
+      const matching = hit?.dataset.cursorBg === c.dataset.color;
+      if (matching) c.setAttribute("data-conflict", "");
+      else c.removeAttribute("data-conflict");
+    }
+    document.addEventListener("mouseover", (e) => refreshConflict(e.target));
+    document.addEventListener("mouseout", (e) => refreshConflict(e.relatedTarget));
+
+    document.addEventListener("pointerdown", () => {
+      const c = el();
+      if (c) c.setAttribute("data-pressed", "");
+    });
+    const clearPress = () => {
+      const c = el();
+      if (c) c.removeAttribute("data-pressed");
+    };
+    document.addEventListener("pointerup", clearPress);
+    document.addEventListener("pointercancel", clearPress);
+
+    // When ClientRouter swaps bodies, the persisted cursor should remain,
+    // but make sure hidden/active stays set on the fresh node (in case the
+    // new page originally rendered with `hidden`).
+    document.addEventListener("astro:page-load", () => {
+      const c = el();
+      if (c) c.classList.remove("hidden");
+      document.documentElement.setAttribute("data-custom-cursor-active", "");
+    });
+  })();
+</script>

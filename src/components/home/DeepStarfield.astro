@@ -1,0 +1,185 @@
+---
+/*
+  Denser starfield for the home porthole gallery. The welcome page's Starfield
+  is tuned to sit quietly behind the hero title; here we want the cosmos to
+  *feel* like cosmos — so we add more stars, size accents, and a couple of
+  slowly drifting nebula blobs. Still purely decorative and reduced-motion safe.
+*/
+
+function mulberry32(a: number) {
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const rand = mulberry32(42);
+
+type Star = {
+  x: number;
+  y: number;
+  size: number;
+  opacity: number;
+  glow: number;
+  twinkleDuration: number;
+  twinkleDelay: number;
+  tone: "warm" | "cool" | "neutral";
+};
+
+// Three tiers: accents (bright, big, hue-tinted), mediums, and tiny dust.
+const stars: Star[] = Array.from({ length: 260 }, () => {
+  const r = rand();
+  const accent = r < 0.07;
+  const medium = !accent && r < 0.26;
+  const tone: Star["tone"] = accent
+    ? rand() < 0.5
+      ? "warm"
+      : "cool"
+    : "neutral";
+  return {
+    x: rand() * 150 - 25,
+    y: rand() * 150 - 25,
+    size: accent ? 2.6 + rand() * 1.2 : medium ? 1.8 + rand() * 0.4 : 1 + rand() * 0.4,
+    opacity: accent ? 0.88 + rand() * 0.12 : 0.5 + rand() * 0.4,
+    glow: accent ? 8 + rand() * 3 : medium ? 4 : 2.5,
+    twinkleDuration: 5 + rand() * 7,
+    twinkleDelay: rand() * 12,
+    tone,
+  };
+});
+
+// Soft nebula blobs that drift at a different pace from the star rotation —
+// gives the field a little depth without pulling focus.
+const nebulae = Array.from({ length: 3 }, (_, i) => ({
+  x: 20 + rand() * 60,
+  y: 20 + rand() * 60,
+  size: 420 + rand() * 220,
+  hue: i === 0 ? "rgba(120, 140, 210, 0.10)" : i === 1 ? "rgba(210, 150, 180, 0.08)" : "rgba(140, 200, 210, 0.07)",
+  drift: 80 + rand() * 60,
+  drifDelay: rand() * 20,
+}));
+---
+
+<div
+  aria-hidden="true"
+  class="pointer-events-none absolute inset-0 overflow-hidden"
+>
+  <!-- Nebulae: sit behind the star rotation at lowest depth. -->
+  {
+    nebulae.map((n, i) => (
+      <span
+        class={`nebula absolute rounded-full nebula-${i}`}
+        style={`
+          left: ${n.x}%;
+          top: ${n.y}%;
+          width: ${n.size}px;
+          height: ${n.size}px;
+          background: radial-gradient(circle, ${n.hue} 0%, transparent 70%);
+          animation-duration: ${n.drift}s;
+          animation-delay: -${n.drifDelay}s;
+        `}
+      />
+    ))
+  }
+
+  <!--
+    Rotating star plane — lives in a 150% square so edges never sweep into
+    view. Each star has its own twinkle cadence so the field feels alive.
+  -->
+  <div class="deep-starfield absolute top-1/2 left-1/2 w-[150%] h-[150%] -translate-x-1/2 -translate-y-1/2">
+    {
+      stars.map((s) => (
+        <span
+          class:list={["deep-star absolute rounded-full", `deep-star--${s.tone}`]}
+          style={`
+            left: ${s.x}%;
+            top: ${s.y}%;
+            width: ${s.size}px;
+            height: ${s.size}px;
+            --star-opacity: ${s.opacity};
+            --star-glow: ${s.glow}px;
+            animation-duration: ${s.twinkleDuration}s;
+            animation-delay: -${s.twinkleDelay}s;
+          `}
+        />
+      ))
+    }
+  </div>
+</div>
+
+<style is:global>
+  @keyframes deep-starfield-spin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to   { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
+  @keyframes deep-star-twinkle {
+    0%, 100% {
+      opacity: calc(var(--star-opacity, 0.7) * 0.55);
+      transform: scale(1);
+    }
+    50% {
+      opacity: var(--star-opacity, 0.9);
+      transform: scale(1.15);
+    }
+  }
+
+  /* Accent stars shimmer with a wider opacity swing so they pulse more visibly. */
+  @keyframes deep-star-twinkle-accent {
+    0%, 100% {
+      opacity: calc(var(--star-opacity, 0.9) * 0.4);
+      transform: scale(0.9);
+    }
+    45% {
+      opacity: var(--star-opacity, 1);
+      transform: scale(1.35);
+    }
+    55% {
+      opacity: var(--star-opacity, 1);
+      transform: scale(1.35);
+    }
+  }
+
+  @keyframes nebula-drift {
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(30px, -20px); }
+  }
+
+  .deep-starfield {
+    animation: deep-starfield-spin 320s linear infinite;
+  }
+
+  .deep-star {
+    background: #ffffff;
+    opacity: var(--star-opacity, 0.8);
+    box-shadow: 0 0 var(--star-glow, 3px) rgba(255, 255, 255, 0.75);
+    animation: deep-star-twinkle 8s ease-in-out infinite;
+    will-change: opacity, transform;
+  }
+
+  .deep-star--warm {
+    background: #fff1d6;
+    box-shadow: 0 0 var(--star-glow, 6px) rgba(255, 220, 170, 0.85);
+    animation-name: deep-star-twinkle-accent;
+  }
+  .deep-star--cool {
+    background: #d8e6ff;
+    box-shadow: 0 0 var(--star-glow, 6px) rgba(190, 210, 255, 0.85);
+    animation-name: deep-star-twinkle-accent;
+  }
+
+  .nebula {
+    pointer-events: none;
+    filter: blur(30px);
+    animation: nebula-drift 60s ease-in-out infinite;
+    will-change: transform;
+    mix-blend-mode: screen;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .deep-starfield, .deep-star, .nebula { animation: none; }
+  }
+</style>
