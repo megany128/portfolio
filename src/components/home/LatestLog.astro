@@ -11,7 +11,15 @@ const { date } = Astro.props;
   data-collapsed="false"
   class="latest-log group bg-[var(--color-ink)] text-[var(--color-ink-inverted)] rounded-[12px] p-4 flex flex-col gap-2 transition-all duration-[var(--duration-base)] ease-[var(--ease-out-soft)]"
 >
-  <header class="flex items-center justify-between">
+  <header
+    data-toggle
+    role="button"
+    tabindex="0"
+    aria-label="Collapse log"
+    aria-expanded="true"
+    data-cursor="link"
+    class="flex items-center justify-between cursor-pointer select-none"
+  >
     <div class="flex items-center gap-2">
       <p class="font-[family-name:var(--font-mono)] text-base uppercase">
         Latest Log
@@ -20,18 +28,14 @@ const { date } = Astro.props;
         {date}
       </p>
     </div>
-    <button
-      type="button"
-      data-toggle
-      aria-label="Collapse log"
-      aria-expanded="true"
-      data-cursor="link"
+    <span
+      aria-hidden="true"
       class="latest-log__chevron text-[var(--color-ink-inverted)] opacity-70 hover:opacity-100 transition-all duration-[var(--duration-fast)] ease-[var(--ease-out-soft)]"
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="6 9 12 15 18 9"></polyline>
       </svg>
-    </button>
+    </span>
   </header>
 
   <div data-body class="latest-log__body grid transition-all duration-[var(--duration-base)] ease-[var(--ease-out-soft)] grid-rows-[1fr] opacity-100">
@@ -95,14 +99,30 @@ const { date } = Astro.props;
 </style>
 
 <script>
-  document.querySelectorAll<HTMLElement>("[data-latest-log]").forEach((article) => {
-    const btn = article.querySelector<HTMLButtonElement>("[data-toggle]");
-    if (!btn) return;
-    btn.addEventListener("click", () => {
-      const collapsed = article.dataset.collapsed === "true";
-      article.dataset.collapsed = String(!collapsed);
-      btn.setAttribute("aria-expanded", String(collapsed));
-      btn.setAttribute("aria-label", collapsed ? "Collapse log" : "Expand log");
+  function wireLatestLog() {
+    document.querySelectorAll<HTMLElement>("[data-latest-log]").forEach((article) => {
+      if (article.dataset.logWired === "1") return;
+      article.dataset.logWired = "1";
+
+      const toggle = article.querySelector<HTMLElement>("[data-toggle]");
+      if (!toggle) return;
+
+      function flip() {
+        const collapsed = article.dataset.collapsed === "true";
+        article.dataset.collapsed = String(!collapsed);
+        toggle!.setAttribute("aria-expanded", String(collapsed));
+        toggle!.setAttribute("aria-label", collapsed ? "Collapse log" : "Expand log");
+      }
+
+      toggle.addEventListener("click", flip);
+      toggle.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          flip();
+        }
+      });
     });
-  });
+  }
+  wireLatestLog();
+  document.addEventListener("astro:page-load", wireLatestLog);
 </script>

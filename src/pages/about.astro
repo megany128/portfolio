@@ -29,7 +29,7 @@ const cursorColor = visitor?.color ?? "pink";
           class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed flex flex-col gap-4 max-w-[897px]"
         >
           <p>
-            I grew up in sunny Malaysia and am now exploring the magical world of tech and design as a junior at Cornell. I started off with designing stickers and stationery products, but now I spend most of my spare time in the digital world <span class="about-emph" data-about-emph>flibbertigibetting</span> away (iykyk).
+            I grew up in sunny Malaysia and am now exploring the magical world of tech and design as a junior at Cornell. I started off with designing stickers and stationery products, but now I spend most of my spare time in the digital world flibbertigibetting away (iykyk).
           </p>
           <p>When I&rsquo;m not dreaming up product ideas, you can find me:</p>
           <ul class="about-list list-none pl-0 flex flex-col gap-1">
@@ -52,7 +52,7 @@ const cursorColor = visitor?.color ?? "pink";
                 <span class="about-list__dot">•</span>
                 <span class="about-list__emoji">📖</span>
               </span>
-              <span class="about-list__text">Lost in a <span class="about-emph" data-about-emph>Brandon Sanderson</span> novel</span>
+              <span class="about-list__text">Lost in a Brandon Sanderson novel</span>
             </li>
           </ul>
           <p>Always happy to chat! I&rsquo;m on the lookout for freelance work and good conversations :)</p>
@@ -102,10 +102,6 @@ const cursorColor = visitor?.color ?? "pink";
             />
           </div>
 
-          <!-- Tiny sparkle accent, drifts over the portrait strip. Decorative. -->
-          <span aria-hidden="true" class="portrait-sparkle portrait-sparkle--a">⊹</span>
-          <span aria-hidden="true" class="portrait-sparkle portrait-sparkle--b">˚</span>
-          <span aria-hidden="true" class="portrait-sparkle portrait-sparkle--c">⋆</span>
         </div>
       </section>
 
@@ -209,40 +205,6 @@ const cursorColor = visitor?.color ?? "pink";
     box-shadow: 0 18px 32px -16px rgba(36, 36, 36, 0.35);
   }
 
-  /* Decorative sparkles over the strip, drifting softly. */
-  .portrait-sparkle {
-    position: absolute;
-    font-family: var(--font-mono);
-    pointer-events: none;
-    opacity: 0.55;
-    animation: sparkle-drift 6s ease-in-out infinite;
-  }
-  .portrait-sparkle--a {
-    top: -14px;
-    left: 22%;
-    color: var(--color-pink);
-    font-size: 16px;
-    animation-delay: 0s;
-  }
-  .portrait-sparkle--b {
-    bottom: -10px;
-    left: 52%;
-    color: var(--color-teal);
-    font-size: 18px;
-    animation-delay: 1.4s;
-  }
-  .portrait-sparkle--c {
-    top: 8px;
-    right: 6%;
-    color: var(--color-orange);
-    font-size: 14px;
-    animation-delay: 2.6s;
-  }
-  @keyframes sparkle-drift {
-    0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.4; }
-    50%      { transform: translateY(-6px) rotate(12deg); opacity: 0.75; }
-  }
-
   /* ===========================================================
      "When I'm not dreaming up product ideas" list.
      =========================================================== */
@@ -268,24 +230,15 @@ const cursorColor = visitor?.color ?? "pink";
   }
 
   /* ===========================================================
-     Emphasis words — just ink color, no decoration.
-     =========================================================== */
-  .about-emph {
-    color: var(--color-ink);
-  }
-
-  /* ===========================================================
      Reduced motion — keep things legible, kill the movement.
      =========================================================== */
   @media (prefers-reduced-motion: reduce) {
     .about-section,
     .portrait-wrap,
     .portrait,
-    .portrait-sparkle,
     .about-list li,
     .about-list__dot,
-    .about-list__emoji,
-    .about-emph {
+    .about-list__emoji {
       transition: none !important;
       animation: none !important;
     }

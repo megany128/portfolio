@@ -350,20 +350,16 @@
       if (!res.ok) return [];
       const data = (await res.json()) as { visitors: AnyCard[] };
       const list = data.visitors.filter((v) => v.id !== excludeId);
-      return list.length ? list : seedSamples();
+      return list.length ? list : await seedSamples();
     } catch {
-      return seedSamples();
+      return await seedSamples();
     }
   }
 
   /** Fallback so the animation always has cards to scroll, even on a fresh DB. */
-  function seedSamples(): AnyCard[] {
-    return [
-      { number: 211, name: "lovely philosophist", color: "teal" },
-      { number: 212, name: "simon ilincev", color: "orange" },
-      { number: 209, name: "amber wanderer", color: "green" },
-      { number: 210, name: "salt cartographer", color: "neutral" },
-    ];
+  async function seedSamples(): Promise<AnyCard[]> {
+    const { SEED_VISITORS } = await import("../../lib/seed-visitors");
+    return SEED_VISITORS;
   }
 
   /*

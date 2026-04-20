@@ -34,12 +34,8 @@ const {
       class={iconRounded ? "rounded-[4px] object-cover shrink-0" : "object-contain shrink-0"}
       style={`width: ${iconWidth}px; height: ${iconHeight}px;`}
     />
-    <h3 class="font-[family-name:var(--font-display)] font-light text-base text-[var(--color-ink)] leading-tight min-w-0 break-words flex items-center gap-1">
-      <span>{title}</span>
-      <span
-        aria-hidden="true"
-        class="community-card__arrow inline-block text-[var(--color-ink-dim)] opacity-0 -translate-x-1 transition-all duration-[var(--duration-base)] ease-[var(--ease-out-soft)]"
-      >→</span>
+    <h3 class="font-[family-name:var(--font-display)] font-light text-base text-[var(--color-ink)] leading-tight min-w-0 break-words">
+      {title}
     </h3>
   </header>
   <div class="flex flex-col gap-3 relative z-[1]">
@@ -58,21 +54,31 @@ const {
 
 <style>
   .community-card {
-    transform: perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0);
+    transform: translateY(0);
     transition:
       transform var(--duration-base) var(--ease-out-soft),
-      box-shadow var(--duration-base) var(--ease-out-soft);
+      box-shadow var(--duration-base) var(--ease-out-soft),
+      opacity var(--duration-base) var(--ease-out-soft),
+      filter var(--duration-base) var(--ease-out-soft);
     will-change: transform;
   }
   .community-card:hover {
-    box-shadow: 0 14px 28px -18px rgba(36, 36, 36, 0.28);
+    transform: translateY(-6px) scale(1.02) rotate(var(--card-tilt, -1.5deg));
+    box-shadow: 0 18px 32px -16px rgba(36, 36, 36, 0.35);
+    z-index: 2;
   }
+  .community-card:nth-child(1) { --card-tilt: -1.5deg; }
+  .community-card:nth-child(2) { --card-tilt: 1deg; }
+  .community-card:nth-child(3) { --card-tilt: -2deg; }
   .community-card:hover .community-card__photo {
     transform: scale(1.04);
   }
-  .community-card:hover .community-card__arrow {
-    opacity: 0.7;
-    transform: translateX(0);
+
+  /* When any card is hovered, siblings dim — matching portrait strip behavior. */
+  :global(.flex:has(.community-card:hover)) .community-card:not(:hover) {
+    opacity: 0.72;
+    filter: saturate(0.9);
+    transform: scale(0.985);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -81,6 +87,11 @@ const {
     .community-card__arrow {
       transition: none !important;
       transform: none !important;
+    }
+    :global(.flex:has(.community-card:hover)) .community-card:not(:hover) {
+      opacity: 1;
+      filter: none;
+      transform: none;
     }
   }
 </style>

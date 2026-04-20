@@ -118,6 +118,7 @@ const { visitors, youId, centered = false } = Astro.props;
 
   type CardEl = HTMLElement;
 
+  function wireGallery() {
   const grid = document.querySelector<HTMLElement>("[data-gallery-grid]");
   const detail = document.querySelector<HTMLElement>("[data-gallery-detail]");
   const stage = detail?.querySelector<HTMLElement>("[data-gallery-stage]");
@@ -125,8 +126,11 @@ const { visitors, youId, centered = false } = Astro.props;
   const closeBtn = detail?.querySelector<HTMLButtonElement>("[data-gallery-close]");
 
   if (!grid || !detail || !stage || !backdrop || !closeBtn) {
-    console.warn("gallery: missing required nodes");
-  } else {
+    return;
+  }
+  if (grid.dataset.galleryWired === "1") return;
+  grid.dataset.galleryWired = "1";
+  {
     const youId = grid.dataset.youId || null;
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
@@ -614,4 +618,7 @@ const { visitors, youId, centered = false } = Astro.props;
       open.clone.style.transform = `perspective(1200px) scale(${target.scale})`;
     });
   }
+  }
+  wireGallery();
+  document.addEventListener("astro:page-load", wireGallery);
 </script>

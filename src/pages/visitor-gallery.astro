@@ -5,13 +5,17 @@ import Footer from "../components/home/Footer.astro";
 import CustomCursor from "../components/home/CustomCursor.astro";
 import Grid from "../components/gallery/Grid.astro";
 import { getCurrentVisitor, listVisitors } from "../lib/visitor-server";
+import { SEED_VISITORS } from "../lib/seed-visitors";
 
 export const prerender = false;
 
 const visitor = await getCurrentVisitor(Astro);
 const cursorColor = visitor?.color ?? "pink";
 
-const visitors = await listVisitors(Astro, 200);
+const realVisitors = await listVisitors(Astro, 200);
+const seedCount = SEED_VISITORS.length;
+const offsetVisitors = realVisitors.map((v) => ({ ...v, number: v.number + seedCount }));
+const visitors = [...offsetVisitors, ...SEED_VISITORS];
 const total = visitors.length;
 
 const ordinal = (n: number) => {
@@ -20,8 +24,9 @@ const ordinal = (n: number) => {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 };
 
+const visitorNumber = visitor ? visitor.number + seedCount : 0;
 const subtitle = visitor
-  ? `You're our ${ordinal(visitor.number)} guest!`
+  ? `You're our ${ordinal(visitorNumber)} guest!`
   : total === 0
     ? "Be the first to sign in."
     : `${total} ${total === 1 ? "guest has" : "guests have"} signed in.`;

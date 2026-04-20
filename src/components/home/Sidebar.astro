@@ -48,7 +48,7 @@ const { active = "work" } = Astro.props;
       href="/home"
       aria-label="Home"
       data-logo-link
-      class="sidebar-logo-link inline-block w-fit transition-transform hover:scale-[1.05] active:scale-[0.97] relative"
+      class="sidebar-logo-link inline-block w-fit transition-transform hover:scale-[1.08] active:scale-[1.18] relative"
     >
       <span data-logo-spin class="sidebar-logo-spin inline-block">
         <Logo class="mb-1" />
@@ -226,17 +226,6 @@ const { active = "work" } = Astro.props;
   }
   .sidebar-logo-spin {
     display: inline-block;
-    transform-origin: 50% 50%;
-    will-change: transform;
-    backface-visibility: hidden;
-  }
-  .sidebar-logo-spin[data-spinning] {
-    animation: sidebar-logo-spin 0.85s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  /* Single smooth rotation — no scale pulse so the mark doesn't wobble. */
-  @keyframes sidebar-logo-spin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
   }
   .sidebar-logo-sparks .spark {
     position: absolute;
@@ -256,7 +245,6 @@ const { active = "work" } = Astro.props;
     100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--spark-dx, 0px), var(--spark-dy, 0px)) scale(0.9); }
   }
   @media (prefers-reduced-motion: reduce) {
-    .sidebar-logo-spin[data-spinning] { animation: none; }
     .sidebar-logo-sparks .spark { animation: none; opacity: 0; }
   }
 
@@ -372,15 +360,8 @@ const { active = "work" } = Astro.props;
       .querySelectorAll<HTMLElement>("[data-logo-link]:not([data-wired])")
       .forEach((link) => {
         link.dataset.wired = "1";
-        const spin = link.querySelector<HTMLElement>("[data-logo-spin]");
         const sparks = link.querySelector<HTMLElement>("[data-logo-sparks]");
         link.addEventListener("click", () => {
-          if (spin) {
-            spin.removeAttribute("data-spinning");
-            void spin.offsetWidth; // restart the animation
-            spin.setAttribute("data-spinning", "");
-            window.setTimeout(() => spin.removeAttribute("data-spinning"), 880);
-          }
           if (sparks) {
             const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
             if (reduced) return;
