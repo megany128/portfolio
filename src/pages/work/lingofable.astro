@@ -1,0 +1,1298 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import CaseStudySidebar from "../../components/casestudy/CaseStudySidebar.astro";
+import Footer from "../../components/home/Footer.astro";
+import CustomCursor from "../../components/home/CustomCursor.astro";
+import Tag from "../../components/ui/Tag.astro";
+import { getCurrentVisitor } from "../../lib/visitor-server";
+
+export const prerender = false;
+
+const visitor = await getCurrentVisitor(Astro);
+const cursorColor = visitor?.color ?? "pink";
+
+// Sidebar sections — ids map 1:1 to the section elements below.
+const tocSections = [
+  { id: "context", label: "Context" },
+  { id: "solution", label: "The solution" },
+  { id: "features", label: "Features" },
+  { id: "interaction", label: "Interaction design" },
+  { id: "onboarding", label: "Onboarding & conversion" },
+  { id: "reflection", label: "Reflection" },
+];
+
+const features = [
+  {
+    title: "Stories for every interest",
+    body: "Explore fantasy, thriller, romance, and more. Always at your level.",
+  },
+  {
+    title: "Tap any word, instantly understand",
+    body: "Translations appear as you read, so you get to stay in the flow without any interruptions.",
+  },
+  {
+    title: "Listen and read at the same time",
+    body: "Follow along with audio narration for every fable. Read, listen, or both.",
+  },
+  {
+    title: "Watch yourself improve",
+    body: "Track your progress: CEFR level, words learned, reading streaks, and more.",
+  },
+];
+
+const reflections = [
+  {
+    title: "Retention is the hardest part",
+    body: "In order for users to actually appreciate your designs, they have to come back to the app in the first place! It's all about finding a core value loop and meeting your users where they are.",
+  },
+  {
+    title: "Claude Code is my best friend!",
+    body: "Honestly, I've become addicted to Claude Code. Iterating, polishing, and debugging is way easier with Claude Code, and I've learned how to best use subagents, worktrees, and MCP servers.",
+  },
+  {
+    title: "Design extends beyond the app",
+    body: "Before this, I had no idea just how important notifications were! They really do make a difference, from their copy to their frequency and time of day sent. Next up is widgets!",
+  },
+];
+---
+
+<BaseLayout title="Lingofable — Megan Yap">
+  <div class="flex items-stretch min-h-screen" id="top">
+    <CaseStudySidebar sections={tocSections} active="context" />
+
+    <main class="flex-1 min-w-0 p-10 flex flex-col gap-14">
+      <!-- Hero image -->
+      <section class="cs-hero-wrap">
+        <div class="cs-hero rounded-[24px] overflow-hidden">
+          <img
+            src="/images/work/lingofable/hero.png"
+            alt="Lingofable — Language learning, one story at a time"
+            loading="eager"
+            class="block w-full h-auto object-cover"
+          />
+        </div>
+      </section>
+
+      <!-- Hero meta: tags, title, description -->
+      <section class="flex flex-col gap-5">
+        <div class="flex items-center gap-3">
+          <Tag>Side Project</Tag>
+          <Tag>Shipped</Tag>
+        </div>
+        <h1
+          class="font-[family-name:var(--font-display)] font-light text-[40px] leading-[1.1] text-[var(--color-ink)] flex items-start gap-3"
+        >
+          <span aria-hidden="true" class="cs-hero-mark text-[var(--color-pink)]">✦</span>
+          Building Lingofable from 0-1
+        </h1>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed max-w-[720px]"
+        >
+          I designed &amp; built Lingofable together with
+          <a
+            href="https://x.com"
+            class="cs-mention text-[var(--color-ink)]"
+            >@Simon Ilincev</a
+          >
+          as a passion project. It is a language app focused on learning through
+          stories — we launched on the App Store in
+          <span class="cs-emph" data-cs-emph>March 2026</span>, pitched to
+          Pinterest&rsquo;s ex-CPO, and were featured on Cornell&rsquo;s
+          <span class="cs-emph" data-cs-emph>Speaking of Language</span>
+          podcast!
+        </p>
+      </section>
+
+      <!-- Meta grid: role, team, timeline, skills -->
+      <section
+        class="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 bg-[var(--color-bg-light)] rounded-[16px]"
+      >
+        <div class="flex flex-col gap-3">
+          <p
+            class="font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-ink)]"
+          >
+            Role
+          </p>
+          <p
+            class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-snug"
+          >
+            Founder<br />Design Engineer<br />Marketing
+          </p>
+        </div>
+        <div class="flex flex-col gap-3">
+          <p
+            class="font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-ink)]"
+          >
+            Team
+          </p>
+          <p
+            class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-snug"
+          >
+            Simon Ilincev (Co-Founder &amp; Software Engineer)
+          </p>
+        </div>
+        <div class="flex flex-col gap-3">
+          <p
+            class="font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-ink)]"
+          >
+            Timeline
+          </p>
+          <p
+            class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-snug"
+          >
+            Oct 2025 &ndash; Apr 2026
+          </p>
+        </div>
+        <div class="flex flex-col gap-3">
+          <p
+            class="font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-ink)]"
+          >
+            Skills
+          </p>
+          <p
+            class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-snug"
+          >
+            Vibe coding<br />Interaction design<br />Motion design
+          </p>
+        </div>
+      </section>
+
+      <!-- 01. Context -->
+      <section id="context" data-cs-section class="flex flex-col gap-4 cs-section">
+        <p
+          class="font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-ink-dim)] tracking-wider"
+        >
+          Context
+        </p>
+        <h2
+          class="font-[family-name:var(--font-display)] font-light text-[28px] text-[var(--color-ink)] leading-tight"
+        >
+          Language learning is tricky
+        </h2>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed max-w-[820px]"
+        >
+          Having learned Mandarin Chinese over the pandemic, I know from experience
+          that language learning is tough. Engaging in native media is no doubt the
+          best way to learn, but it&rsquo;s really difficult to find media that is
+          both interesting and at your level.
+        </p>
+      </section>
+
+      <!-- 02. The solution -->
+      <section id="solution" data-cs-section class="flex flex-col gap-4 cs-section">
+        <p
+          class="font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-ink-dim)] tracking-wider"
+        >
+          The solution
+        </p>
+        <h2
+          class="font-[family-name:var(--font-display)] font-light text-[28px] text-[var(--color-ink)] leading-tight"
+        >
+          Comprehensible input at scale, delivered through stories
+        </h2>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed max-w-[820px]"
+        >
+          The main thing that prevents learners from reading books in their target
+          language is that most of the time, content is either 1) interesting but
+          written for native speakers (and therefore linguistically complex), or 2)
+          boring and written for children. As a solution, we built Lingofable to
+          generate engaging stories that are exactly tailored towards readers —
+          using the specific vocabulary they know, and written to complement their
+          interests / favorite genres. This way, we can deliver stories that are at
+          the perfect difficulty for learners to progress without feeling too much
+          friction.
+        </p>
+
+        <!-- 2×2 feature-highlight grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+          <!-- Card 1: From fairy tales to Reddit threads -->
+          <article
+            class="cs-solution-card cs-solution-card--neutral group relative rounded-[24px] bg-[#f6f4f3] p-6 pb-0 overflow-hidden h-[380px] flex flex-col"
+          >
+            <div class="flex flex-col gap-1 z-10">
+              <h3
+                class="font-[family-name:var(--font-body)] font-semibold text-[20px] text-[var(--color-ink)] text-center"
+              >
+                From fairy tales to Reddit threads
+              </h3>
+              <p
+                class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] text-center leading-snug"
+              >
+                Pick what you want to read. We&rsquo;ll match it to your level.
+              </p>
+            </div>
+            <!-- Floating fable-card stack -->
+            <div class="cs-fable-stack relative flex-1 mt-6">
+              <div
+                class="cs-fable-card cs-fable-card--back absolute left-0 bottom-0 w-[180px] rotate-[-8deg] rounded-[14px] overflow-hidden bg-white shadow-[0_4px_18px_-6px_rgba(36,36,36,0.25)]"
+              >
+                <img
+                  src="/images/work/lingofable/fable-cover-2.png"
+                  alt=""
+                  loading="lazy"
+                  class="w-full h-[92px] object-cover"
+                />
+                <p
+                  class="px-3 pt-2 pb-3 font-[family-name:var(--font-body)] text-[11px] text-[var(--color-ink-dim)] leading-tight"
+                >
+                  <span class="text-[var(--color-ink)] font-medium">The Whispering Wood</span><br
+                  />Lira isn&rsquo;t lost&hellip;
+                </p>
+              </div>
+              <div
+                class="cs-fable-card cs-fable-card--right absolute right-0 top-4 w-[200px] rotate-[6deg] rounded-[14px] overflow-hidden bg-white shadow-[0_4px_18px_-6px_rgba(36,36,36,0.25)]"
+              >
+                <div class="h-[70px] bg-gradient-to-br from-[var(--color-bg-neutral)] to-[var(--color-bg-neutral-2)] flex items-center justify-center">
+                  <span
+                    class="font-[family-name:var(--font-mono)] text-[10px] uppercase text-[var(--color-ink-dim)]"
+                  >r/AITA</span>
+                </div>
+                <p
+                  class="px-3 pt-2 pb-3 font-[family-name:var(--font-body)] text-[11px] text-[var(--color-ink-dim)] leading-tight"
+                >
+                  &hellip;sing to share my secret recipe with my&hellip;
+                </p>
+              </div>
+              <div
+                class="cs-fable-card cs-fable-card--front absolute left-1/2 -translate-x-1/2 bottom-[-32px] w-[220px] rotate-[-2deg] rounded-[16px] overflow-hidden bg-white shadow-[0_14px_28px_-12px_rgba(36,36,36,0.35)] z-10"
+              >
+                <img
+                  src="/images/work/lingofable/fable-cover-3.png"
+                  alt=""
+                  loading="lazy"
+                  class="w-full h-[120px] object-cover"
+                />
+                <div class="px-3 pt-2 pb-3 flex flex-col gap-1">
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="inline-flex items-center gap-1 font-[family-name:var(--font-body)] text-[10px] px-2 py-[2px] rounded-full bg-[var(--color-green-1)]/40 text-[var(--color-green)]"
+                    >🌱 Just right</span>
+                    <span
+                      class="font-[family-name:var(--font-mono)] text-[9px] uppercase text-[var(--color-ink-dim)]"
+                    >Romance</span>
+                  </div>
+                  <p
+                    class="font-[family-name:var(--font-body)] text-[13px] text-[var(--color-ink)] font-medium leading-tight"
+                  >Light to Light</p>
+                  <p
+                    class="font-[family-name:var(--font-body)] text-[11px] text-[var(--color-ink-dim)] leading-snug"
+                  >He tends the lighthouse alone. She walks the beach every evening.</p>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 2: Track your progress -->
+          <article
+            class="cs-solution-card cs-solution-card--neutral group relative rounded-[24px] bg-[#efe9d9] p-6 overflow-hidden h-[380px] flex flex-col justify-between"
+          >
+            <div class="flex flex-col gap-1">
+              <h3
+                class="font-[family-name:var(--font-body)] font-semibold text-[20px] text-[var(--color-ink)]"
+              >
+                Track your progress
+              </h3>
+              <p
+                class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug max-w-[280px]"
+              >
+                See your CEFR level rise and your vocabulary grow as you read.
+              </p>
+            </div>
+            <div class="relative h-[250px]">
+              <!-- Progress pie card -->
+              <div
+                class="cs-progress-pie absolute right-0 top-0 w-[160px] rounded-[12px] bg-white p-3 shadow-[0_6px_18px_-10px_rgba(36,36,36,0.2)]"
+              >
+                <div class="flex flex-col gap-1 mb-2">
+                  <p
+                    class="font-[family-name:var(--font-body)] text-[10px] text-[var(--color-ink-dim)] flex items-center justify-between"
+                  >
+                    Words Read Level <span>?</span>
+                  </p>
+                  <p
+                    class="font-[family-name:var(--font-body)] text-[9px] text-[var(--color-ink-mute)]"
+                  >Vocabulary breakdown</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div
+                    class="cs-pie relative w-[60px] h-[60px] rounded-full"
+                    style="background: conic-gradient(var(--color-pink) 0 40%, var(--color-teal) 40% 70%, var(--color-orange) 70% 90%, var(--color-green) 90% 100%);"
+                  >
+                    <div
+                      class="absolute inset-[10px] rounded-full bg-white flex flex-col items-center justify-center"
+                    >
+                      <p
+                        class="font-[family-name:var(--font-body)] font-semibold text-[11px] text-[var(--color-ink)]"
+                      >
+                        100
+                      </p>
+                      <p
+                        class="font-[family-name:var(--font-body)] text-[8px] text-[var(--color-ink-dim)] leading-none"
+                      >words</p>
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-1">
+                      <span class="w-2 h-2 rounded-full bg-[var(--color-pink)]"></span>
+                      <span
+                        class="font-[family-name:var(--font-body)] text-[9px] text-[var(--color-ink-dim)]"
+                      >A2: 16</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <span class="w-2 h-2 rounded-full bg-[var(--color-teal)]"></span>
+                      <span
+                        class="font-[family-name:var(--font-body)] text-[9px] text-[var(--color-ink-dim)]"
+                      >B1: 9</span>
+                    </div>
+                  </div>
+                </div>
+                <p
+                  class="font-[family-name:var(--font-body)] text-[9px] text-[var(--color-pink)] mt-2"
+                >Learn more about CEFR levels →</p>
+              </div>
+
+              <!-- Reading activity heatmap -->
+              <div
+                class="cs-progress-heatmap absolute left-0 top-8 w-[180px] rounded-[12px] bg-white p-3 shadow-[0_6px_18px_-10px_rgba(36,36,36,0.2)]"
+              >
+                <p
+                  class="font-[family-name:var(--font-body)] text-[10px] text-[var(--color-ink-dim)] mb-2"
+                >Reading activity</p>
+                <div class="flex gap-[2px] text-[8px] text-[var(--color-ink-mute)] mb-1">
+                  <span class="w-[66%]">Jan &nbsp; Feb &nbsp; Mar</span>
+                </div>
+                <div class="grid grid-cols-13 gap-[2px]">
+                  {Array.from({ length: 13 * 7 }).map((_, i) => {
+                    const r = (i * 1301 + 7) % 100;
+                    let bg = "bg-[var(--color-bg-neutral-2)]";
+                    if (r > 70) bg = "bg-[var(--color-green)]";
+                    else if (r > 50) bg = "bg-[var(--color-green-0)]";
+                    else if (r > 30) bg = "bg-[var(--color-green-1)]";
+                    else if (r > 18) bg = "bg-[var(--color-green-2)]/40";
+                    return <span class={`w-[8px] h-[8px] rounded-[2px] ${bg}`}></span>;
+                  })}
+                </div>
+                <div class="flex gap-1 mt-2 text-[8px] text-[var(--color-ink-mute)] items-center">
+                  <span>Less</span>
+                  <span class="w-[6px] h-[6px] rounded-[1px] bg-[var(--color-bg-neutral-2)]"></span>
+                  <span class="w-[6px] h-[6px] rounded-[1px] bg-[var(--color-green-1)]"></span>
+                  <span class="w-[6px] h-[6px] rounded-[1px] bg-[var(--color-green-0)]"></span>
+                  <span class="w-[6px] h-[6px] rounded-[1px] bg-[var(--color-green)]"></span>
+                  <span>More</span>
+                </div>
+              </div>
+
+              <!-- Words learned line chart -->
+              <div
+                class="cs-progress-chart absolute left-0 bottom-0 w-[170px] rounded-[12px] bg-white p-3 shadow-[0_6px_18px_-10px_rgba(36,36,36,0.2)]"
+              >
+                <p
+                  class="font-[family-name:var(--font-body)] text-[10px] text-[var(--color-ink-dim)]"
+                >Words learned</p>
+                <p
+                  class="font-[family-name:var(--font-body)] text-[8px] text-[var(--color-ink-mute)] mb-2"
+                >35 words over 6 active days</p>
+                <svg viewBox="0 0 120 40" class="w-full h-[40px]" aria-hidden="true">
+                  <polyline
+                    fill="none"
+                    stroke="var(--color-green)"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    points="0,32 20,26 40,30 60,18 80,20 100,10 120,6"
+                  />
+                </svg>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 3: Always at the perfect i+1 difficulty (full width on desktop) -->
+          <article
+            class="cs-solution-card cs-solution-card--green group relative rounded-[24px] bg-[#dceecf] p-6 overflow-hidden h-[240px] md:col-span-2 flex items-center gap-8"
+          >
+            <div class="flex flex-col gap-2 max-w-[420px] z-10">
+              <h3
+                class="font-[family-name:var(--font-body)] font-semibold text-[20px] text-[var(--color-ink)]"
+              >
+                Always at the perfect i+1 difficulty
+              </h3>
+              <p
+                class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug"
+              >
+                Stories adapt to your level — never too hard, never too easy.
+              </p>
+            </div>
+            <div class="relative flex-1 h-full min-w-0">
+              <!-- Progress metrics card -->
+              <div
+                class="cs-metric-card absolute left-0 top-1/2 -translate-y-1/2 w-[240px] rounded-[12px] bg-white p-3 shadow-[0_8px_22px_-10px_rgba(36,36,36,0.2)]"
+              >
+                <div class="grid grid-cols-3 gap-3 mb-2">
+                  <div>
+                    <p
+                      class="font-[family-name:var(--font-body)] text-[8px] text-[var(--color-ink-mute)] uppercase"
+                    >CEFR level</p>
+                    <p
+                      class="font-[family-name:var(--font-body)] font-semibold text-[16px] text-[var(--color-ink)]"
+                    >A1</p>
+                  </div>
+                  <div>
+                    <p
+                      class="font-[family-name:var(--font-body)] text-[8px] text-[var(--color-ink-mute)] uppercase"
+                    >Fables read</p>
+                    <p
+                      class="font-[family-name:var(--font-body)] font-semibold text-[16px] text-[var(--color-ink)]"
+                    >41 <span class="text-[9px] text-[var(--color-green)]">+1</span></p>
+                  </div>
+                  <div>
+                    <p
+                      class="font-[family-name:var(--font-body)] text-[8px] text-[var(--color-ink-mute)] uppercase"
+                    >Words known</p>
+                    <p
+                      class="font-[family-name:var(--font-body)] font-semibold text-[16px] text-[var(--color-ink)]"
+                    >340 <span class="text-[9px] text-[var(--color-green)]">+7</span></p>
+                  </div>
+                </div>
+                <p
+                  class="font-[family-name:var(--font-body)] text-[9px] text-[var(--color-ink-dim)] mb-1"
+                >Only 200 words until <span class="font-semibold text-[var(--color-ink)]">A2 (upper beginner)</span>!</p>
+                <div class="h-[4px] w-full rounded-full bg-[var(--color-bg-neutral-2)]/60 overflow-hidden">
+                  <div
+                    class="h-full bg-[var(--color-orange)] rounded-full"
+                    style="width: 55%;"
+                  ></div>
+                </div>
+              </div>
+              <!-- Floating speech bubble -->
+              <div
+                class="cs-solution-bubble absolute right-[72px] top-4 px-4 py-2 bg-white rounded-[16px] shadow-[0_6px_16px_-8px_rgba(36,36,36,0.3)] text-center"
+              >
+                <p
+                  class="font-[family-name:var(--font-body)] text-[12px] text-[var(--color-ink)] italic"
+                >Finding the perfect fables for you&hellip;</p>
+              </div>
+              <!-- Mascot leaf with magnifier -->
+              <img
+                src="/images/work/lingofable/mascot-leaf.png"
+                alt=""
+                loading="lazy"
+                class="cs-solution-mascot absolute right-0 bottom-0 h-[160px] w-auto object-contain"
+              />
+              <img
+                src="/images/work/lingofable/mascot-magnifier.png"
+                alt=""
+                loading="lazy"
+                class="cs-solution-magnifier absolute right-[40px] bottom-[90px] h-[50px] w-auto object-contain"
+              />
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- 03. Features -->
+      <section id="features" data-cs-section class="flex flex-col gap-4 cs-section">
+        <p
+          class="font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-ink-dim)] tracking-wider"
+        >
+          Features
+        </p>
+        <h2
+          class="font-[family-name:var(--font-display)] font-light text-[28px] text-[var(--color-ink)] leading-tight"
+        >
+          Designed to help learners make real progress
+        </h2>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed max-w-[820px]"
+        >
+          Users are able to browse a library of stories in their target language,
+          and track weekly goals to keep on track with their learning. The library
+          refreshes regularly to keep the most relevant stories at the top for
+          readers.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-10 mt-4 items-center">
+          <div class="flex flex-col gap-3 max-w-[380px]">
+            {
+              features.map((feature) => (
+                <div
+                  class="cs-feature-tile bg-[var(--color-bg-light)] rounded-[16px] p-4 flex flex-col gap-1.5 transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:-translate-y-0.5"
+                >
+                  <h3 class="font-[family-name:var(--font-body)] font-semibold text-[16px] text-[var(--color-ink)]">
+                    {feature.title}
+                  </h3>
+                  <p class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug">
+                    {feature.body}
+                  </p>
+                </div>
+              ))
+            }
+          </div>
+          <div class="cs-features-phone-wrap self-center justify-self-center md:justify-self-end">
+            <img
+              src="/images/work/lingofable/features-phone.png"
+              alt="Lingofable app library screen showing a grid of fable cards"
+              loading="lazy"
+              class="cs-features-phone max-w-[300px] w-full h-auto rounded-[28px]"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- 04. Interaction design -->
+      <section id="interaction" data-cs-section class="flex flex-col gap-4 cs-section">
+        <p
+          class="font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-ink-dim)] tracking-wider"
+        >
+          Interaction design
+        </p>
+        <h2
+          class="font-[family-name:var(--font-display)] font-light text-[28px] text-[var(--color-ink)] leading-tight"
+        >
+          Teaching users how to interact
+        </h2>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed max-w-[820px]"
+        >
+          During our beta testing, users told us that interacting with the reading
+          page was confusing. Although this is a standard interaction pattern in
+          other apps such as Du Chinese, many users had not encountered such apps
+          before. Using Lottielab, I created two different tutorial animations that
+          would play when the user opened a story for the first time.
+        </p>
+
+        <div
+          class="cs-interaction bg-[var(--color-bg-light)] rounded-[16px] p-8 mt-2 flex items-center justify-center"
+        >
+          <figure class="flex flex-col items-center gap-4">
+            <div
+              class="cs-interaction-frame rounded-[20px] overflow-hidden shadow-[0_12px_32px_-18px_rgba(36,36,36,0.35)] bg-white"
+            >
+              <img
+                src="/images/work/lingofable/interaction-translate.gif"
+                alt="Animation showing how a sentence is translated on tap in the reader"
+                loading="lazy"
+                class="block w-[280px] h-auto"
+              />
+            </div>
+            <figcaption
+              class="font-[family-name:var(--font-mono)] text-[13px] uppercase text-[var(--color-ink-dim)]"
+            >
+              Translating a sentence
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- 05. Onboarding & conversion -->
+      <section id="onboarding" data-cs-section class="flex flex-col gap-4 cs-section">
+        <p
+          class="font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-ink-dim)] tracking-wider"
+        >
+          Onboarding &amp; conversion
+        </p>
+        <h2
+          class="font-[family-name:var(--font-display)] font-light text-[28px] text-[var(--color-ink)] leading-tight"
+        >
+          Crafting the perfect onboarding
+        </h2>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed max-w-[820px]"
+        >
+          The longer the onboarding, the higher the conversion rate. But at the
+          same time, we had to ensure that users felt engaged and like they were
+          making progress. To do this, I wove haptics into every single onboarding
+          step, and made it easy to start off with a library filled with interesting
+          stories.
+        </p>
+
+        <div class="flex flex-wrap gap-6 justify-center mt-4">
+          <!-- Screen 1: word selection -->
+          <div class="cs-phone cs-phone--a">
+            <div class="cs-phone-screen">
+              <div class="cs-phone-header">
+                <span class="cs-phone-back" aria-hidden="true">‹</span>
+                <div class="cs-progress-bar">
+                  <span style="width: 35%;"></span>
+                </div>
+              </div>
+              <div class="cs-phone-prompt">
+                <img
+                  src="/images/work/lingofable/mascot-leaf.png"
+                  alt=""
+                  loading="lazy"
+                  class="cs-phone-mascot"
+                />
+                <p>Tap on the words you know the meaning of.</p>
+              </div>
+              <div class="cs-phone-divider"></div>
+              <div class="cs-word-grid">
+                {
+                  [
+                    "casa", "agua", "trabajo", "siempre",
+                    "encontrar", "todavía", "quedarse",
+                    "mientras", "difícil", "olvidar",
+                    "conseguir", "parecer", "además",
+                    "propio", "desarrollar", "aprovechar",
+                    "conocimiento", "intentar",
+                    "extranjero", "acuerdo", "siguiente",
+                    "vecino", "enseñar", "apenas",
+                    "suceder", "atravesar", "destacar",
+                    "culpa", "lograr", "resultado",
+                  ].map((w) => <span class="cs-word">{w}</span>)
+                }
+              </div>
+              <button class="cs-phone-cta" type="button">I know 0 word(s)</button>
+            </div>
+          </div>
+
+          <!-- Screen 2: fable bookmark list -->
+          <div class="cs-phone cs-phone--b">
+            <div class="cs-phone-screen">
+              <div class="cs-phone-header">
+                <span class="cs-phone-back" aria-hidden="true">‹</span>
+                <div class="cs-progress-bar">
+                  <span style="width: 65%;"></span>
+                </div>
+              </div>
+              <div class="cs-phone-prompt">
+                <img
+                  src="/images/work/lingofable/mascot-leaf.png"
+                  alt=""
+                  loading="lazy"
+                  class="cs-phone-mascot"
+                />
+                <p>Pick some fables to read! We&rsquo;ll add them to your bookmarks.</p>
+              </div>
+              <div class="cs-phone-divider"></div>
+              <div class="cs-fable-list">
+                <article class="cs-fable-row">
+                  <img
+                    src="/images/work/lingofable/fable-cover-1.png"
+                    alt=""
+                    loading="lazy"
+                  />
+                  <div>
+                    <p class="cs-fable-row-title">The Last Librarian</p>
+                    <div class="cs-fable-row-tags">
+                      <span class="cs-just-right">🌱 Just right</span>
+                      <span class="cs-genre">Fantasy</span>
+                    </div>
+                    <p class="cs-fable-row-desc">
+                      The last librarian on a colony ship preserves books no one reads anymore&hellip;
+                    </p>
+                  </div>
+                  <span class="cs-fable-row-check" aria-hidden="true">✓</span>
+                </article>
+                <article class="cs-fable-row">
+                  <img
+                    src="/images/work/lingofable/fable-cover-2.png"
+                    alt=""
+                    loading="lazy"
+                  />
+                  <div>
+                    <p class="cs-fable-row-title">Ghost Protocol</p>
+                    <div class="cs-fable-row-tags">
+                      <span class="cs-just-right">🌱 Just right</span>
+                      <span class="cs-genre">Sci-Fi</span>
+                    </div>
+                    <p class="cs-fable-row-desc">
+                      An AI designed to manage a dying space station follows its protocols for centuries&hellip;
+                    </p>
+                  </div>
+                </article>
+                <article class="cs-fable-row">
+                  <img
+                    src="/images/work/lingofable/fable-cover-3.png"
+                    alt=""
+                    loading="lazy"
+                  />
+                  <div>
+                    <p class="cs-fable-row-title">Keys Above the Caf&eacute;</p>
+                    <div class="cs-fable-row-tags">
+                      <span class="cs-just-right">🌱 Just right</span>
+                      <span class="cs-genre">Sci-Fi</span>
+                    </div>
+                    <p class="cs-fable-row-desc">
+                      An elderly pianist who hasn&rsquo;t played in decades lives above a busy caf&eacute;&hellip;
+                    </p>
+                  </div>
+                  <span class="cs-fable-row-check" aria-hidden="true">✓</span>
+                </article>
+              </div>
+              <button class="cs-phone-cta" type="button">Bookmark 2 fable(s)</button>
+            </div>
+          </div>
+
+          <!-- Screen 3: commit to goal (fingerprint) -->
+          <div class="cs-phone cs-phone--c">
+            <div class="cs-phone-screen">
+              <div class="cs-phone-header">
+                <span class="cs-phone-back" aria-hidden="true">‹</span>
+                <div class="cs-progress-bar">
+                  <span style="width: 92%;"></span>
+                </div>
+              </div>
+              <div class="cs-phone-prompt">
+                <img
+                  src="/images/work/lingofable/mascot-leaf.png"
+                  alt=""
+                  loading="lazy"
+                  class="cs-phone-mascot"
+                />
+                <p>You got this! Press and hold to commit to your goal.</p>
+              </div>
+              <div class="cs-phone-divider"></div>
+              <div class="cs-fingerprint" aria-hidden="true">
+                <svg viewBox="0 0 64 72" fill="none" stroke="var(--color-bg-neutral-2)" stroke-width="1.8" stroke-linecap="round">
+                  <path d="M32 4c14 0 24 12 24 26 0 14-6 30-14 38" />
+                  <path d="M32 10c10 0 18 8 18 20 0 14-4 28-10 32" />
+                  <path d="M32 16c7 0 13 6 13 14 0 14-3 24-8 28" />
+                  <path d="M32 22c5 0 9 4 9 10 0 10-1 22-6 24" />
+                  <path d="M32 28c3 0 5 2 5 5 0 8-1 18-4 20" />
+                  <path d="M18 26c3-10 8-14 14-14" />
+                  <path d="M10 34c2-14 10-22 22-22" />
+                  <path d="M8 46c0-10 3-22 10-28" />
+                  <path d="M10 56c-3-10-1-26 6-34" />
+                  <path d="M16 64c-4-6-6-20-4-30" />
+                  <path d="M24 68c-4-4-6-18-4-28" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 06. Reflection -->
+      <section id="reflection" data-cs-section class="flex flex-col gap-4 cs-section">
+        <p
+          class="font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-ink-dim)] tracking-wider"
+        >
+          Reflection
+        </p>
+        <h2
+          class="font-[family-name:var(--font-display)] font-light text-[28px] text-[var(--color-ink)] leading-tight"
+        >
+          What I&rsquo;ve learned
+        </h2>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed max-w-[820px]"
+        >
+          Building an app for real users is very different from working on a design
+          case study or even a small side project.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+          {
+            reflections.map((r) => (
+              <article class="cs-reflection-tile bg-[var(--color-bg-light)] rounded-[16px] p-4 flex flex-col gap-2">
+                <h3 class="font-[family-name:var(--font-body)] font-semibold text-[16px] text-[var(--color-ink)]">
+                  {r.title}
+                </h3>
+                <p class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug">
+                  {r.body}
+                </p>
+              </article>
+            ))
+          }
+        </div>
+
+        <figure class="mt-6 rounded-[16px] overflow-hidden cs-reflection-photo-wrap">
+          <img
+            src="/images/work/lingofable/reflection-photo.jpg"
+            alt="Megan presenting Lingofable on stage"
+            loading="lazy"
+            class="cs-reflection-photo w-full max-h-[520px] object-cover"
+          />
+        </figure>
+      </section>
+    </main>
+  </div>
+
+  <Footer color={cursorColor} active="home" />
+
+  <CustomCursor color={cursorColor} />
+</BaseLayout>
+
+<style>
+  /* ===========================================================
+     Section entry — fade + 8px rise when the section enters view.
+     Headings reuse the same transition via the .cs-section class.
+     =========================================================== */
+  .cs-section {
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 400ms var(--ease-out-soft),
+      transform 400ms var(--ease-out-soft);
+  }
+  .cs-section[data-visible] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Hero */
+  .cs-hero {
+    box-shadow: 0 14px 38px -22px rgba(36, 36, 36, 0.35);
+  }
+  .cs-hero img {
+    transition: transform 600ms var(--ease-out-soft);
+  }
+  .cs-hero:hover img {
+    transform: scale(1.015);
+  }
+
+  /* Small sparkle accent that lives next to the hero title. Pulses gently. */
+  .cs-hero-mark {
+    display: inline-block;
+    font-size: 22px;
+    line-height: 1.3;
+    animation: cs-hero-pulse 3.6s ease-in-out infinite;
+  }
+  @keyframes cs-hero-pulse {
+    0%, 100% { transform: rotate(0deg) scale(1); opacity: 1; }
+    50%      { transform: rotate(14deg) scale(1.15); opacity: 0.75; }
+  }
+
+  /* Emphasis words pick up a hand-drawn pink underline on hover. */
+  .cs-emph {
+    color: var(--color-ink);
+    background-image: linear-gradient(
+      to right,
+      var(--color-pink-1),
+      var(--color-pink-1)
+    );
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 6px;
+    padding-bottom: 1px;
+    transition: background-size var(--duration-base) var(--ease-out-soft);
+  }
+  .cs-emph:hover {
+    background-size: 100% 6px;
+  }
+  .cs-mention {
+    text-decoration: underline;
+    text-decoration-color: var(--color-pink-1);
+    text-underline-offset: 3px;
+    transition: color var(--duration-fast) var(--ease-out-soft);
+  }
+  .cs-mention:hover {
+    color: var(--color-pink);
+  }
+
+  /* ---- Solution cards ---- */
+  .cs-solution-card {
+    transform-origin: center;
+    transition:
+      transform var(--duration-base) var(--ease-out-soft),
+      box-shadow var(--duration-base) var(--ease-out-soft);
+    box-shadow: 0 4px 18px -12px rgba(36, 36, 36, 0.15);
+  }
+  .cs-solution-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 32px -18px rgba(36, 36, 36, 0.25);
+  }
+
+  .cs-fable-card {
+    transition: transform 520ms var(--ease-out-soft);
+  }
+  .cs-solution-card:hover .cs-fable-card--back {
+    transform: rotate(-12deg) translateX(-4px);
+  }
+  .cs-solution-card:hover .cs-fable-card--right {
+    transform: rotate(10deg) translateX(4px);
+  }
+  .cs-solution-card:hover .cs-fable-card--front {
+    transform: translate(-50%, -4px) rotate(-1deg);
+  }
+
+  .cs-solution-mascot {
+    transition: transform 520ms var(--ease-out-soft);
+  }
+  .cs-solution-card:hover .cs-solution-mascot {
+    transform: translateY(-4px) rotate(-2deg);
+  }
+  .cs-solution-card:hover .cs-solution-magnifier {
+    transform: rotate(6deg) translateY(-2px);
+  }
+  .cs-solution-magnifier {
+    transition: transform 520ms var(--ease-out-soft);
+  }
+
+  /* ---- Features phone ---- */
+  .cs-features-phone {
+    box-shadow: 0 18px 48px -24px rgba(36, 36, 36, 0.4);
+    transition: transform 520ms var(--ease-out-soft);
+    transform: rotate(0deg);
+  }
+  .cs-features-phone-wrap:hover .cs-features-phone {
+    transform: rotate(-2deg) translateY(-4px);
+  }
+  .cs-feature-tile:hover {
+    background: var(--color-bg-neutral);
+  }
+
+  /* ---- Onboarding phones ---- */
+  .cs-phone {
+    width: 260px;
+    height: 520px;
+    flex-shrink: 0;
+    padding: 8px;
+    border-radius: 32px;
+    background: #413636;
+    box-shadow: 0 18px 48px -24px rgba(36, 36, 36, 0.4);
+    transition: transform 520ms var(--ease-out-soft);
+  }
+  .cs-phone--a { transform: rotate(-2deg); }
+  .cs-phone--b { transform: rotate(0deg); }
+  .cs-phone--c { transform: rotate(2deg); }
+  .cs-phone:hover { transform: rotate(0deg) translateY(-4px); }
+
+  .cs-phone-screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 24px;
+    background: #f6f1ea;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .cs-phone-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .cs-phone-back {
+    font-family: var(--font-body);
+    font-size: 18px;
+    color: #413636;
+    line-height: 1;
+  }
+  .cs-progress-bar {
+    flex: 1;
+    height: 4px;
+    border-radius: 9999px;
+    background: rgba(65, 54, 54, 0.15);
+    overflow: hidden;
+  }
+  .cs-progress-bar span {
+    display: block;
+    height: 100%;
+    background: var(--color-orange);
+    border-radius: 9999px;
+  }
+
+  .cs-phone-prompt {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .cs-phone-mascot {
+    width: 28px;
+    height: auto;
+    flex-shrink: 0;
+    object-fit: contain;
+    margin-top: 4px;
+  }
+  .cs-phone-prompt p {
+    flex: 1;
+    background: #fff;
+    border: 1px solid rgba(65, 54, 54, 0.12);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--color-ink);
+    line-height: 1.35;
+    font-weight: 600;
+  }
+
+  .cs-phone-divider {
+    height: 1px;
+    width: 100%;
+    background: repeating-linear-gradient(
+      to right,
+      rgba(65, 54, 54, 0.25),
+      rgba(65, 54, 54, 0.25) 3px,
+      transparent 3px,
+      transparent 6px
+    );
+  }
+
+  .cs-word-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1;
+    overflow: hidden;
+    align-content: flex-start;
+  }
+  .cs-word {
+    background: #fff;
+    border: 1px solid rgba(65, 54, 54, 0.12);
+    border-radius: 9999px;
+    padding: 5px 10px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    color: var(--color-ink);
+    line-height: 1;
+  }
+
+  .cs-phone-cta {
+    margin-top: auto;
+    background: var(--color-orange);
+    color: #fff;
+    border: 0;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .cs-fable-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    overflow: hidden;
+  }
+  .cs-fable-row {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    gap: 8px;
+    background: #fff;
+    border: 1px solid rgba(65, 54, 54, 0.12);
+    border-radius: 10px;
+    padding: 8px;
+    align-items: start;
+  }
+  .cs-fable-row img {
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    object-fit: cover;
+  }
+  .cs-fable-row-title {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-ink);
+    line-height: 1.2;
+  }
+  .cs-fable-row-tags {
+    display: flex;
+    gap: 6px;
+    margin-top: 3px;
+  }
+  .cs-just-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-family: var(--font-body);
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 9999px;
+    background: color-mix(in oklch, var(--color-green-1) 50%, white);
+    color: var(--color-green);
+  }
+  .cs-genre {
+    font-family: var(--font-body);
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 9999px;
+    background: var(--color-bg-neutral);
+    color: var(--color-ink-dim);
+  }
+  .cs-fable-row-desc {
+    font-family: var(--font-body);
+    font-size: 10px;
+    color: var(--color-ink-dim);
+    line-height: 1.3;
+    margin-top: 3px;
+  }
+  .cs-fable-row-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    background: var(--color-orange);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-body);
+    font-size: 11px;
+    line-height: 1;
+    align-self: start;
+  }
+
+  .cs-fingerprint {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cs-fingerprint svg {
+    width: 90px;
+    height: auto;
+    animation: cs-fingerprint-breathe 2.6s ease-in-out infinite;
+  }
+  @keyframes cs-fingerprint-breathe {
+    0%, 100% { transform: scale(1); opacity: 0.65; }
+    50%      { transform: scale(1.06); opacity: 1; }
+  }
+
+  /* Reflection photo */
+  .cs-reflection-photo-wrap {
+    box-shadow: 0 18px 42px -24px rgba(36, 36, 36, 0.35);
+    transition: transform var(--duration-base) var(--ease-out-soft);
+  }
+  .cs-reflection-photo-wrap:hover {
+    transform: translateY(-2px);
+  }
+  .cs-reflection-photo {
+    transition: transform 600ms var(--ease-out-soft);
+  }
+  .cs-reflection-photo-wrap:hover .cs-reflection-photo {
+    transform: scale(1.02);
+  }
+
+  .cs-reflection-tile {
+    transition:
+      transform var(--duration-base) var(--ease-out-soft),
+      background var(--duration-base) var(--ease-out-soft);
+  }
+  .cs-reflection-tile:hover {
+    transform: translateY(-2px);
+    background: var(--color-bg-neutral);
+  }
+
+  .cs-interaction-frame {
+    transition: transform 520ms var(--ease-out-soft);
+  }
+  .cs-interaction:hover .cs-interaction-frame {
+    transform: scale(1.01) rotate(-0.5deg);
+  }
+
+  /* 13-col grid for the heatmap (Tailwind doesn't ship 13 by default). */
+  .grid-cols-13 {
+    grid-template-columns: repeat(13, minmax(0, 1fr));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cs-section,
+    .cs-hero img,
+    .cs-hero-mark,
+    .cs-emph,
+    .cs-mention,
+    .cs-solution-card,
+    .cs-fable-card,
+    .cs-solution-mascot,
+    .cs-solution-magnifier,
+    .cs-features-phone,
+    .cs-phone,
+    .cs-fingerprint svg,
+    .cs-reflection-photo-wrap,
+    .cs-reflection-photo,
+    .cs-reflection-tile,
+    .cs-interaction-frame {
+      transition: none !important;
+      animation: none !important;
+    }
+    .cs-section {
+      opacity: 1;
+      transform: none;
+    }
+    .cs-phone--a,
+    .cs-phone--b,
+    .cs-phone--c,
+    .cs-phone:hover {
+      transform: none;
+    }
+    .cs-solution-card:hover,
+    .cs-solution-card:hover .cs-fable-card--back,
+    .cs-solution-card:hover .cs-fable-card--right,
+    .cs-solution-card:hover .cs-fable-card--front,
+    .cs-features-phone-wrap:hover .cs-features-phone,
+    .cs-reflection-photo-wrap:hover,
+    .cs-reflection-photo-wrap:hover .cs-reflection-photo,
+    .cs-interaction:hover .cs-interaction-frame,
+    .cs-reflection-tile:hover {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  /*
+    Section-entry fade. Uses a scroll listener (rAF-throttled) to mark each
+    section visible once it enters the viewport from below. IntersectionObserver
+    is avoided here for parity with the scrollspy — a single source of truth
+    for "is this section on screen" works reliably in all environments.
+    Once visible, sections stay visible (we don't re-animate on scroll-up).
+  */
+  function initCaseStudyEntries() {
+    const reduced = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const sections = Array.from(
+      document.querySelectorAll<HTMLElement>(".cs-section"),
+    );
+    if (sections.length === 0) return;
+
+    if (reduced) {
+      sections.forEach((s) => s.setAttribute("data-visible", ""));
+      return;
+    }
+
+    let pending: HTMLElement[] = sections.slice();
+    let scheduled = false;
+
+    function check() {
+      scheduled = false;
+      const wh = window.innerHeight;
+      pending = pending.filter((sec) => {
+        const r = sec.getBoundingClientRect();
+        // Reveal when any part of the section is in the viewport.
+        if (r.top < wh - 40 && r.bottom > 0) {
+          sec.setAttribute("data-visible", "");
+          return false;
+        }
+        return true;
+      });
+    }
+    function schedule() {
+      if (scheduled) return;
+      scheduled = true;
+      if (document.visibilityState === "visible") {
+        requestAnimationFrame(check);
+      } else {
+        setTimeout(check, 16);
+      }
+    }
+
+    // Initial measurement.
+    check();
+    if (pending.length === 0) return;
+
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+
+    // Safety: reveal everything after a short timeout so content is never
+    // stuck at opacity:0 if the user's browser is being weird.
+    setTimeout(() => {
+      pending.forEach((s) => s.setAttribute("data-visible", ""));
+      pending = [];
+    }, 2000);
+  }
+  initCaseStudyEntries();
+  document.addEventListener("astro:page-load", initCaseStudyEntries);
+</script>
