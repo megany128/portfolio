@@ -1,0 +1,375 @@
+---
+// Drawing canvas overlaid on the LibraryCard.
+// Pen and eraser both draw via the same Pointer Events; the eraser uses
+// destination-out compositing.  When in eraser mode, a circular outline
+// follows the pointer to preview the erase area.
+---
+
+<div data-signature-wrap class="absolute inset-0">
+  <canvas
+    data-signature-pad
+    class="absolute inset-0 size-full pointer-events-auto"
+    style={`
+      cursor: var(--signature-cursor-pen);
+      touch-action: none;
+    `}
+  ></canvas>
+
+  <!-- Clear button: shown only after the visitor has drawn something. -->
+  <button
+    type="button"
+    data-signature-clear
+    aria-label="Clear signature"
+    class="signature-clear absolute top-3 right-3 z-10 font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-[0.14em] px-2 py-1 rounded-[6px] bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm pointer-events-auto transition-opacity"
+  >
+    Clear
+  </button>
+
+  <!-- Eraser preview ring -->
+  <div
+    data-eraser-preview
+    aria-hidden="true"
+    class="eraser-preview pointer-events-none absolute top-0 left-0 rounded-full border border-white/90 mix-blend-difference"
+  >
+  </div>
+</div>
+
+<style is:global>
+  /*
+    Per-color pen cursors — the pen-tip fill matches the card's accent so the
+    cursor reads as part of the active card. The ink stroke and cursor fill
+    are driven by --pen-stroke, set per-card on .library-card.
+
+    Hot-spot is the tip at (4, 28). `fill` is the tip color; `stroke` is the
+    pen outline (kept white everywhere so the pen silhouette stays legible).
+  */
+  .library-card[data-color="pink"] {
+    --pen-stroke: var(--color-pink-2);
+    --signature-cursor-pen: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g fill='none' stroke='%23ffffff' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'><path d='M3 29l5-1.5L25.5 10 22 6.5 4.5 24 3 29z' fill='%23eabaca'/><path d='M22 6.5l3.5 3.5'/><path d='M19 9.5l3.5 3.5'/></g></svg>") 4 28, crosshair;
+  }
+  .library-card[data-color="teal"] {
+    --pen-stroke: var(--color-teal-3);
+    --signature-cursor-pen: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g fill='none' stroke='%23ffffff' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'><path d='M3 29l5-1.5L25.5 10 22 6.5 4.5 24 3 29z' fill='%2365b6c3'/><path d='M22 6.5l3.5 3.5'/><path d='M19 9.5l3.5 3.5'/></g></svg>") 4 28, crosshair;
+  }
+  .library-card[data-color="green"] {
+    --pen-stroke: var(--color-green-1);
+    --signature-cursor-pen: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g fill='none' stroke='%23ffffff' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'><path d='M3 29l5-1.5L25.5 10 22 6.5 4.5 24 3 29z' fill='%237db592'/><path d='M22 6.5l3.5 3.5'/><path d='M19 9.5l3.5 3.5'/></g></svg>") 4 28, crosshair;
+  }
+  .library-card[data-color="orange"] {
+    --pen-stroke: var(--color-orange-2);
+    --signature-cursor-pen: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g fill='none' stroke='%23ffffff' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'><path d='M3 29l5-1.5L25.5 10 22 6.5 4.5 24 3 29z' fill='%23eebc94'/><path d='M22 6.5l3.5 3.5'/><path d='M19 9.5l3.5 3.5'/></g></svg>") 4 28, crosshair;
+  }
+  .library-card[data-color="neutral"] {
+    --pen-stroke: var(--color-ink);
+    --signature-cursor-pen: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g fill='none' stroke='%23242424' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'><path d='M3 29l5-1.5L25.5 10 22 6.5 4.5 24 3 29z' fill='%238a8576'/><path d='M22 6.5l3.5 3.5'/><path d='M19 9.5l3.5 3.5'/></g></svg>") 4 28, crosshair;
+  }
+
+  /* When in eraser mode, hide the OS cursor and let the JS-positioned ring be the cue. */
+  [data-signature-pad][data-tool="eraser"] {
+    cursor: none !important;
+  }
+
+  .eraser-preview {
+    width: 0;
+    height: 0;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.12s ease-out;
+    will-change: transform, width, height;
+    /* Force a solid opaque white ring regardless of the Tailwind utilities
+       on the element (which set a translucent, difference-blended border). */
+    border: 2px solid #ffffff !important;
+    mix-blend-mode: normal !important;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+  }
+  .eraser-preview[data-active] {
+    opacity: 1;
+  }
+
+  /* Clear button — hidden until the canvas has any ink on it. */
+  .signature-clear {
+    opacity: 0;
+    pointer-events: none;
+  }
+  [data-signature-wrap][data-has-ink] .signature-clear {
+    opacity: 1;
+    pointer-events: auto;
+  }
+</style>
+
+<script>
+  type Tool = "pen" | "eraser";
+
+  const PEN_WIDTH = 2;
+  const ERASER_WIDTH = 28; // bigger than before so eraser actually erases meaningfully
+
+  function init(wrap: HTMLElement) {
+    const pad = wrap.querySelector<HTMLCanvasElement>("[data-signature-pad]");
+    const preview = wrap.querySelector<HTMLElement>("[data-eraser-preview]");
+    const clearBtn = wrap.querySelector<HTMLButtonElement>("[data-signature-clear]");
+    if (!pad || !preview) return;
+    const ctx = pad.getContext("2d");
+    if (!ctx) return;
+
+    let dpr = window.devicePixelRatio || 1;
+    let drawing = false;
+    let last: { x: number; y: number } | null = null;
+    let tool: Tool = "pen";
+    let hasInk = false;
+
+    function setHasInk(v: boolean) {
+      if (hasInk === v) return;
+      hasInk = v;
+      if (v) wrap.setAttribute("data-has-ink", "");
+      else wrap.removeAttribute("data-has-ink");
+    }
+
+    /** Scan a small sample of pixels to decide whether the canvas is empty. */
+    function checkHasInk() {
+      try {
+        const { width, height } = pad!;
+        const data = ctx!.getImageData(0, 0, width, height).data;
+        // Step through alpha channel; short-circuit on first inked pixel.
+        for (let i = 3; i < data.length; i += 4 * 16) {
+          if (data[i] !== 0) {
+            setHasInk(true);
+            return;
+          }
+        }
+        setHasInk(false);
+      } catch {
+        // Tainted canvas or other issue — leave hasInk as-is.
+      }
+    }
+
+    function size() {
+      const r = pad!.getBoundingClientRect();
+      dpr = window.devicePixelRatio || 1;
+      pad!.width = Math.round(r.width * dpr);
+      pad!.height = Math.round(r.height * dpr);
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx!.lineCap = "round";
+      ctx!.lineJoin = "round";
+    }
+    size();
+    new ResizeObserver(size).observe(pad);
+
+    function pos(e: PointerEvent) {
+      const r = pad!.getBoundingClientRect();
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    }
+
+    /** Read the pen stroke color from the current card's CSS variable. */
+    function currentStroke(): string {
+      const val = getComputedStyle(wrap).getPropertyValue("--pen-stroke").trim();
+      return val || "#ffffff";
+    }
+
+    /** Resolve any CSS color string (named, hex, var()) to [r, g, b]. */
+    function resolveRgb(color: string): [number, number, number] | null {
+      const probe = document.createElement("span");
+      probe.style.color = color;
+      probe.style.display = "none";
+      document.body.appendChild(probe);
+      const rgb = getComputedStyle(probe).color;
+      document.body.removeChild(probe);
+      const m = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      if (!m) return null;
+      return [+m[1], +m[2], +m[3]];
+    }
+
+    /**
+     * Recolor every inked pixel on the canvas to the card's current pen color.
+     * Called whenever the parent card's data-color flips so the existing
+     * signature tracks the new theme instead of staying the old ink color.
+     */
+    function retintInk() {
+      if (!hasInk) return;
+      const w = pad!.width;
+      const h = pad!.height;
+      if (!w || !h) return;
+      const rgb = resolveRgb(currentStroke());
+      if (!rgb) return;
+      const [r, g, b] = rgb;
+      const img = ctx!.getImageData(0, 0, w, h);
+      const px = img.data;
+      for (let i = 0; i < px.length; i += 4) {
+        if (px[i + 3] > 0) {
+          px[i] = r;
+          px[i + 1] = g;
+          px[i + 2] = b;
+        }
+      }
+      ctx!.putImageData(img, 0, 0);
+    }
+
+    // Watch the enclosing library-card for data-color flips from the picker;
+    // when it changes, recolor the live ink so the signature matches the new
+    // theme instead of snapping between old and new tones.
+    const hostCard = wrap.closest<HTMLElement>(".library-card");
+    if (hostCard) {
+      const observer = new MutationObserver(() => retintInk());
+      observer.observe(hostCard, { attributes: true, attributeFilter: ["data-color"] });
+    }
+
+    function paintTo(x: number, y: number) {
+      if (!last) return;
+      ctx!.globalCompositeOperation = tool === "eraser" ? "destination-out" : "source-over";
+      ctx!.strokeStyle = tool === "eraser" ? "#ffffff" : currentStroke();
+      ctx!.lineWidth = tool === "eraser" ? ERASER_WIDTH : PEN_WIDTH;
+      ctx!.beginPath();
+      ctx!.moveTo(last.x, last.y);
+      ctx!.lineTo(x, y);
+      ctx!.stroke();
+      if (tool === "pen") setHasInk(true);
+      // Eraser strokes may clear the last ink — defer a check until the stroke ends.
+    }
+
+    function setPreview(x: number, y: number, visible: boolean) {
+      if (tool !== "eraser") {
+        preview!.removeAttribute("data-active");
+        return;
+      }
+      preview!.style.width = `${ERASER_WIDTH}px`;
+      preview!.style.height = `${ERASER_WIDTH}px`;
+      preview!.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+      if (visible) preview!.setAttribute("data-active", "");
+      else preview!.removeAttribute("data-active");
+    }
+
+    function start(e: PointerEvent) {
+      e.preventDefault();
+      drawing = true;
+      last = pos(e);
+      pad!.setPointerCapture(e.pointerId);
+    }
+
+    function move(e: PointerEvent) {
+      const p = pos(e);
+      // Always update the eraser preview position when the pointer is over the pad.
+      setPreview(p.x, p.y, true);
+      if (!drawing || !last) {
+        last = p;
+        return;
+      }
+      paintTo(p.x, p.y);
+      last = p;
+    }
+
+    function end(e: PointerEvent) {
+      drawing = false;
+      last = null;
+      try { pad!.releasePointerCapture(e.pointerId); } catch {}
+      if (tool === "eraser" && hasInk) checkHasInk();
+    }
+
+    function leave() {
+      drawing = false;
+      last = null;
+      preview!.removeAttribute("data-active");
+    }
+
+    pad.addEventListener("pointerdown", start);
+    pad.addEventListener("pointermove", move);
+    pad.addEventListener("pointerup", end);
+    pad.addEventListener("pointercancel", end);
+    pad.addEventListener("pointerleave", leave);
+    pad.addEventListener("pointerenter", (e) => {
+      const p = pos(e);
+      setPreview(p.x, p.y, tool === "eraser");
+    });
+
+    window.addEventListener("signature:tool", ((e: Event) => {
+      const detail = (e as CustomEvent<{ tool: Tool }>).detail;
+      tool = detail.tool;
+      pad!.dataset.tool = tool;
+      if (tool !== "eraser") preview!.removeAttribute("data-active");
+    }) as EventListener);
+
+    // Clear animation: snapshot the current signature to an overlay canvas,
+    // wipe the underlying canvas instantly, then fade the overlay out with
+    // a subtle scale-up and blur so the ink drifts away rather than just
+    // disappearing.
+    const FADE_DURATION = 820;
+
+    function animateFade() {
+      const bitmapW = pad!.width;
+      const bitmapH = pad!.height;
+      if (!bitmapW || !bitmapH) return;
+
+      const overlay = document.createElement("canvas");
+      overlay.width = bitmapW;
+      overlay.height = bitmapH;
+      overlay.style.cssText = `
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 5;
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0px);
+        transform-origin: 50% 50%;
+        transition:
+          opacity ${FADE_DURATION}ms cubic-bezier(0.22, 1, 0.36, 1),
+          transform ${FADE_DURATION}ms cubic-bezier(0.22, 1, 0.36, 1),
+          filter ${FADE_DURATION}ms cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: opacity, transform, filter;
+      `;
+      const oCtx = overlay.getContext("2d");
+      if (!oCtx) return;
+      oCtx.drawImage(pad!, 0, 0);
+      wrap.appendChild(overlay);
+
+      // Kick the transition on the next frame so the browser commits the
+      // initial state first.
+      requestAnimationFrame(() => {
+        overlay.style.opacity = "0";
+        overlay.style.transform = "scale(1.06)";
+        overlay.style.filter = "blur(6px)";
+      });
+      window.setTimeout(() => overlay.remove(), FADE_DURATION + 80);
+    }
+
+    function clearCanvas() {
+      const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      // Kick off the dissolve using the current pixels BEFORE we wipe them.
+      if (!reduced && hasInk) animateFade();
+      ctx!.clearRect(0, 0, pad!.width, pad!.height);
+      // Reset compositing in case a stroke-in-progress left it on destination-out.
+      ctx!.globalCompositeOperation = "source-over";
+      // Cancel any live stroke so post-clear drawing starts clean.
+      drawing = false;
+      last = null;
+      setHasInk(false);
+    }
+
+    clearBtn?.addEventListener("click", (e) => {
+      e.preventDefault();
+      clearCanvas();
+    });
+
+    window.addEventListener("signature:clear", clearCanvas);
+  }
+
+  /*
+    Init on first DOM ready AND on every Astro view-transition page swap.
+    Module scripts are only evaluated once by Astro's ClientRouter; without
+    re-running init on swap, the second visit to /onboarding has a fresh
+    canvas element but no pointer listeners attached to it — drawing + tool
+    toggle appear dead.
+
+    `data-sig-wired` guards against double-wiring on the initial load.
+  */
+  function wireAll() {
+    document
+      .querySelectorAll<HTMLElement>("[data-signature-wrap]:not([data-sig-wired])")
+      .forEach((el) => {
+        el.setAttribute("data-sig-wired", "1");
+        init(el);
+      });
+  }
+  wireAll();
+  document.addEventListener("astro:page-load", wireAll);
+</script>

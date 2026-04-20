@@ -1,0 +1,20 @@
+---
+import DarkScene from "../layouts/DarkScene.astro";
+import VisitorCard from "../components/onboarding/VisitorCard.astro";
+import { peekNextVisitorNumber } from "../lib/visitor-server";
+
+export const prerender = false;
+
+// Always show the onboarding flow while we're iterating on it.
+// Re-enable the redirect below once the visuals are signed off.
+//
+// import { getCurrentVisitor } from "../lib/visitor-server";
+// const visitor = await getCurrentVisitor(Astro);
+// if (visitor) return Astro.redirect("/home");
+
+const nextNumber = await peekNextVisitorNumber(Astro);
+---
+
+<DarkScene title="Sign in — Megan's World">
+  <VisitorCard nextNumber={nextNumber} />
+</DarkScene>
