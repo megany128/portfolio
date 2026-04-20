@@ -1,0 +1,396 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/home/Sidebar.astro";
+import Footer from "../components/home/Footer.astro";
+import CustomCursor from "../components/home/CustomCursor.astro";
+import CommunityCard from "../components/about/CommunityCard.astro";
+import FavoritesShelf from "../components/about/FavoritesShelf.astro";
+import StickerStamp from "../components/about/StickerStamp.astro";
+import { getCurrentVisitor } from "../lib/visitor-server";
+
+export const prerender = false;
+
+const visitor = await getCurrentVisitor(Astro);
+const cursorColor = visitor?.color ?? "pink";
+---
+
+<BaseLayout title="About — Megan Yap">
+  <div class="flex items-stretch min-h-screen">
+    <Sidebar active="about" />
+
+    <main class="flex flex-col gap-10 p-10 flex-1 min-w-0">
+      <section class="flex flex-col gap-4 about-section" data-about-section>
+        <h1
+          class="font-[family-name:var(--font-display)] font-light text-[36px] leading-tight text-[var(--color-ink)]"
+        >
+          Hi, I&rsquo;m Megan!
+        </h1>
+        <div
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed flex flex-col gap-4 max-w-[897px]"
+        >
+          <p>
+            I grew up in sunny Malaysia and am now exploring the magical world of tech and design as a junior at Cornell. I started off with designing stickers and stationery products (fun fact: I made <span class="about-emph" data-about-emph>$10K in revenue</span> back in high school!), but now I spend most of my spare time in the digital world <span class="about-emph" data-about-emph>flibbertigibetting</span> away (iykyk).
+          </p>
+          <p>When I&rsquo;m not dreaming up product ideas, you can find me:</p>
+          <ul class="about-list list-none pl-0 flex flex-col gap-1">
+            <li data-about-li style="--li-emoji: '🌱';">
+              <span class="about-list__marker" aria-hidden="true">
+                <span class="about-list__dot">•</span>
+                <span class="about-list__emoji">🌱</span>
+              </span>
+              <span class="about-list__text">Terraforming worlds and building zoos in my favorite board games</span>
+            </li>
+            <li data-about-li style="--li-emoji: '⚔️';">
+              <span class="about-list__marker" aria-hidden="true">
+                <span class="about-list__dot">•</span>
+                <span class="about-list__emoji">⚔️</span>
+              </span>
+              <span class="about-list__text">Adventuring through the chambers of Hades</span>
+            </li>
+            <li data-about-li style="--li-emoji: '📖';">
+              <span class="about-list__marker" aria-hidden="true">
+                <span class="about-list__dot">•</span>
+                <span class="about-list__emoji">📖</span>
+              </span>
+              <span class="about-list__text">Lost in a <span class="about-emph" data-about-emph>Brandon Sanderson</span> novel</span>
+            </li>
+          </ul>
+          <p>Always happy to chat! I&rsquo;m on the lookout for freelance work and good conversations :)</p>
+        </div>
+
+        <div
+          data-portraits
+          class="portrait-strip flex items-start justify-between gap-4 mt-2 relative"
+        >
+          <div
+            class="portrait-wrap"
+            data-portrait
+            data-cursor="case-study"
+            data-cursor-label="hi there!"
+            style="--base-rot: -2.5deg;"
+          >
+            <img
+              src="/images/about/portrait-1.jpg"
+              alt="Megan portrait"
+              class="portrait rounded-[10px] object-cover w-[180px] h-[320px]"
+            />
+          </div>
+          <div
+            class="portrait-wrap"
+            data-portrait
+            data-cursor="case-study"
+            data-cursor-label="caught in the wild"
+            style="--base-rot: 1.5deg;"
+          >
+            <img
+              src="/images/about/portrait-2.jpg"
+              alt="Megan candid"
+              class="portrait rounded-[10px] object-cover w-[427px] h-[320px]"
+            />
+          </div>
+          <div
+            class="portrait-wrap"
+            data-portrait
+            data-cursor="case-study"
+            data-cursor-label="a sunny day"
+            style="--base-rot: -1.75deg;"
+          >
+            <img
+              src="/images/about/portrait-3.jpg"
+              alt="Megan portrait"
+              class="portrait rounded-[12px] object-cover w-[240px] h-[320px]"
+            />
+          </div>
+
+          <!-- Tiny sparkle accent, drifts over the portrait strip. Decorative. -->
+          <span aria-hidden="true" class="portrait-sparkle portrait-sparkle--a">⊹</span>
+          <span aria-hidden="true" class="portrait-sparkle portrait-sparkle--b">˚</span>
+          <span aria-hidden="true" class="portrait-sparkle portrait-sparkle--c">⋆</span>
+        </div>
+      </section>
+
+      <section class="flex flex-col gap-4 about-section" data-about-section>
+        <h2
+          class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)]"
+        >
+          My Communities
+        </h2>
+        <div class="flex gap-6 items-start">
+          <CommunityCard
+            icon="/images/communities/dti-icon.png"
+            iconWidth={19}
+            iconHeight={19}
+            title="Digital Tech & Innovation"
+            description="I've been on DTI since my freshman year and have been active as Product Lead, CU Reviews PM, and Incubator PM & Designer! I've truly grown and learned so much from my time on DTI, and I'm so happy to be able to give back as a mentor now."
+            photo="/images/communities/dti-photo.png"
+          />
+          <CommunityCard
+            icon="/images/communities/dcc-icon.png"
+            iconWidth={11}
+            iconHeight={16}
+            iconRounded={false}
+            title="Design Consulting at Cornell"
+            description="DCC is where I first got into design — it was in this club that I learned Figma for the first time and truly understood the fundamentals of how to create good user experiences. Being in this community has been lovely and I've met so many amazing people!"
+            photo="/images/communities/dcc-photo.png"
+          />
+          <CommunityCard
+            icon="/images/communities/armada-icon.png"
+            iconWidth={28}
+            iconHeight={19}
+            iconRounded={false}
+            title="Armada"
+            description="I just joined Armada as a builder — it's an awesome club that funneled 70% of Cornell's YC Summer 2025 admits. Everyone in Armada is insanely cracked and I'm looking forward to getting to know the people here and building cool things with them!"
+            photo="/images/communities/armada-photo.png"
+          />
+        </div>
+      </section>
+
+      <FavoritesShelf />
+    </main>
+  </div>
+
+  <Footer color={cursorColor} active="about" />
+
+  <CustomCursor color={cursorColor} />
+
+  <StickerStamp />
+</BaseLayout>
+
+<style>
+  /* ===========================================================
+     Section entry — soft fade + slide using IntersectionObserver.
+     =========================================================== */
+  .about-section {
+    opacity: 0;
+    transform: translateY(12px);
+    transition:
+      opacity 400ms var(--ease-out-soft),
+      transform 400ms var(--ease-out-soft);
+  }
+  .about-section[data-visible] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ===========================================================
+     Portraits — polaroid energy.
+     Each tile has a per-image base rotation via --base-rot.
+     On hover: lift, scale, straighten a hair, drop shadow.
+     Neighbors (strip:hover .portrait-wrap) dim + shrink a touch.
+     =========================================================== */
+  .portrait-strip {
+    perspective: 1200px;
+  }
+  .portrait-wrap {
+    transform-origin: center 90%;
+    transform: rotate(var(--base-rot, 0deg));
+    transition:
+      transform var(--duration-base) var(--ease-out-soft),
+      filter var(--duration-base) var(--ease-out-soft),
+      opacity var(--duration-base) var(--ease-out-soft);
+    will-change: transform;
+  }
+  .portrait {
+    display: block;
+    box-shadow: 0 2px 6px -2px rgba(36, 36, 36, 0.18);
+    transition: box-shadow var(--duration-base) var(--ease-out-soft);
+  }
+  /* When any portrait is hovered, others lean back + dim. */
+  .portrait-strip:hover .portrait-wrap:not(:hover) {
+    opacity: 0.72;
+    filter: saturate(0.9);
+    transform: rotate(calc(var(--base-rot, 0deg) * 0.4)) scale(0.985);
+  }
+  .portrait-wrap:hover {
+    transform: rotate(calc(var(--base-rot, 0deg) * 0.3)) translateY(-6px) scale(1.035);
+    z-index: 2;
+  }
+  .portrait-wrap:hover .portrait {
+    box-shadow: 0 18px 32px -16px rgba(36, 36, 36, 0.35);
+  }
+
+  /* Decorative sparkles over the strip, drifting softly. */
+  .portrait-sparkle {
+    position: absolute;
+    font-family: var(--font-mono);
+    pointer-events: none;
+    opacity: 0.55;
+    animation: sparkle-drift 6s ease-in-out infinite;
+  }
+  .portrait-sparkle--a {
+    top: -14px;
+    left: 22%;
+    color: var(--color-pink);
+    font-size: 16px;
+    animation-delay: 0s;
+  }
+  .portrait-sparkle--b {
+    bottom: -10px;
+    left: 52%;
+    color: var(--color-teal);
+    font-size: 18px;
+    animation-delay: 1.4s;
+  }
+  .portrait-sparkle--c {
+    top: 8px;
+    right: 6%;
+    color: var(--color-orange);
+    font-size: 14px;
+    animation-delay: 2.6s;
+  }
+  @keyframes sparkle-drift {
+    0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.4; }
+    50%      { transform: translateY(-6px) rotate(12deg); opacity: 0.75; }
+  }
+
+  /* ===========================================================
+     "When I'm not dreaming up product ideas" list.
+     Custom marker swaps dot → themed emoji on hover, row nudges right.
+     =========================================================== */
+  .about-list li {
+    display: flex;
+    gap: 0.625rem;
+    align-items: baseline;
+    transition: transform var(--duration-fast) var(--ease-out-soft);
+  }
+  .about-list__marker {
+    position: relative;
+    display: inline-block;
+    width: 1.25rem;
+    flex-shrink: 0;
+    line-height: 1;
+    text-align: center;
+  }
+  .about-list__dot,
+  .about-list__emoji {
+    display: inline-block;
+    transition:
+      opacity var(--duration-fast) var(--ease-out-soft),
+      transform var(--duration-base) var(--ease-out-soft);
+  }
+  .about-list__dot {
+    color: var(--color-ink-mute);
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+  .about-list__emoji {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    font-size: 0.95rem;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6) rotate(-12deg);
+  }
+  .about-list li:hover {
+    transform: translateX(4px);
+  }
+  .about-list li:hover .about-list__dot {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  .about-list li:hover .about-list__emoji {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+
+  /* ===========================================================
+     Emphasis words — subtle hand-drawn underline-on-hover.
+     Uses a gradient underline that grows from left to right.
+     =========================================================== */
+  .about-emph {
+    position: relative;
+    color: var(--color-ink);
+    background-image: linear-gradient(
+      to right,
+      var(--color-pink-1),
+      var(--color-pink-1)
+    );
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 6px;
+    padding-bottom: 1px;
+    transition: background-size var(--duration-base) var(--ease-out-soft);
+    cursor: default;
+  }
+  .about-emph:hover {
+    background-size: 100% 6px;
+  }
+
+  /* ===========================================================
+     Reduced motion — keep things legible, kill the movement.
+     =========================================================== */
+  @media (prefers-reduced-motion: reduce) {
+    .about-section,
+    .portrait-wrap,
+    .portrait,
+    .portrait-sparkle,
+    .about-list li,
+    .about-list__dot,
+    .about-list__emoji,
+    .about-emph {
+      transition: none !important;
+      animation: none !important;
+    }
+    .about-section {
+      opacity: 1;
+      transform: none;
+    }
+    .portrait-wrap,
+    .portrait-strip:hover .portrait-wrap:not(:hover),
+    .portrait-wrap:hover {
+      transform: rotate(var(--base-rot, 0deg));
+      opacity: 1;
+      filter: none;
+    }
+    .about-list li:hover {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  /*
+    Section entry via IntersectionObserver. The Astro module script runs once
+    per document; after a ClientRouter swap the new /about sections need a
+    fresh IO otherwise they stay at `opacity: 0` (the "about page doesn't
+    load" bug). Idempotent via `data-about-io` on each observed section.
+  */
+  function initAboutSections() {
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const sections = document.querySelectorAll<HTMLElement>(
+      "[data-about-section]:not([data-about-io])"
+    );
+    if (sections.length === 0) return;
+
+    if (reduced || !("IntersectionObserver" in window)) {
+      sections.forEach((s) => {
+        s.setAttribute("data-about-io", "1");
+        s.setAttribute("data-visible", "");
+      });
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            (entry.target as HTMLElement).setAttribute("data-visible", "");
+            io.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" },
+    );
+    sections.forEach((s) => {
+      s.setAttribute("data-about-io", "1");
+      io.observe(s);
+    });
+    // Safety: after 800ms, force any still-hidden in-viewport sections visible.
+    window.setTimeout(() => {
+      document
+        .querySelectorAll<HTMLElement>("[data-about-section]:not([data-visible])")
+        .forEach((s) => s.setAttribute("data-visible", ""));
+    }, 800);
+  }
+  initAboutSections();
+  document.addEventListener("astro:page-load", initAboutSections);
+</script>

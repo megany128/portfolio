@@ -1,0 +1,483 @@
+---
+/*
+  Favorites — a scrapbook shelf of Megan's picks across four categories.
+  Each favorite is a mini-card: cover swatch + title + subtitle. Hover lifts
+  the card, tilts it a touch, and pops a star accent. Clicking flips the card
+  to show the back (a short blurb).
+
+  Cover art is placeholder — solid-color tiles with overlay text so the user
+  can drop real JPG/PNG covers into `public/images/favorites/<category>/...`
+  later. Swap the `cover` field from a color token to an image path and the
+  card will show the image instead.
+*/
+
+type Palette = "pink" | "teal" | "green" | "orange" | "neutral";
+
+interface Fave {
+  title: string;
+  subtitle: string;
+  /** Short personal blurb shown on the card back. */
+  blurb: string;
+  /** Palette tint used for the placeholder cover. */
+  tint: Palette;
+  /** Optional real image override (drop into public/images/favorites/...). */
+  cover?: string;
+}
+
+interface Category {
+  key: string;
+  icon: string;
+  title: string;
+  favorites: Fave[];
+}
+
+const CATEGORIES: Category[] = [
+  {
+    key: "books",
+    icon: "📚",
+    title: "Books",
+    favorites: [
+      {
+        title: "Mistborn",
+        subtitle: "Brandon Sanderson",
+        blurb: "I reread the first trilogy every couple of years. Vin!",
+        tint: "pink",
+      },
+      {
+        title: "The Way of Kings",
+        subtitle: "Brandon Sanderson",
+        blurb: "A book that made me cry on a plane. Life before death.",
+        tint: "teal",
+      },
+      {
+        title: "Piranesi",
+        subtitle: "Susanna Clarke",
+        blurb: "Quiet, strange, beautiful. The Beauty of the House is immeasurable.",
+        tint: "green",
+      },
+      {
+        title: "Six of Crows",
+        subtitle: "Leigh Bardugo",
+        blurb: "Heist book, found family, best dialogue in YA fantasy.",
+        tint: "orange",
+      },
+    ],
+  },
+  {
+    key: "movies",
+    icon: "🎬",
+    title: "Movies & Shows",
+    favorites: [
+      {
+        title: "Arcane",
+        subtitle: "League of Legends",
+        blurb: "Every frame a painting. Jinx destroyed me.",
+        tint: "teal",
+      },
+      {
+        title: "Everything Everywhere",
+        subtitle: "Daniels, 2022",
+        blurb: "Absurd, gentle, made me hug my mom.",
+        tint: "pink",
+      },
+      {
+        title: "Spirited Away",
+        subtitle: "Hayao Miyazaki",
+        blurb: "My comfort movie since I was eight.",
+        tint: "green",
+      },
+      {
+        title: "The Lord of the Rings",
+        subtitle: "Peter Jackson",
+        blurb: "Extended editions only. Samwise deserves better.",
+        tint: "orange",
+      },
+    ],
+  },
+  {
+    key: "songs",
+    icon: "🎵",
+    title: "Songs on repeat",
+    favorites: [
+      {
+        title: "From the Start",
+        subtitle: "Laufey",
+        blurb: "Bossa nova kitchen-dance song.",
+        tint: "pink",
+      },
+      {
+        title: "Dog Days Are Over",
+        subtitle: "Florence + the Machine",
+        blurb: "My run-to-feel-invincible song.",
+        tint: "orange",
+      },
+      {
+        title: "Heather",
+        subtitle: "Conan Gray",
+        blurb: "For staring out rainy windows.",
+        tint: "teal",
+      },
+      {
+        title: "Ribs",
+        subtitle: "Lorde",
+        blurb: "Every 3 a.m. drive home in college.",
+        tint: "green",
+      },
+    ],
+  },
+  {
+    key: "games",
+    icon: "🎲",
+    title: "Board Games",
+    favorites: [
+      {
+        title: "Terraforming Mars",
+        subtitle: "Jacob Fryxelius",
+        blurb: "My favorite kind of Sunday: mars colony + spreadsheet.",
+        tint: "orange",
+      },
+      {
+        title: "Ark Nova",
+        subtitle: "Mathias Wigge",
+        blurb: "Zoo-building heaven. I always rush the research track.",
+        tint: "green",
+      },
+      {
+        title: "Wingspan",
+        subtitle: "Elizabeth Hargrave",
+        blurb: "Bird facts + engine building = perfect game.",
+        tint: "teal",
+      },
+      {
+        title: "Azul",
+        subtitle: "Michael Kiesling",
+        blurb: "Short enough to play twice in a row. Always.",
+        tint: "pink",
+      },
+    ],
+  },
+];
+---
+
+<section class="favorites-shelf flex flex-col gap-6 about-section" data-about-section>
+  <h2
+    class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)]"
+  >
+    A few of my favorite things
+  </h2>
+
+  <div class="flex flex-col gap-7">
+    {
+      CATEGORIES.map((cat) => (
+        <div class="favorites-lane flex flex-col gap-3" data-lane={cat.key}>
+          <header class="flex items-center gap-2">
+            <span aria-hidden="true" class="text-[20px] leading-none">
+              {cat.icon}
+            </span>
+            <h3 class="font-[family-name:var(--font-display)] font-light text-[22px] text-[var(--color-ink)] leading-none">
+              {cat.title}
+            </h3>
+          </header>
+
+          <ul
+            class="favorites-row flex gap-5 overflow-x-auto"
+            role="list"
+          >
+            {cat.favorites.map((fave, i) => (
+              <li class="favorites-card-wrap" data-fave style={`--card-rot: ${((i % 2 === 0 ? -1 : 1) * (1 + (i * 0.5))).toFixed(2)}deg;`}>
+                <button
+                  type="button"
+                  class="favorites-card"
+                  data-color={fave.tint}
+                  data-fave-btn
+                  aria-label={`${fave.title} by ${fave.subtitle}`}
+                >
+                  <span class="favorites-card__inner">
+                    <span class="favorites-card__face favorites-card__face--front">
+                      <span class="favorites-card__cover">
+                        {fave.cover ? (
+                          <img src={fave.cover} alt="" class="favorites-card__cover-img" />
+                        ) : (
+                          <span class="favorites-card__cover-fallback" aria-hidden="true">
+                            {cat.icon}
+                          </span>
+                        )}
+                        <span class="favorites-card__sheen" aria-hidden="true"></span>
+                        <span class="favorites-card__star" aria-hidden="true">★</span>
+                      </span>
+                      <span class="favorites-card__meta">
+                        <span class="favorites-card__title">{fave.title}</span>
+                        <span class="favorites-card__sub">{fave.subtitle}</span>
+                      </span>
+                    </span>
+                    <span class="favorites-card__face favorites-card__face--back" aria-hidden="true">
+                      <span class="favorites-card__blurb">{fave.blurb}</span>
+                      <span class="favorites-card__back-hint">flip back</span>
+                    </span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+</section>
+
+<style is:global>
+  .favorites-shelf {
+    /* Perspective makes the flip feel physical instead of 2D. */
+    perspective: 1200px;
+  }
+
+  .favorites-row {
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-bg-neutral-2) transparent;
+    /* overflow-x: auto creates a new formatting context that clips the y
+       axis too, which cut off card hover lifts + shadows. Padding the row
+       reserves vertical space inside that context so the scale + translate
+       on hover never clips. */
+    padding: 32px 4px 24px;
+    margin: -16px 0;
+  }
+  .favorites-row::-webkit-scrollbar {
+    height: 6px;
+  }
+  .favorites-row::-webkit-scrollbar-thumb {
+    background: var(--color-bg-neutral-2);
+    border-radius: 9999px;
+  }
+
+  .favorites-card-wrap {
+    scroll-snap-align: start;
+    flex: 0 0 auto;
+    transform: rotate(var(--card-rot, 0deg));
+    transform-origin: center 90%;
+    transition: transform var(--duration-base) var(--ease-out-soft);
+    will-change: transform;
+  }
+  .favorites-card-wrap:hover {
+    transform: rotate(calc(var(--card-rot, 0deg) * 0.3)) translateY(-6px);
+    z-index: 2;
+  }
+
+  .favorites-card {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    width: 172px;
+    display: block;
+    text-align: left;
+    color: inherit;
+    font: inherit;
+  }
+  .favorites-card__inner {
+    position: relative;
+    display: block;
+    transform-style: preserve-3d;
+    transition: transform 520ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .favorites-card[data-flipped] .favorites-card__inner {
+    transform: rotateY(180deg);
+  }
+
+  .favorites-card__face {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .favorites-card__face--front {
+    position: relative;
+  }
+  .favorites-card__face--back {
+    position: absolute;
+    inset: 0;
+    transform: rotateY(180deg);
+    justify-content: space-between;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--color-bg-white);
+    box-shadow: 0 8px 18px -6px rgba(36, 36, 36, 0.18);
+    color: var(--color-ink);
+  }
+
+  /* Cover swatch — polaroid-ish. Border, inner gloss, star corner. */
+  .favorites-card__cover {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--color-bg-neutral);
+    box-shadow:
+      0 4px 10px -4px rgba(36, 36, 36, 0.22),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+    display: grid;
+    place-items: center;
+    transition:
+      box-shadow var(--duration-base) var(--ease-out-soft),
+      transform var(--duration-base) var(--ease-out-soft);
+  }
+  .favorites-card-wrap:hover .favorites-card__cover {
+    box-shadow:
+      0 16px 28px -10px rgba(36, 36, 36, 0.35),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  }
+
+  .favorites-card[data-color="pink"] .favorites-card__cover {
+    background: linear-gradient(145deg, var(--color-pink) 0%, var(--color-pink-0) 70%, var(--color-pink-1) 100%);
+  }
+  .favorites-card[data-color="teal"] .favorites-card__cover {
+    background: linear-gradient(145deg, var(--color-teal) 0%, var(--color-teal-0) 70%, var(--color-teal-3) 100%);
+  }
+  .favorites-card[data-color="green"] .favorites-card__cover {
+    background: linear-gradient(145deg, var(--color-green) 0%, var(--color-green-0) 70%, var(--color-green-1) 100%);
+  }
+  .favorites-card[data-color="orange"] .favorites-card__cover {
+    background: linear-gradient(145deg, var(--color-orange) 0%, var(--color-orange-0) 70%, var(--color-orange-1) 100%);
+  }
+  .favorites-card[data-color="neutral"] .favorites-card__cover {
+    background: linear-gradient(145deg, var(--color-bg-neutral-2) 0%, var(--color-bg-neutral) 100%);
+    color: var(--color-ink);
+  }
+
+  .favorites-card__cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .favorites-card__cover-fallback {
+    font-size: 36px;
+    opacity: 0.55;
+    filter: drop-shadow(0 2px 4px rgba(36, 36, 36, 0.25));
+    transition: transform var(--duration-base) var(--ease-out-soft);
+  }
+  .favorites-card-wrap:hover .favorites-card__cover-fallback {
+    transform: scale(1.12) rotate(-4deg);
+  }
+
+  /* Sheen — an angled light pass that moves on hover. */
+  .favorites-card__sheen {
+    position: absolute;
+    inset: -20% -40%;
+    pointer-events: none;
+    background: linear-gradient(
+      115deg,
+      transparent 45%,
+      rgba(255, 255, 255, 0.45) 50%,
+      transparent 55%
+    );
+    transform: translateX(-60%);
+    transition: transform 620ms var(--ease-out-soft);
+    mix-blend-mode: soft-light;
+  }
+  .favorites-card-wrap:hover .favorites-card__sheen {
+    transform: translateX(60%);
+  }
+
+  /* Star corner badge — whimsy accent, pops on hover. */
+  .favorites-card__star {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 14px;
+    color: var(--color-ink-inverted);
+    text-shadow: 0 1px 3px rgba(36, 36, 36, 0.35);
+    opacity: 0;
+    transform: scale(0.6) rotate(-18deg);
+    transition: opacity var(--duration-base) var(--ease-out-soft), transform var(--duration-base) var(--ease-out-soft);
+  }
+  .favorites-card[data-color="neutral"] .favorites-card__star {
+    color: var(--color-ink);
+    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.6);
+  }
+  .favorites-card-wrap:hover .favorites-card__star {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  .favorites-card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 0 2px;
+  }
+  .favorites-card__title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 1.15;
+    color: var(--color-ink);
+  }
+  .favorites-card__sub {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-ink-dim);
+  }
+
+  .favorites-card__blurb {
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: var(--color-ink);
+  }
+  .favorites-card__back-hint {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--color-ink-mute);
+    align-self: flex-end;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .favorites-card-wrap,
+    .favorites-card__inner,
+    .favorites-card__cover,
+    .favorites-card__cover-fallback,
+    .favorites-card__sheen,
+    .favorites-card__star {
+      transition: none !important;
+    }
+    .favorites-card[data-flipped] .favorites-card__inner {
+      transform: none;
+    }
+    .favorites-card[data-flipped] .favorites-card__face--front {
+      display: none;
+    }
+    .favorites-card[data-flipped] .favorites-card__face--back {
+      transform: none;
+      position: relative;
+    }
+  }
+</style>
+
+<script>
+  /*
+    Flip toggle on click. Guarded per-button so the handler survives every
+    astro:page-load without stacking duplicates.
+  */
+  function wireFaves() {
+    document
+      .querySelectorAll<HTMLButtonElement>("[data-fave-btn]:not([data-wired])")
+      .forEach((btn) => {
+        btn.dataset.wired = "1";
+        btn.addEventListener("click", () => {
+          if (btn.hasAttribute("data-flipped")) btn.removeAttribute("data-flipped");
+          else btn.setAttribute("data-flipped", "");
+        });
+      });
+  }
+  wireFaves();
+  document.addEventListener("astro:page-load", wireFaves);
+</script>

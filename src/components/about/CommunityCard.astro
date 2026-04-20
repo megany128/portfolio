@@ -1,0 +1,86 @@
+---
+interface Props {
+  icon: string;
+  iconAspect?: string;
+  iconWidth?: number;
+  iconHeight?: number;
+  iconRounded?: boolean;
+  title: string;
+  description: string;
+  photo: string;
+}
+
+const {
+  icon,
+  iconWidth = 19,
+  iconHeight = 19,
+  iconRounded = true,
+  title,
+  description,
+  photo,
+} = Astro.props;
+---
+
+<article
+  data-community-card
+  class="community-card group bg-[var(--color-bg-light)] rounded-[12px] p-4 flex-1 min-w-0 flex flex-col gap-2 relative cursor-default"
+>
+  <header class="flex items-center gap-2 relative z-[1]">
+    <img
+      src={icon}
+      alt=""
+      width={iconWidth}
+      height={iconHeight}
+      class={iconRounded ? "rounded-[4px] object-cover shrink-0" : "object-contain shrink-0"}
+      style={`width: ${iconWidth}px; height: ${iconHeight}px;`}
+    />
+    <h3 class="font-[family-name:var(--font-display)] font-light text-base text-[var(--color-ink)] leading-tight min-w-0 break-words flex items-center gap-1">
+      <span>{title}</span>
+      <span
+        aria-hidden="true"
+        class="community-card__arrow inline-block text-[var(--color-ink-dim)] opacity-0 -translate-x-1 transition-all duration-[var(--duration-base)] ease-[var(--ease-out-soft)]"
+      >→</span>
+    </h3>
+  </header>
+  <div class="flex flex-col gap-3 relative z-[1]">
+    <p class="font-[family-name:var(--font-body)] text-xs text-[var(--color-ink-dim)] leading-snug">
+      {description}
+    </p>
+    <div class="aspect-[1024/683] rounded-[12px] overflow-hidden w-full">
+      <img
+        src={photo}
+        alt=""
+        class="community-card__photo size-full object-cover transition-transform duration-[var(--duration-slow)] ease-[var(--ease-out-soft)]"
+      />
+    </div>
+  </div>
+</article>
+
+<style>
+  .community-card {
+    transform: perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0);
+    transition:
+      transform var(--duration-base) var(--ease-out-soft),
+      box-shadow var(--duration-base) var(--ease-out-soft);
+    will-change: transform;
+  }
+  .community-card:hover {
+    box-shadow: 0 14px 28px -18px rgba(36, 36, 36, 0.28);
+  }
+  .community-card:hover .community-card__photo {
+    transform: scale(1.04);
+  }
+  .community-card:hover .community-card__arrow {
+    opacity: 0.7;
+    transform: translateX(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .community-card,
+    .community-card__photo,
+    .community-card__arrow {
+      transition: none !important;
+      transform: none !important;
+    }
+  }
+</style>
