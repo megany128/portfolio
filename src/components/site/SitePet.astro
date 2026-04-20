@@ -896,6 +896,7 @@
                           // the main content area
     let shakeSamples: number[] = []; // timestamps of direction flips
     let lastShakeDx = 0;
+    let flingFromLedge = false; // skip mid-air ledge catch after flinging off a perch
     // Pointer velocity tracking — feeds the launch velocity on drop so a
     // quick flick actually throws the pet instead of dropping it.
     let ptrHistory: { t: number; x: number; y: number }[] = [];
@@ -1255,7 +1256,7 @@
 
         // Mid-flight ledge catch — while falling (not on a ledge already),
         // check if the pet's feet cross through a ledge surface this frame.
-        if (!currentLedge && yVel < 0 && !dizzy) {
+        if (!currentLedge && yVel < 0 && !dizzy && !flingFromLedge) {
           const petFeetVP = window.innerHeight - groundOffset - y;
           const ledge = findLedgeAtPosition(x, petFeetVP);
           if (ledge) {
@@ -1279,6 +1280,7 @@
         }
 
         if (y <= 0) {
+          flingFromLedge = false;
           // Reset dizzy timer on first landing so full effect plays on ground
           if (dizzy && yVel < -100) dizzyUntil = performance.now() + 2200;
           y = 0;
@@ -1453,6 +1455,7 @@
             // Dismount ledge on drag start — preserve absolute position
             // so there's no visual jump before drag positioning takes over.
             if (currentLedge) {
+              flingFromLedge = true;
               const oldGround = groundOffset;
               currentLedge = null;
               ledgeGroundY = 0;
