@@ -1,0 +1,25 @@
+/*
+ * Font loading.
+ *
+ * Source Code Pro is loaded via <link> in BaseLayout.astro so the @import-order
+ * rule isn't violated when this file is concatenated into global.css.
+ *
+ * Gelica (Latinotype) is self-hosted from /public/fonts/gelica/.
+ * Add weights/styles by dropping the .woff2 file in and registering it below.
+ */
+
+@font-face {
+  font-family: "Gelica";
+  src: url("/fonts/gelica/Gelica-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Gelica";
+  src: url("/fonts/gelica/Gelica-LightItalic.woff2") format("woff2");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}

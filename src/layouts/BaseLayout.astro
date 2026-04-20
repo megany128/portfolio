@@ -1,0 +1,86 @@
+---
+import "../styles/global.css";
+import { ClientRouter } from "astro:transitions";
+import SitePet from "../components/site/SitePet.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  bodyClass?: string;
+}
+
+const {
+  title = "Megan Yap",
+  description = "Portfolio of Megan Yap.",
+  bodyClass = "",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300;400;500;600&display=swap"
+    />
+    <title>{title}</title>
+    <ClientRouter />
+
+    <style is:global>
+      /*
+        View Transitions — global customizations.
+        Root page crossfade is handled by Astro's defaults, but we soften the
+        duration and use the same ease as the rest of the motion vocabulary.
+      */
+      @view-transition {
+        navigation: auto;
+      }
+
+      ::view-transition-old(root),
+      ::view-transition-new(root) {
+        animation-duration: 420ms;
+        animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      /* The welcome ↔ onboarding sunrise runs as a DOM overlay pinned to
+         <html> that's already fully covering the screen by the time we
+         navigate. Astro's default 420ms root crossfade underneath would
+         just be dead time behind the cover, so we collapse the pseudo
+         animations to a single frame for this flow only — gated via the
+         `data-sunrise-play` attribute. The attribute is cleared once the
+         overlay finishes its cross-reveal, so every other navigation
+         keeps the default crossfade. */
+      html[data-sunrise-play]::view-transition-old(root),
+      html[data-sunrise-play]::view-transition-new(root) {
+        animation-duration: 1ms !important;
+      }
+
+      /* Wallet finale: the cream overlay on onboarding shares `wallet-veil`
+         with a matching veil on home, so the cream fades out while home's
+         content slides in under it. */
+      ::view-transition-old(wallet-veil),
+      ::view-transition-new(wallet-veil) {
+        animation-duration: 720ms;
+        animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        ::view-transition-old(*),
+        ::view-transition-new(*) {
+          animation-duration: 0.001ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body class={bodyClass}>
+    <slot />
+    <SitePet />
+  </body>
+</html>
