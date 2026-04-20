@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <defs>
+    <radialGradient id="wing-body" cx="30%" cy="30%" r="85%">
+      <stop offset="0%" stop-color="#d6f0f4"/>
+      <stop offset="45%" stop-color="#65b6c3"/>
+      <stop offset="100%" stop-color="#168b9d"/>
+    </radialGradient>
+    <radialGradient id="wing-gloss" cx="30%" cy="25%" r="22%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="bfly-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.4"/>
+      <feOffset dy="1.8"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.35"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#bfly-shadow)">
+    <!-- left wings -->
+    <path d="M40 40 C 20 18, 8 22, 10 38 C 12 46, 22 50, 40 44 Z"
+      fill="url(#wing-body)" stroke="#ffffff" stroke-width="2"/>
+    <path d="M40 42 C 22 52, 10 56, 12 66 C 18 74, 32 66, 40 52 Z"
+      fill="url(#wing-body)" stroke="#ffffff" stroke-width="2"/>
+    <!-- right wings -->
+    <path d="M40 40 C 60 18, 72 22, 70 38 C 68 46, 58 50, 40 44 Z"
+      fill="url(#wing-body)" stroke="#ffffff" stroke-width="2"/>
+    <path d="M40 42 C 58 52, 70 56, 68 66 C 62 74, 48 66, 40 52 Z"
+      fill="url(#wing-body)" stroke="#ffffff" stroke-width="2"/>
+    <!-- wing spots -->
+    <circle cx="22" cy="32" r="3" fill="#ffffff" opacity="0.85"/>
+    <circle cx="58" cy="32" r="3" fill="#ffffff" opacity="0.85"/>
+    <circle cx="24" cy="60" r="2" fill="#ffffff" opacity="0.75"/>
+    <circle cx="56" cy="60" r="2" fill="#ffffff" opacity="0.75"/>
+    <!-- body -->
+    <ellipse cx="40" cy="46" rx="3" ry="12" fill="#3a2a2a" stroke="#ffffff" stroke-width="1"/>
+    <!-- antennae -->
+    <path d="M40 35 Q 36 26 32 24" stroke="#3a2a2a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M40 35 Q 44 26 48 24" stroke="#3a2a2a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <!-- gloss -->
+    <ellipse cx="22" cy="28" rx="6" ry="3" fill="url(#wing-gloss)" transform="rotate(-18 22 28)"/>
+  </g>
+</svg>
