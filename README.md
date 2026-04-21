@@ -1,4 +1,4 @@
-# meganyap.com
+# meganyap.me
 
 My personal portfolio — a design-focused, interactive site built with Astro and deployed on Cloudflare Workers.
 
