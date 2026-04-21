@@ -1,9 +1,4 @@
 ---
-// Megan logo (Figma node 21:824). Exact positions from the source frame:
-//   - Union (8-point pink sparkle): occupies upper-left ~34.46×34.43 of a 45×36 box, rotated -14.49°.
-//   - Teal angled rect: 11.44×11.43 at the right side, rotated -15.84°.
-//   - Orange dot: ~6×6 at bottom-center.
-
 interface Props {
   class?: string;
 }
@@ -11,45 +6,10 @@ interface Props {
 const { class: className = "" } = Astro.props;
 ---
 
-<svg
-  xmlns="http://www.w3.org/2000/svg"
+<img
+  src="/portfolio-logo.png"
+  alt="Megan Yap"
   width="45"
   height="36"
-  viewBox="0 0 45 36"
   class={className}
-  aria-label="Megan Yap"
-  fill="none"
->
-  <!--
-    Pink sparkle. Figma sources this from a 28.28×28.28 asset rendered into a
-    34.46×34.43 bounding box, rotated -14.49° around its center and mirrored
-    horizontally (`-scale-x-100`). The shape has a vertical axis of symmetry,
-    so mirror + rotate(-θ) is visually equivalent to rotate(+θ); we apply the
-    positive rotation so the top arm leans slightly clockwise as in Figma.
-    Transform is applied right-to-left:
-      1. translate(-14.1391 -14.1391) → path center (14.14, 14.14) to origin.
-      2. scale(1.2183)                 → 28.28 path grows to the 34.46 target.
-      3. rotate(14.49)                 → CW tilt, matching Figma's visual.
-      4. translate(17.2282 17.2134)    → place center at (34.46/2, 34.43/2).
-  -->
-  <g transform="translate(17.2282 17.2134) rotate(14.49) scale(1.2183) translate(-14.1391 -14.1391)">
-    <path
-      d="M14.1533 0C14.9508 0 15.5974 0.6459 15.5977 1.4434V10.6523L22.1094 4.1406C22.6733 3.577 23.5874 3.577 24.1514 4.1406C24.7152 4.7045 24.7158 5.6186 24.1523 6.1826L17.626 12.709H26.835C27.6323 12.7094 28.2783 13.3559 28.2783 14.1533C28.2783 14.9507 27.6323 15.5973 26.835 15.5977H17.6553L24.1523 22.0947C24.7159 22.6588 24.7152 23.5729 24.1514 24.1367C23.5874 24.7004 22.6733 24.7003 22.1094 24.1367L15.5977 17.625V26.834C15.5977 27.6316 14.951 28.2783 14.1533 28.2783C13.3559 28.2781 12.709 27.6315 12.709 26.834V17.626L6.1982 24.1367C5.6342 24.7007 4.7193 24.7007 4.1553 24.1367C3.5917 23.5728 3.5918 22.6587 4.1553 22.0947L10.6523 15.5977H1.4443C0.6467 15.5977 0 14.9509 0 14.1533C0 13.3557 0.6467 12.709 1.4443 12.709H10.6807L4.1553 6.1836C3.5914 5.6196 3.5915 4.7046 4.1553 4.1406C4.7193 3.5766 5.6342 3.5767 6.1982 4.1406L12.709 10.6514V1.4434C12.7092 0.6461 13.356 0.0002 14.1533 0Z"
-      fill="var(--color-pink)"
-    />
-  </g>
-
-  <!-- Teal angled rect, right side. -->
-  <rect
-    x="33.56"
-    y="15.88"
-    width="11.44"
-    height="11.43"
-    rx="1.5"
-    fill="var(--color-teal)"
-    transform="rotate(-15.84 39.28 21.59)"
-  />
-
-  <!-- Orange dot, bottom-center. -->
-  <circle cx="29.025" cy="33.0025" r="3.0025" fill="var(--color-orange)" />
-</svg>
+/>

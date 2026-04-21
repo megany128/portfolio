@@ -5,7 +5,7 @@ import Footer from "../components/home/Footer.astro";
 import CustomCursor from "../components/home/CustomCursor.astro";
 import CommunityCard from "../components/about/CommunityCard.astro";
 import FavoritesShelf from "../components/about/FavoritesShelf.astro";
-import StickerStamp from "../components/about/StickerStamp.astro";
+// import StickerStamp from "../components/about/StickerStamp.astro";
 import { getCurrentVisitor } from "../lib/visitor-server";
 
 export const prerender = false;
@@ -155,7 +155,7 @@ const cursorColor = visitor?.color ?? "pink";
 
   <CustomCursor color={cursorColor} />
 
-  <StickerStamp />
+  <!-- <StickerStamp /> -->
 </BaseLayout>
 
 <style>

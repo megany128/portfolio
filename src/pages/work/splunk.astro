@@ -1,0 +1,1040 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import CaseStudySidebar from "../../components/casestudy/CaseStudySidebar.astro";
+import Footer from "../../components/home/Footer.astro";
+import CustomCursor from "../../components/home/CustomCursor.astro";
+import Tag from "../../components/ui/Tag.astro";
+import { getCurrentVisitor } from "../../lib/visitor-server";
+
+export const prerender = false;
+
+const visitor = await getCurrentVisitor(Astro);
+const cursorColor = visitor?.color ?? "pink";
+
+const tocSections = [
+  { id: "context", label: "Context" },
+  { id: "user-problem", label: "User problem" },
+  { id: "entry-points", label: "Entry point explorations" },
+  { id: "content", label: "Fleshing out the content" },
+  { id: "root-cause", label: "Root cause: linear or tree-like?" },
+  { id: "final-solution", label: "Final solution" },
+];
+
+const solutionPillars = [
+  {
+    img: "/images/work/splunk/solution-investigate.png",
+    title: "Investigates triggered alerts",
+    body: "Splunk AI should be able to collect data on each triggered alert by autonomously performing the right system checks.",
+  },
+  {
+    img: "/images/work/splunk/solution-root-cause.png",
+    title: "Identifies the root cause of issues",
+    body: "This data should be used to identify the most likely root cause of an issue and how this affects related entities.",
+  },
+  {
+    img: "/images/work/splunk/solution-remediate.png",
+    title: "Remediates each root cause",
+    body: "A solution should be suggested for each root cause, along with a way to auto-run these steps across the platform.",
+  },
+];
+
+const entryExplorations = [
+  {
+    num: "01",
+    img: "/images/work/splunk/entry-01-semi-separated.png",
+    title: "Semi-separated investigations section",
+    pros: ["Eye-catching (perfect for completed long latency tasks)"],
+    cons: ["Not scalable", "Takes up a lot of real estate"],
+  },
+  {
+    num: "02",
+    img: "/images/work/splunk/entry-02-separate-page.png",
+    title: "Separate Investigations page",
+    pros: ["Scalable and easier to navigate"],
+    cons: ["Duplicated content \u2014 confusing for users", "Extra step in the workflow"],
+  },
+  {
+    num: "03",
+    img: "/images/work/splunk/entry-03-filter-cards.png",
+    title: "Filter cards",
+    pros: ["Latency problem solved without information redundancy"],
+    cons: [
+      "Not up to accessibility standards",
+      "Not a standard interaction pattern across Data Management",
+    ],
+  },
+];
+
+const contentExplorations = [
+  {
+    img: "/images/work/splunk/content-layout-overload.png",
+    caption: "Information overload! There\u2019s so much going on.",
+    subcaption: "Not all of this content is equally important...",
+  },
+  {
+    img: "/images/work/splunk/content-layout-tabs.png",
+    caption: "Too many tabs and too little content",
+    subcaption: "A lot of clicking necessary",
+  },
+];
+
+const rootCauseExplorations = [
+  {
+    num: "01",
+    img: "/images/work/splunk/rootcause-01-multiple-pages.png",
+    title: "Multiple pages for root causes and solutions",
+    pros: [
+      "Users are able to review all potential root causes before diving into one",
+      "Extremely linear and structured. Easy to follow",
+    ],
+    cons: [
+      "Requires many clicks to navigate. High friction",
+      "Troublesome to view a different root cause if one path already explored",
+    ],
+  },
+  {
+    num: "02",
+    img: "/images/work/splunk/rootcause-02-three-column.png",
+    title: "Three-column view",
+    pros: [
+      "All information is viewable at a glance immediately",
+      "Easy to instantly move to another root cause or solution",
+    ],
+    cons: [
+      "Overwhelming information density",
+      "Interaction pattern may not be as intuitive to navigate",
+    ],
+  },
+];
+
+const keyFlows = [
+  {
+    num: "01",
+    img: "/images/work/splunk/flow-01-create-investigations.png",
+    title: "Create investigations for alerts and monitor Splunk AI\u2019s progress",
+    body: "Choose which alerts to begin investigations for, and initiate a long-latency task.",
+  },
+  {
+    num: "02",
+    img: "/images/work/splunk/flow-02-examine-root-cause.png",
+    title: "Examine the root cause and associated details",
+    body: "View important information about the root cause of the issue, how this has affected related entities, and the checks performed by Splunk AI.",
+  },
+  {
+    num: "03",
+    img: "/images/work/splunk/flow-03-auto-apply.png",
+    title: "Auto-apply a suggested solution",
+    body: "Explore multiple recommended suggestions, and auto-apply one of choice.",
+  },
+];
+
+const reflections = [
+  {
+    title: "In the real world, constraints change all the time",
+    body: "I had to deal with lots of uncertainty, even just in terms of what the 2 PMs each wanted \u2014 I learned that asking questions as well as checking in and aligning are essential.",
+  },
+  {
+    title: "Stepping up to the challenge = the best chance to learn",
+    body: "Originally, this feature wasn\u2019t a part of the projects assigned to me. But because I volunteered for this project, I was able to really push myself and grow outside of my comfort zone.",
+  },
+  {
+    title: "It\u2019s important to trust yourself as a designer",
+    body: "Not all feedback needs to be followed, especially if those giving it are not in the user group being designed for. And ultimately, it\u2019s also important to trust my own judgement as a designer.",
+  },
+];
+---
+
+<BaseLayout title="Splunk — Megan Yap">
+  <div class="flex items-stretch min-h-screen" id="top">
+    <CaseStudySidebar sections={tocSections} active="context" />
+
+    <main class="flex-1 min-w-0 p-10 flex flex-col gap-10">
+      <!-- Hero banner -->
+      <section class="cs-hero-wrap">
+        <div class="cs-hero rounded-[24px] overflow-hidden h-[360px]">
+          <img
+            src="/images/work/splunk/hero-banner.gif"
+            alt="Splunk Self-Healing Pipeline"
+            loading="eager"
+            class="block w-full h-full object-cover object-center"
+          />
+        </div>
+      </section>
+
+      <!-- Hero meta: tags, title, description -->
+      <section class="flex flex-col gap-3">
+        <div class="flex items-center gap-2">
+          <Tag>Internship</Tag>
+          <Tag>Shipped</Tag>
+        </div>
+        <h1
+          class="font-[family-name:var(--font-display)] font-light text-[40px] leading-[1.1] text-[var(--color-ink)] flex items-start gap-3"
+        >
+          <img
+            src="/images/work/splunk/hero-star.svg"
+            alt=""
+            aria-hidden="true"
+            class="w-[22px] h-[22px] flex-shrink-0 self-center"
+          />
+          Splunk self-healing pipeline
+        </h1>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+        >
+          Designed feature diagnosing data ingestion alerts through AI-powered root cause analysis
+          and remediation. Showcased to
+          <span class="cs-emph" data-cs-emph>5,000+ Splunk users</span> during
+          <span class="cs-emph" data-cs-emph>.conf25</span>.
+        </p>
+      </section>
+
+      <!-- Meta grid: role, team, timeline, skills -->
+      <section
+        class="grid grid-cols-2 md:grid-cols-4 gap-[60px] p-4 bg-[var(--color-orange)] rounded-[12px]"
+      >
+        <div class="flex flex-col gap-2">
+          <p class="font-[family-name:var(--font-mono)] text-base uppercase text-white">Role</p>
+          <p
+            class="font-[family-name:var(--font-body)] text-base text-[var(--color-orange-2)] leading-snug"
+          >
+            Sole Product Designer
+          </p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <p class="font-[family-name:var(--font-mono)] text-base uppercase text-white">Team</p>
+          <p
+            class="font-[family-name:var(--font-body)] text-base text-[var(--color-orange-2)] leading-snug"
+          >
+            2 PMs<br />5 Developers<br />1 Designer (me!)
+          </p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <p class="font-[family-name:var(--font-mono)] text-base uppercase text-white">Timeline</p>
+          <p
+            class="font-[family-name:var(--font-body)] text-base text-[var(--color-orange-2)] leading-snug"
+          >
+            Jul 2025 &ndash; Aug 2025<br />(2 months)
+          </p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <p class="font-[family-name:var(--font-mono)] text-base uppercase text-white">Skills</p>
+          <p
+            class="font-[family-name:var(--font-body)] text-base text-[var(--color-orange-2)] leading-snug"
+          >
+            Product Strategy<br />Demo Prototyping<br />Web Design
+          </p>
+        </div>
+      </section>
+
+      <!-- 01. Context -->
+      <section id="context" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Context</p>
+        <h2 class="cs-section-heading">A sunny summer in Boulder, Colorado.</h2>
+        <p class="cs-section-body">
+          As an intern on Splunk&rsquo;s Data Management team, I was responsible for crafting an
+          entire end-to-end self-healing pipeline feature to be demoed to 5,000+ people at .conf,
+          Splunk&rsquo;s largest conference.
+        </p>
+      </section>
+
+      <!-- 02. User problem -->
+      <section id="user-problem" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">User problem</p>
+        <h2 class="cs-section-heading">
+          It&rsquo;s difficult and time-consuming to diagnose and resolve data ingestion issues.
+        </h2>
+        <p class="cs-section-body">
+          Currently, Splunk users are able to ingest data into the platform for processing. However,
+          issues can arise during this process &mdash; such as schema drift, which is when the
+          structure of the data changes over time. This causes the data to be incorrectly mapped to
+          the Common Information Model (CIM)&rsquo;s standard fields, which ensure that data is
+          normalized consistently.
+        </p>
+        <p class="cs-section-body">
+          This can quickly escalate &mdash; however, the problem with this is that usually, the root
+          cause of an issue is not easily identifiable or resolvable due to the complexity of data
+          ingestion.
+        </p>
+
+        <!-- Problem statement callout -->
+        <div class="cs-callout-pink mt-4">
+          <p class="cs-callout-label">Problem statement</p>
+          <p class="cs-callout-text">
+            How might we allow users to efficiently identify potential root causes and remediation
+            steps for triggered alerts?
+          </p>
+        </div>
+
+        <!-- Solution pillars -->
+        <div class="flex flex-col gap-2 mt-6">
+          <p class="cs-section-label">Solution</p>
+          <h2 class="cs-section-heading">A diagnosis tool that...</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mt-3">
+            {
+              solutionPillars.map((pillar) => (
+                <div class="flex flex-col gap-2 text-left">
+                  <div class="cs-pillar-img-wrap rounded-[12px] overflow-hidden bg-[var(--color-bg-light)] flex items-center justify-center">
+                    <img
+                      src={pillar.img}
+                      alt={pillar.title}
+                      loading="lazy"
+                      class="max-w-full max-h-full object-contain"
+                    />
+                  </div>
+                  <h3 class="font-[family-name:var(--font-display)] font-light text-[16px] text-[var(--color-ink)]">
+                    {pillar.title}
+                  </h3>
+                  <p class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug">
+                    {pillar.body}
+                  </p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- 03. Entry point explorations -->
+      <section id="entry-points" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Entry point explorations</p>
+        <h2 class="cs-section-heading">
+          I needed to identify how this would integrate with the existing alerts page.
+        </h2>
+        <p class="cs-section-body">
+          Each investigation was linked to one particular alert, so it made sense for both alert and
+          investigation to be tied into a single table row.
+        </p>
+        <p class="cs-section-body">
+          But here was the problem: these investigations were long latency tasks (they could take
+          several hours), so how would users know how to come back if their corresponding alert was
+          further down the page, or even on the next?
+        </p>
+
+        <!-- Exploration cards -->
+        <div class="flex flex-col gap-8 mt-4">
+          {
+            entryExplorations.map((exp) => (
+              <div class="cs-exploration">
+                <div class="cs-exploration-img-wrap">
+                  <img src={exp.img} alt={exp.title} loading="lazy" class="cs-exploration-img" />
+                </div>
+                <div class="cs-exploration-details">
+                  <div class="flex flex-col gap-1.5">
+                    <Tag>{exp.num}</Tag>
+                    <span class="font-[family-name:var(--font-display)] font-light text-[16px] text-[var(--color-ink)]">
+                      {exp.title}
+                    </span>
+                  </div>
+                  {exp.pros.map((pro) => (
+                    <div class="cs-pro-con">
+                      <span class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]">
+                        +
+                      </span>
+                      <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                        {pro}
+                      </span>
+                    </div>
+                  ))}
+                  {exp.cons.map((con) => (
+                    <div class="cs-pro-con">
+                      <span class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-orange)]">
+                        -
+                      </span>
+                      <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                        {con}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          }
+        </div>
+
+        <!-- Final pick -->
+        <div class="cs-final-pick mt-4">
+          <div class="flex flex-col gap-2 items-center">
+            <p
+              class="font-[family-name:var(--font-mono)] text-[12px] uppercase text-[var(--color-orange)]"
+            >
+              Final pick
+            </p>
+            <p
+              class="font-[family-name:var(--font-display)] font-light text-[16px] text-[var(--color-ink)] text-center"
+            >
+              Hybrid approach: status cards + separate filter
+            </p>
+          </div>
+          <img
+            src="/images/work/splunk/entry-final-hybrid.png"
+            alt="Final entry point design: hybrid status cards with separate filter"
+            loading="lazy"
+            class="w-full max-w-[637px] mx-auto h-auto rounded-[8px]"
+          />
+          <div class="flex flex-col gap-2 items-center">
+            <div class="cs-pro-con justify-center">
+              <span
+                class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]"
+                >+</span
+              >
+              <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)]">
+                Visibility for investigations under each status
+              </span>
+            </div>
+            <div class="cs-pro-con justify-center">
+              <span
+                class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]"
+                >+</span
+              >
+              <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)]">
+                Accessibility compliant
+              </span>
+            </div>
+            <div class="cs-pro-con justify-center">
+              <span
+                class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]"
+                >+</span
+              >
+              <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)]">
+                No redundant/duplicated content
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- My Goal callout -->
+      <div class="cs-callout-pink">
+        <p class="cs-callout-label">My goal</p>
+        <p class="cs-callout-text">
+          Deliver exactly the right amount of context and supporting data for users to have trust in
+          the AI diagnosis, without including irrelevant details
+        </p>
+      </div>
+
+      <!-- 04. Fleshing out the content -->
+      <section id="content" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Fleshing out the content</p>
+        <h2 class="cs-section-heading">What do Splunk users actually want to see?</h2>
+        <p class="cs-section-body">
+          I figured the best people to talk to would be our in-house Getting Data In (GDI) SMEs, and
+          so, I led several calls to identify what would be the most helpful for them during an
+          average workflow diagnosing and remediating a data ingestion issue.
+        </p>
+        <p class="cs-section-body">
+          Here&rsquo;s what the SMEs consistently reported would be helpful:
+        </p>
+        <div class="flex justify-center mt-3">
+          <img
+            src="/images/work/splunk/content-sme-findings.png"
+            alt="SME interview findings — key information users want to see"
+            loading="lazy"
+            class="w-full max-w-[576px] h-auto"
+          />
+        </div>
+
+        <!-- Initial handoff critique -->
+        <div class="flex flex-col gap-2 mt-8">
+          <p class="cs-section-label">Initial handoff critique</p>
+          <h2 class="cs-section-heading">
+            I started by critiquing the prototype that was handed off from my manager.
+          </h2>
+          <div class="cs-exploration mt-3">
+            <div class="cs-exploration-img-wrap">
+              <img
+                src="/images/work/splunk/content-initial-handoff.png"
+                alt="Initial prototype handoff with critique annotations"
+                loading="lazy"
+                class="cs-exploration-img"
+              />
+            </div>
+            <div class="cs-exploration-details">
+              <span
+                class="font-[family-name:var(--font-display)] font-light text-[16px] text-[var(--color-ink)]"
+              >
+                Initial prototype handoff &amp; critique
+              </span>
+              <div class="cs-pro-con">
+                <span
+                  class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]"
+                  >+</span
+                >
+                <span
+                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug"
+                >
+                  Completely integrates into current flow
+                </span>
+              </div>
+              <div class="cs-pro-con">
+                <span
+                  class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]"
+                  >+</span
+                >
+                <span
+                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug"
+                >
+                  Extremely specific about checks performed
+                </span>
+              </div>
+              <div class="cs-pro-con">
+                <span
+                  class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-orange)]"
+                  >-</span
+                >
+                <span
+                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug"
+                >
+                  Limited real estate for comprehensive results, especially for exploring multiple
+                  root causes
+                </span>
+              </div>
+              <div class="cs-pro-con">
+                <span
+                  class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-orange)]"
+                  >-</span
+                >
+                <span
+                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug"
+                >
+                  Heavy focus on alert details, which are less important
+                </span>
+              </div>
+              <div class="cs-pro-con">
+                <span
+                  class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-orange)]"
+                  >-</span
+                >
+                <span
+                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug"
+                >
+                  No consideration for remediation
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content layout explorations -->
+        <div class="flex flex-col gap-2 mt-8">
+          <p class="cs-section-label">Content layout</p>
+          <h2 class="cs-section-heading">
+            Figuring out how to deliver dense content in a lightweight way.
+          </h2>
+          <p class="cs-section-body">
+            With these initial insights, the next step was exploring how I could communicate all of
+            this in a structured, easy-to-read way.
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+            {
+              contentExplorations.map((exp) => (
+                <div class="flex flex-col items-center">
+                  <div class="rounded-[12px] overflow-hidden bg-[var(--color-bg-light)]">
+                    <img src={exp.img} alt={exp.caption} loading="lazy" class="w-full h-auto" />
+                  </div>
+                  <div class="flex flex-col gap-0.5 items-center mt-3">
+                    <p class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] text-center leading-snug">
+                      {exp.caption}
+                    </p>
+                    <p class="font-[family-name:var(--font-body)] text-[13px] text-[var(--color-ink-dim)] text-center leading-snug">
+                      {exp.subcaption}
+                    </p>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+
+          <!-- Content layout final pick -->
+          <div class="cs-final-pick mt-4">
+            <div class="flex flex-col gap-2 items-center">
+              <p
+                class="font-[family-name:var(--font-mono)] text-[12px] uppercase text-[var(--color-orange)]"
+              >
+                Final pick
+              </p>
+              <p
+                class="font-[family-name:var(--font-display)] font-light text-[16px] text-[var(--color-ink)] text-center"
+              >
+                Linear structure with collapsible sections
+              </p>
+            </div>
+            <img
+              src="/images/work/splunk/content-layout-final.png"
+              alt="Final content layout: linear structure with collapsible sections"
+              loading="lazy"
+              class="w-full max-w-[637px] mx-auto h-auto rounded-[8px]"
+            />
+            <ul class="flex flex-col gap-1.5 items-center">
+              <li class="flex items-baseline gap-2">
+                <span
+                  class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]"
+                  >+</span
+                >
+                <span
+                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug"
+                >
+                  Order of information consumption now follows user workflow
+                </span>
+              </li>
+              <li class="flex items-baseline gap-2">
+                <span
+                  class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]"
+                  >+</span
+                >
+                <span
+                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug"
+                >
+                  Content can be hidden when not relevant
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05. Root cause: linear or tree-like? -->
+      <section id="root-cause" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Root cause: linear or tree-like?</p>
+        <h2 class="cs-section-heading">
+          After leading feedback meetings with GDI SMEs, I found something new.
+        </h2>
+        <p class="cs-section-body">
+          Talking to the team, I learned that there wasn&rsquo;t necessarily an obvious root cause
+          and associated solution for every alert. In reality, there could be multiple potential
+          paths as to how a data ingestion issue might be both identified as well as remediated
+          &mdash; even with the exact same context and checks performed. This meant that you could
+          have root causes and solutions branching out like a tree.
+        </p>
+
+        <!-- User insight callout -->
+        <div class="cs-callout-pink mt-4">
+          <p class="cs-callout-label">User insight</p>
+          <p class="cs-callout-text">
+            Each investigated alert can have multiple root causes, and each root cause can have
+            multiple solutions.
+          </p>
+        </div>
+
+        <!-- Tree diagram -->
+        <div class="flex justify-center mt-4">
+          <img
+            src="/images/work/splunk/rootcause-tree-diagram.png"
+            alt="Diagram showing tree-like branching of root causes and solutions"
+            loading="lazy"
+            class="w-full max-w-[655px] h-auto"
+          />
+        </div>
+
+        <!-- Root cause explorations -->
+        <p class="cs-section-body mt-6">These were two of the iterations I explored.</p>
+        <div class="flex flex-col gap-8 mt-2">
+          {
+            rootCauseExplorations.map((exp) => (
+              <div class="cs-exploration">
+                <div class="cs-exploration-img-wrap">
+                  <img src={exp.img} alt={exp.title} loading="lazy" class="cs-exploration-img" />
+                </div>
+                <div class="cs-exploration-details">
+                  <div class="flex flex-col gap-1.5">
+                    <Tag>{exp.num}</Tag>
+                    <span class="font-[family-name:var(--font-display)] font-light text-[16px] text-[var(--color-ink)]">
+                      {exp.title}
+                    </span>
+                  </div>
+                  {exp.pros.map((pro) => (
+                    <div class="cs-pro-con">
+                      <span class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]">
+                        +
+                      </span>
+                      <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                        {pro}
+                      </span>
+                    </div>
+                  ))}
+                  {exp.cons.map((con) => (
+                    <div class="cs-pro-con">
+                      <span class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-orange)]">
+                        -
+                      </span>
+                      <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                        {con}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          }
+        </div>
+
+        <!-- Final solution pick -->
+        <div class="cs-final-pick mt-4">
+          <div class="flex flex-col gap-2 items-center">
+            <p
+              class="font-[family-name:var(--font-mono)] text-[12px] uppercase text-[var(--color-orange)]"
+            >
+              Final solution
+            </p>
+            <p
+              class="font-[family-name:var(--font-display)] font-light text-[16px] text-[var(--color-ink)] text-center"
+            >
+              We decided to reduce the scope to just one root cause per issue.
+            </p>
+          </div>
+          <img
+            src="/images/work/splunk/rootcause-final-linear.png"
+            alt="Final solution: single root cause per issue in linear format"
+            loading="lazy"
+            class="w-full max-w-[637px] mx-auto h-auto rounded-[8px]"
+          />
+          <p
+            class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] text-center leading-snug"
+          >
+            Because of engineering scope constraints, and for the sake of simplicity, we stuck with
+            the linear format.
+          </p>
+        </div>
+
+        <!-- Design consideration -->
+        <div class="cs-final-pick mt-4">
+          <div class="flex flex-col gap-2 items-center">
+            <p
+              class="font-[family-name:var(--font-mono)] text-[12px] uppercase text-[var(--color-orange)]"
+            >
+              Design consideration
+            </p>
+            <p
+              class="font-[family-name:var(--font-display)] font-light text-[16px] text-[var(--color-ink)] text-center"
+            >
+              Adding indicators to the rest of the interface once a solution had been applied.
+            </p>
+            <p
+              class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] text-center leading-snug"
+            >
+              Users need to be able to track changes they have made.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 06. Final solution / Key flows -->
+      <section id="final-solution" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Key flows</p>
+        <h2 class="cs-section-heading">The final result</h2>
+
+        <div class="flex flex-col gap-8 mt-4">
+          {
+            keyFlows.map((flow) => (
+              <div class="cs-exploration">
+                <div class="cs-exploration-img-wrap cs-exploration-img-wrap--wide">
+                  <img src={flow.img} alt={flow.title} loading="lazy" class="cs-exploration-img" />
+                </div>
+                <div class="cs-exploration-details">
+                  <div class="flex flex-col gap-1.5">
+                    <Tag>{flow.num}</Tag>
+                    <span class="font-[family-name:var(--font-display)] font-light text-[16px] text-[var(--color-ink)]">
+                      {flow.title}
+                    </span>
+                  </div>
+                  <p class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                    {flow.body}
+                  </p>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+
+        <!-- Reflection -->
+        <div class="flex flex-col gap-2 mt-8">
+          <p class="cs-section-label">Reflection</p>
+          <h2 class="cs-section-heading">Making a tangible impact on real users.</h2>
+          <p class="cs-section-body">
+            As an intern, I didn&rsquo;t expect to be selected to be the sole designer on an entire
+            feature that would not only actually be shipped to users, but also be showcased to
+            5,000+ people at .conf25! It was an honor to be placed on this project, and I learned so
+            much in the process as well as from the amazing Data Management design team.
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+            {
+              reflections.map((r) => (
+                <article class="cs-reflection-tile bg-[var(--color-bg-light)] rounded-[16px] p-4 flex flex-col gap-2">
+                  <h3 class="font-[family-name:var(--font-body)] font-semibold text-[16px] text-[var(--color-ink)]">
+                    {r.title}
+                  </h3>
+                  <p class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug">
+                    {r.body}
+                  </p>
+                </article>
+              ))
+            }
+          </div>
+
+          <figure
+            class="mt-6 rounded-[16px] overflow-hidden cs-reflection-photo-wrap"
+            data-cursor="photo"
+            data-cursor-label="my intern friends and i on a hike!"
+          >
+            <img
+              src="/images/work/splunk/intern-friends.JPG"
+              alt="Megan and her intern friends"
+              loading="lazy"
+              class="cs-reflection-photo w-full max-h-[520px] object-cover bg-[var(--color-bg-light)]"
+              style="object-position: center 90%;"
+            />
+          </figure>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <Footer color={cursorColor} active="home" />
+
+  <CustomCursor color={cursorColor} />
+</BaseLayout>
+
+<style>
+  /* === Shared section typography (matches lingofable pattern) === */
+  .cs-section-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--color-ink-dim);
+    letter-spacing: 0.05em;
+  }
+  .cs-section-heading {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 28px;
+    color: var(--color-ink);
+    line-height: 1.15;
+  }
+  .cs-section-body {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-ink);
+    line-height: 1.55;
+  }
+
+  /* === Section entry animation === */
+  .cs-section {
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 400ms var(--ease-out-soft),
+      transform 400ms var(--ease-out-soft);
+  }
+  .cs-section[data-visible] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Solution pillar images — fixed height so text aligns across columns */
+  .cs-pillar-img-wrap {
+    height: 180px;
+    padding: 12px;
+  }
+
+  .cs-hero {
+    box-shadow: 0 14px 38px -22px rgba(36, 36, 36, 0.35);
+  }
+
+  /* === Emphasis underline === */
+  .cs-emph {
+    color: var(--color-ink);
+    background-image: linear-gradient(to right, var(--color-orange-2), var(--color-orange-2));
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 6px;
+    padding-bottom: 1px;
+    transition: background-size var(--duration-base) var(--ease-out-soft);
+  }
+  .cs-emph:hover {
+    background-size: 100% 6px;
+  }
+
+  /* === Callout (pink filled) === */
+  .cs-callout-pink {
+    background: var(--color-orange);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .cs-callout-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--color-bg);
+  }
+  .cs-callout-text {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 20px;
+    color: var(--color-bg);
+    text-align: center;
+    max-width: 760px;
+    line-height: 1.3;
+  }
+
+  /* === Exploration card (image + pros/cons sidebar) === */
+  .cs-exploration {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  .cs-exploration-img-wrap {
+    flex-shrink: 0;
+    width: 65%;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--color-bg-light);
+    box-shadow: 0 8px 24px -12px rgba(36, 36, 36, 0.18);
+  }
+  .cs-exploration-img-wrap--wide {
+    width: 70%;
+  }
+  .cs-exploration-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+  .cs-exploration-details {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Pro/con inline row */
+  .cs-pro-con {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  /* === Final pick box (pink tinted bg) === */
+  .cs-final-pick {
+    background: rgba(203, 120, 54, 0.2);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* === Reflection tiles === */
+  .cs-reflection-tile {
+    transition:
+      transform var(--duration-base) var(--ease-out-soft),
+      background var(--duration-base) var(--ease-out-soft);
+  }
+  .cs-reflection-tile:hover {
+    transform: translateY(-2px);
+    background: var(--color-bg-neutral);
+  }
+
+  /* === Reflection photo === */
+  .cs-reflection-photo-wrap {
+    box-shadow: 0 18px 42px -24px rgba(36, 36, 36, 0.35);
+    transition: transform var(--duration-base) var(--ease-out-soft);
+  }
+  .cs-reflection-photo-wrap:hover {
+    transform: translateY(-2px);
+  }
+  .cs-reflection-photo {
+    transition: transform 600ms var(--ease-out-soft);
+  }
+  .cs-reflection-photo-wrap:hover .cs-reflection-photo {
+    transform: scale(1.02);
+  }
+
+  /* === Responsive: stack explorations on small screens === */
+  @media (max-width: 767px) {
+    .cs-exploration {
+      flex-direction: column;
+    }
+    .cs-exploration-img-wrap,
+    .cs-exploration-img-wrap--wide {
+      width: 100%;
+    }
+  }
+
+  /* === Reduced motion === */
+  @media (prefers-reduced-motion: reduce) {
+    .cs-section,
+    .cs-emph,
+    .cs-reflection-tile,
+    .cs-reflection-photo-wrap,
+    .cs-reflection-photo {
+      transition: none !important;
+      animation: none !important;
+    }
+    .cs-section {
+      opacity: 1;
+      transform: none;
+    }
+    .cs-reflection-tile:hover,
+    .cs-reflection-photo-wrap:hover,
+    .cs-reflection-photo-wrap:hover .cs-reflection-photo {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  /* Section-entry fade — same pattern as lingofable */
+  function initCaseStudyEntries() {
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const sections = Array.from(document.querySelectorAll<HTMLElement>(".cs-section"));
+    if (sections.length === 0) return;
+
+    if (reduced) {
+      sections.forEach((s) => s.setAttribute("data-visible", ""));
+      return;
+    }
+
+    let pending: HTMLElement[] = sections.slice();
+    let scheduled = false;
+
+    function check() {
+      scheduled = false;
+      const wh = window.innerHeight;
+      pending = pending.filter((sec) => {
+        const r = sec.getBoundingClientRect();
+        if (r.top < wh - 40 && r.bottom > 0) {
+          sec.setAttribute("data-visible", "");
+          return false;
+        }
+        return true;
+      });
+    }
+    function schedule() {
+      if (scheduled) return;
+      scheduled = true;
+      if (document.visibilityState === "visible") {
+        requestAnimationFrame(check);
+      } else {
+        setTimeout(check, 16);
+      }
+    }
+
+    check();
+    if (pending.length === 0) return;
+
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+
+    setTimeout(() => {
+      pending.forEach((s) => s.setAttribute("data-visible", ""));
+      pending = [];
+    }, 2000);
+  }
+  initCaseStudyEntries();
+  document.addEventListener("astro:page-load", initCaseStudyEntries);
+</script>

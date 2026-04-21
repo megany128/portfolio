@@ -15,7 +15,7 @@ const cursorColor = visitor?.color ?? "pink";
 const realVisitors = await listVisitors(Astro, 200);
 const seedCount = SEED_VISITORS.length;
 const offsetVisitors = realVisitors.map((v) => ({ ...v, number: v.number + seedCount }));
-const visitors = [...offsetVisitors, ...SEED_VISITORS];
+const visitors = [...offsetVisitors, ...SEED_VISITORS].sort((a, b) => b.number - a.number);
 const total = visitors.length;
 
 const ordinal = (n: number) => {
@@ -59,7 +59,16 @@ const subtitle = visitor
               class="gallery-shuffle bg-[var(--color-bg-neutral)] rounded-[4px] px-2 py-1 flex items-center gap-2 font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-fg-neutral)] hover:text-[var(--color-ink)] hover:bg-[var(--color-bg-neutral-2)] transition-colors"
             >
               Shuffle
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <path d="M16 3h5v5" />
                 <path d="M4 20L21 3" />
                 <path d="M21 16v5h-5" />
@@ -98,8 +107,12 @@ const subtitle = visitor
       animation: gallery-shuffle-spin 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     @keyframes gallery-shuffle-spin {
-      from { transform: rotate(0); }
-      to   { transform: rotate(360deg); }
+      from {
+        transform: rotate(0);
+      }
+      to {
+        transform: rotate(360deg);
+      }
     }
     @media (prefers-reduced-motion: reduce) {
       .gallery-shuffle[data-spinning] svg {

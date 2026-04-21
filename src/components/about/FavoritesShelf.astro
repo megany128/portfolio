@@ -51,7 +51,7 @@ const CATEGORIES: Category[] = [
       },
       {
         title: "Babel",
-        subtitle: "RF Kuang",
+        subtitle: "R.F. Kuang",
         blurb:
           "I love linguistics and I love fantasy novels, and this is the perfect combination of the two.",
         tint: "green",
@@ -179,7 +179,9 @@ const CATEGORIES: Category[] = [
   data-faves-carousel
   data-faves-titles={JSON.stringify(CATEGORIES.map((c) => c.title))}
 >
-  <h2 class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)] text-center">
+  <h2
+    class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)] text-center"
+  >
     A few of my favorite things
   </h2>
 
@@ -191,12 +193,7 @@ const CATEGORIES: Category[] = [
   </h3>
 
   <div class="favorites-carousel mt-2">
-    <button
-      type="button"
-      data-faves-prev
-      class="favorites-arrow"
-      aria-label="Previous category"
-    >
+    <button type="button" data-faves-prev class="favorites-arrow" aria-label="Previous category">
       <span aria-hidden="true">←</span>
     </button>
 
@@ -255,12 +252,7 @@ const CATEGORIES: Category[] = [
       }
     </div>
 
-    <button
-      type="button"
-      data-faves-next
-      class="favorites-arrow"
-      aria-label="Next category"
-    >
+    <button type="button" data-faves-next class="favorites-arrow" aria-label="Next category">
       <span aria-hidden="true">→</span>
     </button>
   </div>
@@ -285,7 +277,6 @@ const CATEGORIES: Category[] = [
        Tallest category (5:8 cards) ≈ 237px cover + meta + row padding. */
     min-height: 340px;
   }
-
 
   .favorites-arrow {
     position: relative;
@@ -598,9 +589,7 @@ const CATEGORIES: Category[] = [
     if (!carousel || carousel.dataset.carouselWired === "1") return;
     carousel.dataset.carouselWired = "1";
 
-    const slides = Array.from(
-      carousel.querySelectorAll<HTMLElement>("[data-faves-slide]"),
-    );
+    const slides = Array.from(carousel.querySelectorAll<HTMLElement>("[data-faves-slide]"));
     const caption = carousel.querySelector<HTMLElement>("[data-faves-caption]");
     const prevBtn = carousel.querySelector<HTMLElement>("[data-faves-prev]");
     const nextBtn = carousel.querySelector<HTMLElement>("[data-faves-next]");

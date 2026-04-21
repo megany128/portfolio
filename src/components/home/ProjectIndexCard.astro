@@ -9,6 +9,7 @@
 import Tag from "../ui/Tag.astro";
 
 type Status = "SHIPPED" | "INTERNSHIP" | "HANDED OVER" | "IN PROGRESS";
+type StatusProp = Status | Status[];
 
 interface Props {
   title: string;
@@ -16,13 +17,17 @@ interface Props {
   role: string;
   team: string;
   shipped: string;
-  status: Status;
+  status: StatusProp;
   sideProject?: boolean;
   /** One-line summary shown below the title. */
   description?: string;
   image?: string;
   imageHeight?: number;
+  /** CSS background-position value, default "center". */
+  imagePosition?: string;
   href?: string;
+  /** Opens link in new tab + uses external cursor mode. */
+  external?: boolean;
   /** Small idle rotation so a row of cards reads as a loose stack. */
   tilt?: number;
 }
@@ -38,7 +43,9 @@ const {
   description,
   image,
   imageHeight = 228,
+  imagePosition = "center",
   href,
+  external = false,
   tilt = 0,
 } = Astro.props;
 
@@ -48,7 +55,9 @@ const num = String(number).padStart(2, "0");
 
 <Wrapper
   href={href}
-  data-cursor={href ? "case-study" : undefined}
+  target={external ? "_blank" : undefined}
+  rel={external ? "noopener noreferrer" : undefined}
+  data-cursor={href ? (external ? "external" : "case-study") : undefined}
   style={`--card-tilt: ${tilt}deg;`}
   class:list={[
     "index-card group relative flex flex-col",
@@ -62,7 +71,7 @@ const num = String(number).padStart(2, "0");
 
   {image && (
     <div class="index-card__frame" style={`height: ${imageHeight}px;`}>
-      <div class="index-card__media" style={`background: url(${image}) center/cover;`} />
+      <div class="index-card__media" style={`background: url(${image}) ${imagePosition}/cover;`} />
     </div>
   )}
 
@@ -72,7 +81,7 @@ const num = String(number).padStart(2, "0");
         <h3 class="index-card__title">{title}</h3>
         <div class="index-card__tags">
           {sideProject && <Tag>Side Project</Tag>}
-          <Tag>{status}</Tag>
+          {Array.isArray(status) ? status.map((s) => <Tag>{s}</Tag>) : <Tag>{status}</Tag>}
         </div>
       </div>
 

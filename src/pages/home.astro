@@ -35,7 +35,12 @@ const cursorColor = visitor?.color ?? "pink";
     <main class="flex flex-col gap-8 p-6 md:p-12 flex-1 min-w-0" data-home-main>
       <div class="flex flex-col gap-8" data-home-stack>
         <LatestLog date="Apr 12, 2026">
-          <a href="https://simonilincev.com/" target="_blank" rel="noopener noreferrer" class="latest-log__site-link">@Simon Ilincev</a>
+          <a
+            href="https://simonilincev.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="latest-log__site-link">@Simon Ilincev</a
+          >
           and I have just launched
           <a
             href="https://lingofable.com"
@@ -52,11 +57,9 @@ const cursorColor = visitor?.color ?? "pink";
               </span>
               <span
                 class="site-preview__thumb"
-                style="background-image: url(/images/projects/lingofable.png);"
-              ></span>
+                style="background-image: url(/images/projects/lingofable.png);"></span>
             </span>
-          </a>, a language learning app
-          based on comprehensible input! Currently, I'm also building
+          </a>, a language learning app based on comprehensible input! Currently, I'm also building
           <a
             href="https://sklonuj.com"
             target="_blank"
@@ -72,11 +75,9 @@ const cursorColor = visitor?.color ?? "pink";
               </span>
               <span
                 class="site-preview__thumb"
-                style="background-image: url(/images/projects/sklonuj.png);"
-              ></span>
+                style="background-image: url(/images/projects/sklonuj.png);"></span>
             </span>
-          </a>, a tool for Czech learners
-          to practice noun declension.
+          </a>, a tool for Czech learners to practice noun declension.
         </LatestLog>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
@@ -84,60 +85,65 @@ const cursorColor = visitor?.color ?? "pink";
             <ProjectIndexCard
               title="Lingofable"
               number={1}
-              
               role="Co-Founder, Design, Dev, Marketing"
               team="with Simon Ilincev"
               shipped="Oct 2025 - present"
               status="SHIPPED"
               sideProject
               description="A mobile app focused on language learning through stories with ~200 users. Featured on Cornell's Speaking of Language Podcast."
-              image="/images/projects/lingofable.png"
-              imageHeight={200}
+              image="/images/projects/lingofable.gif"
+              imageHeight={240}
+              imagePosition="bottom"
               href="/work/lingofable"
               tilt={-0.6}
             />
             <ProjectIndexCard
               title="GCal Wrapped"
-              number={2}
+              number={3}
               role="Co-Creator, Design, Dev"
               team="with Simon Ilincev"
               shipped="Apr - May 2025"
               status="SHIPPED"
               sideProject
               description="Interactive and fun-filled lookback into college semesters built for college students. 10K+ users across 200 universities and 40 countries."
-              image="/images/projects/gcal-wrapped.png"
-              imageHeight={200}
+              image="/images/projects/gcal-wrapped.gif"
+              imageHeight={280}
+              href="https://gcalwrapped.com"
+              external
               tilt={0.5}
             />
             <ProjectIndexCard
-              title="CU Reviews"
-              number={3}
-              role="Product Manager, Designer"
-              team="CU Reviews team"
-              shipped="Feb 2024 - Jan 2025"
-              status="SHIPPED"
-              description="Enhanced inituitiveness and efficiency of Cornell course metrics display for 3,000+ students. Now live on website!"
-              image="/images/projects/cu-reviews.png"
-              imageHeight={190}
-              tilt={-0.4}
+              title="Loop"
+              number={5}
+              role="Product Manager, Design Engineer"
+              team="1 PM, 2 designers, 3 developers"
+              shipped="Feb 2026 - present"
+              status="IN PROGRESS"
+              description="A Cornell tool for connecting students with campus opportunities and events amidst countless email newsletters."
+              image="/images/projects/loop.png"
+              imageHeight={280}
+              href="https://loop-waitlist.dtiincubator.workers.dev/"
+              external
+              tilt={0.3}
             />
           </div>
           <div class="flex flex-col gap-8 md:pt-10">
             <ProjectIndexCard
               title="Splunk"
-              number={4}
+              number={2}
               role="Product Design Intern"
               team="Data Management"
               shipped="Summer 2025"
-              status="INTERNSHIP"
+              status={["INTERNSHIP", "SHIPPED"]}
               description="Led design for AI-powered root cause analysis and self-healing pipeline for data ingestion issues. Showcased to 5,000+ Splunk users during .conf25."
-              image="/images/projects/splunk.png"
+              image="/images/projects/splunk.gif"
               imageHeight={200}
+              href="/work/splunk"
               tilt={0.6}
             />
             <ProjectIndexCard
               title="Skloňuj"
-              number={5}
+              number={4}
               role="Design, Dev"
               team="Solo"
               shipped="March 2026 - present"
@@ -146,19 +152,35 @@ const cursorColor = visitor?.color ?? "pink";
               description="Noun declension practice for Czech learners, piloting at Harvard, Brown, and Columbia. Inspired by my experiences learning Czech."
               image="/images/projects/sklonuj.png"
               imageHeight={170}
+              href="https://sklonuj.com"
+              external
               tilt={-0.5}
             />
             <ProjectIndexCard
               title="Microsoft Copilot for Sales"
               number={6}
               role="Design Consultant"
-              team="Copilot for Sales"
+              team="2 PMs, 5 design consultants"
               shipped="Jan - May 2025"
               status="HANDED OVER"
               description="Designed B2B2C discovery flow for buyers to match organizational requirements to desired products and vendors."
-              image="/images/projects/copilot.png"
+              image="/images/projects/copilot.gif"
               imageHeight={230}
+              href="https://www.behance.net/gallery/229681695/Microsoft-x-DCC-SP25"
+              external
               tilt={0.4}
+            />
+            <ProjectIndexCard
+              title="CU Reviews"
+              number={7}
+              role="Product Manager, Designer"
+              team="1 PM, 2 designers, 3 developers, 1 PMM"
+              shipped="Feb 2024 - Jan 2025"
+              status="SHIPPED"
+              description="Enhanced inituitiveness and efficiency of Cornell course metrics display for 3,000+ students. Now live on website!"
+              image="/images/projects/cu-reviews.gif"
+              imageHeight={190}
+              tilt={-0.4}
             />
           </div>
         </div>
@@ -278,9 +300,18 @@ const cursorColor = visitor?.color ?? "pink";
       animation: home-veil-peel 1100ms cubic-bezier(0.22, 1, 0.36, 1) 180ms forwards;
     }
     @keyframes home-veil-peel {
-      0%   { opacity: 1; transform: translateY(0); }
-      60%  { opacity: 0.25; transform: translateY(-6%); }
-      100% { opacity: 0; transform: translateY(-14%); }
+      0% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      60% {
+        opacity: 0.25;
+        transform: translateY(-6%);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-14%);
+      }
     }
 
     html[data-finale-arrival] [data-home-shell] > aside,
@@ -294,23 +325,45 @@ const cursorColor = visitor?.color ?? "pink";
     html[data-finale-arrival] [data-home-stack] > * {
       animation: home-main-rise 680ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
-    html[data-finale-arrival] [data-home-stack] > *:nth-child(1) { animation-delay: 480ms; }
-    html[data-finale-arrival] [data-home-stack] > *:nth-child(2) { animation-delay: 620ms; }
+    html[data-finale-arrival] [data-home-stack] > *:nth-child(1) {
+      animation-delay: 480ms;
+    }
+    html[data-finale-arrival] [data-home-stack] > *:nth-child(2) {
+      animation-delay: 620ms;
+    }
     html[data-finale-arrival] footer {
       animation: home-footer-rise 720ms cubic-bezier(0.22, 1, 0.36, 1) 820ms forwards;
     }
 
     @keyframes home-sidebar-slide {
-      from { opacity: 0; transform: translateX(-18px); }
-      to   { opacity: 1; transform: translateX(0); }
+      from {
+        opacity: 0;
+        transform: translateX(-18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
     @keyframes home-main-rise {
-      from { opacity: 0; transform: translateY(22px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(22px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
     @keyframes home-footer-rise {
-      from { opacity: 0; transform: translateY(24px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -350,7 +403,7 @@ const cursorColor = visitor?.color ?? "pink";
             // Clamp so the 240px popup stays 12px inside both viewport edges.
             const x = Math.max(
               MARGIN,
-              Math.min(window.innerWidth - PREVIEW_W - MARGIN, anchorX - PREVIEW_W / 2)
+              Math.min(window.innerWidth - PREVIEW_W - MARGIN, anchorX - PREVIEW_W / 2),
             );
             // Measure the popup height at its resting size; pad 12px from link top.
             const ph = preview.offsetHeight || 176;
