@@ -1,0 +1,431 @@
+---
+/**
+ * ParticleSandbox — an interactive canvas of soft paper-colored orbs.
+ *
+ * Behavior:
+ *  - ~30 orbs drift with gentle spring physics and bounce off walls.
+ *  - Orbs are attracted to the cursor (with a soft radius falloff).
+ *  - Click spawns a small burst; double-click scatters everything outward.
+ *  - prefers-reduced-motion: renders a static, painterly arrangement
+ *    (no motion, no interaction listeners).
+ */
+---
+
+<div class="sandbox" data-sandbox>
+  <canvas data-sandbox-canvas class="sandbox__canvas"></canvas>
+
+  <!-- Subtle hint overlay; fades out after first interaction. -->
+  <div class="sandbox__hint" data-sandbox-hint>
+    <span class="dot"></span>
+    <span>move · click · double-click</span>
+  </div>
+</div>
+
+<style>
+  .sandbox {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+    background:
+      radial-gradient(
+        120% 90% at 30% 15%,
+        color-mix(in oklab, var(--color-bg-neutral) 92%, white) 0%,
+        var(--color-bg-neutral) 55%,
+        var(--color-bg-neutral-2) 120%
+      );
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklab, var(--color-fg-neutral) 18%, transparent),
+      inset 0 30px 60px -30px color-mix(in oklab, var(--color-fg-neutral) 22%, transparent);
+  }
+
+  .sandbox__canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+  }
+
+  .sandbox__hint {
+    position: absolute;
+    bottom: 14px;
+    right: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    background: color-mix(in oklab, var(--color-bg) 78%, transparent);
+    backdrop-filter: blur(6px);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-dim);
+    opacity: 0;
+    transform: translateY(4px);
+    animation: hint-in 600ms var(--ease-out-soft) 600ms forwards;
+    transition:
+      opacity var(--duration-slow) var(--ease-out-soft),
+      transform var(--duration-slow) var(--ease-out-soft);
+    pointer-events: none;
+  }
+
+  .sandbox[data-engaged] .sandbox__hint {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  .sandbox__hint .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: var(--color-pink);
+    box-shadow: 0 0 8px color-mix(in oklab, var(--color-pink) 60%, transparent);
+    animation: pulse 2.4s var(--ease-in-out-soft) infinite;
+  }
+
+  @keyframes hint-in {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.4); opacity: 0.55; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sandbox__hint .dot { animation: none; }
+    .sandbox__hint {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  type Orb = {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    r: number;
+    color: string;
+    alpha: number;
+    spin: number;
+    age: number;
+  };
+
+  const root = document.querySelector<HTMLElement>("[data-sandbox]");
+  const canvas = document.querySelector<HTMLCanvasElement>("[data-sandbox-canvas]")!;
+  if (!root || !canvas) throw new Error("Sandbox elements missing");
+
+  const ctx = canvas.getContext("2d")!;
+  if (!ctx) throw new Error("2D context unavailable");
+
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Paper-palette tints sampled from tokens.css. Kept soft (low alpha) so
+  // the cream background shows through and layered blending feels painterly.
+  const PALETTE = [
+    "#eabaca", // pink-1
+    "#e599b1", // pink-0
+    "#b3d0d5", // teal-3
+    "#65b6c3", // teal-1
+    "#eebc94", // orange-1
+    "#f7c9a5", // orange-2
+    "#7db592", // green-1
+    "#6dbd8b", // green-2
+  ];
+
+  const TARGET_COUNT = 30;
+  const MAX_ORBS = 120;
+
+  let W = 0;
+  let H = 0;
+  let DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const pointer = { x: -9999, y: -9999, active: false };
+  const orbs: Orb[] = [];
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    W = rect.width;
+    H = rect.height;
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  function rand(min: number, max: number) {
+    return min + Math.random() * (max - min);
+  }
+
+  function spawn(x?: number, y?: number, opts: Partial<Orb> = {}): Orb {
+    const r = opts.r ?? rand(14, 44);
+    const orb: Orb = {
+      x: x ?? rand(r, W - r),
+      y: y ?? rand(r, H - r),
+      vx: opts.vx ?? rand(-0.3, 0.3),
+      vy: opts.vy ?? rand(-0.3, 0.3),
+      r,
+      color: opts.color ?? PALETTE[(Math.random() * PALETTE.length) | 0]!,
+      alpha: opts.alpha ?? rand(0.55, 0.85),
+      spin: rand(-0.005, 0.005),
+      age: 0,
+    };
+    return orb;
+  }
+
+  function seed() {
+    orbs.length = 0;
+    for (let i = 0; i < TARGET_COUNT; i++) orbs.push(spawn());
+  }
+
+  function draw() {
+    // Soft trailing: semi-transparent wipe instead of hard clear so the
+    // orbs feel like they're brushing across paper.
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "rgba(238, 232, 216, 0.18)"; // bg-neutral with alpha
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.globalCompositeOperation = "multiply";
+    for (const o of orbs) {
+      const grad = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
+      grad.addColorStop(0, hexWithAlpha(o.color, o.alpha));
+      grad.addColorStop(0.6, hexWithAlpha(o.color, o.alpha * 0.5));
+      grad.addColorStop(1, hexWithAlpha(o.color, 0));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // A crisper inner highlight on top for texture.
+    ctx.globalCompositeOperation = "source-over";
+    for (const o of orbs) {
+      ctx.beginPath();
+      ctx.arc(o.x - o.r * 0.25, o.y - o.r * 0.3, o.r * 0.18, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${0.25 * o.alpha})`;
+      ctx.fill();
+    }
+  }
+
+  function hexWithAlpha(hex: string, a: number) {
+    const h = hex.replace("#", "");
+    const n = parseInt(h, 16);
+    const r = (n >> 16) & 255;
+    const g = (n >> 8) & 255;
+    const b = n & 255;
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  function step() {
+    const ATTRACT_RADIUS = 180;
+    const ATTRACT_STRENGTH = 0.035;
+    const SPRING = 0.0006; // toward center (so orbs don't drift forever)
+    const FRICTION = 0.985;
+    const MAX_V = 6;
+    const cx = W / 2;
+    const cy = H / 2;
+
+    for (const o of orbs) {
+      o.age++;
+
+      // Spring to center (super gentle)
+      o.vx += (cx - o.x) * SPRING;
+      o.vy += (cy - o.y) * SPRING;
+
+      // Cursor attraction with soft falloff.
+      if (pointer.active) {
+        const dx = pointer.x - o.x;
+        const dy = pointer.y - o.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < ATTRACT_RADIUS && dist > 0.01) {
+          const falloff = 1 - dist / ATTRACT_RADIUS;
+          const f = falloff * falloff * ATTRACT_STRENGTH;
+          o.vx += (dx / dist) * f * 12;
+          o.vy += (dy / dist) * f * 12;
+        }
+      }
+
+      o.vx *= FRICTION;
+      o.vy *= FRICTION;
+
+      // Clamp velocity.
+      const v = Math.hypot(o.vx, o.vy);
+      if (v > MAX_V) {
+        o.vx = (o.vx / v) * MAX_V;
+        o.vy = (o.vy / v) * MAX_V;
+      }
+
+      o.x += o.vx;
+      o.y += o.vy;
+
+      // Bounce off walls with light damping.
+      if (o.x < o.r) {
+        o.x = o.r;
+        o.vx = Math.abs(o.vx) * 0.7;
+      } else if (o.x > W - o.r) {
+        o.x = W - o.r;
+        o.vx = -Math.abs(o.vx) * 0.7;
+      }
+      if (o.y < o.r) {
+        o.y = o.r;
+        o.vy = Math.abs(o.vy) * 0.7;
+      } else if (o.y > H - o.r) {
+        o.y = H - o.r;
+        o.vy = -Math.abs(o.vy) * 0.7;
+      }
+    }
+
+    // Soft pairwise repulsion so orbs don't fully overlap into mush.
+    for (let i = 0; i < orbs.length; i++) {
+      for (let j = i + 1; j < orbs.length; j++) {
+        const a = orbs[i]!;
+        const b = orbs[j]!;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const minDist = (a.r + b.r) * 0.65;
+        const d = Math.hypot(dx, dy);
+        if (d > 0 && d < minDist) {
+          const overlap = (minDist - d) / minDist;
+          const push = overlap * 0.12;
+          const nx = dx / d;
+          const ny = dy / d;
+          a.vx -= nx * push;
+          a.vy -= ny * push;
+          b.vx += nx * push;
+          b.vy += ny * push;
+        }
+      }
+    }
+  }
+
+  let running = true;
+  function frame() {
+    if (!running) return;
+    step();
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  // === Event wiring ===
+  function markEngaged() {
+    root!.setAttribute("data-engaged", "");
+  }
+
+  function onPointerMove(e: PointerEvent) {
+    const rect = canvas.getBoundingClientRect();
+    pointer.x = e.clientX - rect.left;
+    pointer.y = e.clientY - rect.top;
+    pointer.active = true;
+    markEngaged();
+  }
+  function onPointerLeave() {
+    pointer.active = false;
+  }
+
+  function burstAt(x: number, y: number) {
+    const count = 6;
+    for (let i = 0; i < count; i++) {
+      if (orbs.length >= MAX_ORBS) break;
+      const angle = (i / count) * Math.PI * 2;
+      const speed = rand(1.5, 3);
+      orbs.push(
+        spawn(x, y, {
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          r: rand(10, 22),
+        }),
+      );
+    }
+  }
+
+  function scatter() {
+    const cx = W / 2;
+    const cy = H / 2;
+    for (const o of orbs) {
+      const dx = o.x - cx;
+      const dy = o.y - cy;
+      const d = Math.hypot(dx, dy) || 1;
+      const power = rand(6, 11);
+      o.vx += (dx / d) * power + rand(-2, 2);
+      o.vy += (dy / d) * power + rand(-2, 2);
+    }
+  }
+
+  // Static, no-motion fallback for reduced motion users.
+  function renderStatic() {
+    // Seed a pleasant, hand-arranged composition, then draw once.
+    resize();
+    orbs.length = 0;
+    const presets = [
+      { x: 0.22, y: 0.32, r: 54, c: "#eabaca", a: 0.75 },
+      { x: 0.38, y: 0.58, r: 38, c: "#b3d0d5", a: 0.72 },
+      { x: 0.55, y: 0.28, r: 46, c: "#eebc94", a: 0.78 },
+      { x: 0.72, y: 0.52, r: 60, c: "#7db592", a: 0.7 },
+      { x: 0.84, y: 0.74, r: 30, c: "#e599b1", a: 0.8 },
+      { x: 0.15, y: 0.78, r: 40, c: "#65b6c3", a: 0.7 },
+      { x: 0.5, y: 0.82, r: 28, c: "#f7c9a5", a: 0.78 },
+      { x: 0.66, y: 0.12, r: 22, c: "#6dbd8b", a: 0.75 },
+    ];
+    for (const p of presets) {
+      orbs.push({
+        x: p.x * W,
+        y: p.y * H,
+        vx: 0,
+        vy: 0,
+        r: p.r,
+        color: p.c,
+        alpha: p.a,
+        spin: 0,
+        age: 0,
+      });
+    }
+    // Full clear so there's no streaking.
+    ctx!.clearRect(0, 0, W, H);
+    ctx!.fillStyle = "rgba(0,0,0,0)";
+    draw();
+  }
+
+  // === Boot ===
+  resize();
+  window.addEventListener("resize", () => {
+    resize();
+    if (reduced) renderStatic();
+  });
+
+  if (reduced) {
+    renderStatic();
+  } else {
+    seed();
+    canvas.addEventListener("pointermove", onPointerMove);
+    canvas.addEventListener("pointerleave", onPointerLeave);
+    canvas.addEventListener("click", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      burstAt(e.clientX - rect.left, e.clientY - rect.top);
+      markEngaged();
+    });
+    canvas.addEventListener("dblclick", (e) => {
+      e.preventDefault();
+      scatter();
+      markEngaged();
+    });
+    // Pause when tab hidden to save cycles.
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        running = false;
+      } else if (!running) {
+        running = true;
+        requestAnimationFrame(frame);
+      }
+    });
+    requestAnimationFrame(frame);
+  }
+</script>

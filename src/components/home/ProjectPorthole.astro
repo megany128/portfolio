@@ -1,0 +1,451 @@
+---
+import Tag from "../ui/Tag.astro";
+
+type Status = "SHIPPED" | "INTERNSHIP" | "HANDED OVER" | "IN PROGRESS";
+
+interface Props {
+  title: string;
+  image?: string;
+  imageHeight?: number;
+  accent?: "pink" | "teal" | "orange" | "green" | "neutral";
+  status: Status;
+  sideProject?: boolean;
+  href?: string;
+  /** Small idle tilt so the gallery reads as floating. */
+  tilt?: number;
+}
+
+const {
+  title,
+  image,
+  imageHeight = 228,
+  accent = "neutral",
+  status,
+  sideProject = false,
+  href,
+  tilt = 0,
+} = Astro.props;
+
+const Wrapper = href ? "a" : "article";
+
+const accentBg: Record<NonNullable<Props["accent"]>, string> = {
+  pink: "linear-gradient(135deg, var(--color-pink) 0%, var(--color-pink-1) 100%)",
+  teal: "linear-gradient(135deg, var(--color-teal) 0%, var(--color-teal-1) 100%)",
+  orange: "linear-gradient(135deg, var(--color-orange) 0%, var(--color-orange-1) 100%)",
+  green: "linear-gradient(135deg, var(--color-green) 0%, var(--color-green-1) 100%)",
+  neutral: "linear-gradient(135deg, var(--color-bg-neutral-2) 0%, var(--color-bg-neutral) 100%)",
+};
+---
+
+<Wrapper
+  href={href}
+  data-cursor={href ? "case-study" : undefined}
+  data-porthole
+  style={`--porthole-tilt: ${tilt}deg;`}
+  class:list={[
+    "porthole group relative rounded-[20px] p-4 flex flex-col gap-3",
+    href ? "cursor-none" : "cursor-default",
+  ]}
+>
+  <!--
+    Cursor-tracked aura: a radial gradient anchored to --cx/--cy (set in JS on
+    pointermove). It sits between the ghost glass background and the content,
+    giving a "warm spot" that follows your cursor across the porthole.
+  -->
+  <span class="porthole__aura" aria-hidden="true"></span>
+
+  <!-- Corner twinkle — now sits on the glass rather than on cream. -->
+  <span class="porthole__twinkle" aria-hidden="true">✦</span>
+
+  <div
+    class="porthole__frame relative rounded-[14px] overflow-hidden w-full grid place-items-center text-[var(--color-ink-inverted)] font-[family-name:var(--font-display)] text-xl font-light"
+    style={`height: ${imageHeight}px;`}
+    aria-hidden={image ? undefined : "true"}
+  >
+    <div
+      class="porthole__media absolute inset-0"
+      style={`background: ${image ? `url(${image}) center/cover` : accentBg[accent]};`}
+    ></div>
+    <div class="porthole__sheen absolute inset-0 pointer-events-none" aria-hidden="true"></div>
+    <div class="porthole__rim absolute inset-0 pointer-events-none" aria-hidden="true"></div>
+    {!image && <span class="relative opacity-70 normal-case">{title}</span>}
+  </div>
+
+  <div class="flex items-center justify-between gap-3 min-w-0">
+    <p class="porthole__title font-[family-name:var(--font-body)] text-base flex-1 min-w-0 truncate">
+      {title}
+    </p>
+    <div class="flex gap-2 items-center shrink min-w-0 max-w-[60%]">
+      {sideProject && <Tag class="shrink min-w-0">Side Project</Tag>}
+      <Tag class="shrink-0">{status}</Tag>
+    </div>
+  </div>
+</Wrapper>
+
+<style>
+  /*
+    Ghost glass: a very low-opacity cream wash + backdrop blur so the starfield
+    shows through the porthole frame. The media inside the frame stays solid.
+
+    Defaults to `--cx/--cy` = 50% so the aura sits in the middle before the
+    pointer first enters; JS overrides these on pointermove.
+  */
+  .porthole {
+    --cx: 50%;
+    --cy: 50%;
+    transform: rotate(var(--porthole-tilt, 0deg));
+    /* Frosted glass: a slightly more opaque wash so the pane reads as glass
+       rather than invisible, plus a heavier backdrop blur so stars behind
+       the card turn into soft haloed glows through the window. */
+    background: linear-gradient(
+      135deg,
+      rgba(234, 230, 219, 0.12) 0%,
+      rgba(234, 230, 219, 0.06) 100%
+    );
+    border: 1px solid rgba(234, 230, 219, 0.22);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    transition:
+      transform 320ms var(--ease-out-soft),
+      background 320ms var(--ease-out-soft),
+      border-color 320ms var(--ease-out-soft),
+      box-shadow 480ms var(--ease-out-soft);
+    box-shadow:
+      0 18px 38px -22px rgba(0, 0, 0, 0.7),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    perspective: 900px;
+    transform-style: preserve-3d;
+    will-change: transform, background;
+  }
+
+  .porthole:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(234, 230, 219, 0.2) 0%,
+      rgba(234, 230, 219, 0.1) 100%
+    );
+    /* Moonlit rim + diffuse silver halo — reads cosmic, not brand-branded,
+       so any visitor card color below still feels at home. */
+    border-color: rgba(234, 230, 219, 0.55);
+    box-shadow:
+      0 26px 60px -22px rgba(0, 0, 0, 0.85),
+      0 0 80px -10px rgba(216, 221, 232, 0.25),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+
+  /*
+    Cursor-tracked warm spot. Reads --cx/--cy from the porthole element which
+    are set in px (px, not %) by the JS below — relative to the porthole.
+    Fallback to center when no cursor is tracked.
+  */
+  .porthole__aura {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(
+      180px 140px at var(--cx) var(--cy),
+      rgba(234, 230, 219, 0.22) 0%,
+      rgba(234, 230, 219, 0.05) 45%,
+      transparent 75%
+    );
+    opacity: 0;
+    transition: opacity 260ms var(--ease-out-soft);
+    z-index: 0;
+  }
+  .porthole:hover .porthole__aura {
+    opacity: 1;
+  }
+
+  /*
+    Porthole frame — the opaque "view" inside the glass. We intentionally do
+    NOT lift it on the Z axis any more: combining a Z translate here with the
+    parent's rotateX/rotateY caused border-radius to re-rasterize on each
+    frame, producing a visible corner-radius glitch during hover. A 2D
+    parallax nudge gives the same "floating window" feel without the cost.
+
+    `backface-visibility: hidden` plus `transform: translateZ(0)` promote the
+    frame to its own composited layer so the rounded corners stay stable.
+  */
+  .porthole__frame {
+    position: relative;
+    z-index: 1;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    isolation: isolate;
+    transition: transform 380ms var(--ease-out-soft);
+    will-change: transform;
+  }
+  .porthole:hover .porthole__frame {
+    transform: translate3d(var(--tx, 0px), var(--ty, -2px), 0);
+  }
+
+  .porthole__media {
+    transform-origin: center;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transition:
+      transform 480ms var(--ease-out-soft),
+      filter 480ms var(--ease-out-soft);
+  }
+  .porthole:hover .porthole__media {
+    transform: translateZ(0) scale(1.05);
+    filter: saturate(1.1) brightness(1.04);
+  }
+
+  /* Sheen and rim overlays sit on top of the media inside the frame. */
+  .porthole__rim {
+    border-radius: 14px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  }
+  .porthole__sheen {
+    background: linear-gradient(
+      115deg,
+      transparent 38%,
+      rgba(255, 255, 255, 0.28) 50%,
+      transparent 62%
+    );
+    background-size: 220% 100%;
+    background-position: 130% 0;
+    opacity: 0;
+    transition:
+      opacity 260ms var(--ease-out-soft),
+      background-position 680ms var(--ease-out-soft);
+  }
+  .porthole:hover .porthole__sheen {
+    opacity: 1;
+    background-position: -130% 0;
+  }
+
+  /* Title switches to cream on the ghost glass so it reads against the cosmos. */
+  .porthole__title {
+    color: rgba(243, 241, 235, 0.88);
+    position: relative;
+    z-index: 1;
+    transition: color 260ms var(--ease-out-soft);
+  }
+  .porthole:hover .porthole__title {
+    color: rgba(255, 255, 255, 1);
+  }
+
+  /*
+    Scoped Tag restyling: on a cosmic porthole, a bright cream chip reads too
+    heavily — it looks like a sticker, not a star-chart annotation. Convert
+    Tags inside the porthole to an outlined silver-starlight chip: translucent
+    ink bg + cream border/text. On hover the border brightens with a soft
+    moonlit glow. The Tag component's own classes still apply — we're just
+    overriding its visual skin within this scope.
+  */
+  .porthole :global(span.inline-flex) {
+    background: rgba(8, 10, 20, 0.42) !important;
+    color: rgba(234, 230, 219, 0.85) !important;
+    box-shadow: inset 0 0 0 1px rgba(234, 230, 219, 0.28);
+    transition:
+      box-shadow 240ms var(--ease-out-soft),
+      color 240ms var(--ease-out-soft),
+      background 240ms var(--ease-out-soft);
+    position: relative;
+    z-index: 1;
+  }
+  .porthole:hover :global(span.inline-flex) {
+    background: rgba(8, 10, 20, 0.55) !important;
+    color: #ffffff !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(234, 230, 219, 0.6),
+      0 0 14px -4px rgba(216, 221, 232, 0.45);
+  }
+
+  /* Corner ✦ twinkle. Uses the cream palette and pulses on the glass. */
+  .porthole__twinkle {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    z-index: 2;
+    font-family: var(--font-display);
+    font-size: 14px;
+    line-height: 1;
+    color: rgba(243, 241, 235, 0.55);
+    pointer-events: none;
+    animation: porthole-twinkle 4.8s ease-in-out infinite;
+    transition:
+      color 240ms var(--ease-out-soft),
+      opacity 240ms var(--ease-out-soft),
+      transform 240ms var(--ease-out-soft);
+  }
+  .porthole:hover .porthole__twinkle {
+    color: #ffffff;
+    opacity: 1;
+    transform: scale(1.25) rotate(18deg);
+    text-shadow: 0 0 12px rgba(216, 221, 232, 0.75);
+  }
+  @keyframes porthole-twinkle {
+    0%, 100% { opacity: 0.45; transform: scale(1) rotate(0deg); }
+    50%      { opacity: 0.9;  transform: scale(1.15) rotate(-8deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .porthole,
+    .porthole__frame,
+    .porthole__media,
+    .porthole__sheen,
+    .porthole__aura,
+    .porthole__twinkle,
+    .porthole__title {
+      transition: none;
+      animation: none;
+    }
+    .porthole:hover {
+      transform: rotate(0deg);
+    }
+    .porthole:hover .porthole__frame {
+      transform: none;
+    }
+    .porthole:hover .porthole__media {
+      transform: none;
+      filter: none;
+    }
+  }
+</style>
+
+<script>
+  /*
+    Cursor-tracked 3D tilt for each porthole.
+    - On pointermove we compute a normalized offset (-1..1) from the porthole's
+      center and apply a small rotateX/rotateY (capped at a few degrees).
+    - We also drive --cx/--cy (px within the card) for the radial aura, and
+      --tx/--ty for the frame's tiny parallax lift on hover.
+    - Returns to neutral with an eased transition on pointerleave.
+
+    Scoped to elements marked [data-porthole]. Idempotent — runs once per
+    astro:page-load.
+  */
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function attach(card: HTMLElement) {
+    if (card.dataset.portholeReady === "1") return;
+    card.dataset.portholeReady = "1";
+    const idleTilt = parseFloat(
+      getComputedStyle(card).getPropertyValue("--porthole-tilt") || "0"
+    ) || 0;
+
+    const MAX_RX = 6; // deg
+    const MAX_RY = 8; // deg
+    const PARALLAX = 6; // px
+
+    let raf = 0;
+    let targetRX = 0;
+    let targetRY = 0;
+    let targetCX = 50;
+    let targetCY = 50;
+    let targetTX = 0;
+    let targetTY = 0;
+    let curRX = 0;
+    let curRY = 0;
+    let curCX = 50;
+    let curCY = 50;
+    let curTX = 0;
+    let curTY = 0;
+    let hovering = false;
+
+    function apply() {
+      card.style.setProperty(
+        "transform",
+        `perspective(900px) rotate(${(1 - Math.min(1, Math.hypot(curRX, curRY) / 6)) * idleTilt}deg) rotateX(${curRX.toFixed(2)}deg) rotateY(${curRY.toFixed(2)}deg)`
+      );
+      card.style.setProperty("--cx", `${curCX.toFixed(1)}%`);
+      card.style.setProperty("--cy", `${curCY.toFixed(1)}%`);
+      card.style.setProperty("--tx", `${curTX.toFixed(2)}px`);
+      card.style.setProperty("--ty", `${curTY.toFixed(2)}px`);
+    }
+
+    function tick() {
+      // Ease current values toward targets.
+      const k = 0.18;
+      curRX += (targetRX - curRX) * k;
+      curRY += (targetRY - curRY) * k;
+      curCX += (targetCX - curCX) * k;
+      curCY += (targetCY - curCY) * k;
+      curTX += (targetTX - curTX) * k;
+      curTY += (targetTY - curTY) * k;
+      apply();
+      if (
+        hovering ||
+        Math.abs(curRX) + Math.abs(curRY) + Math.abs(curTX) + Math.abs(curTY) >
+          0.05
+      ) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        // Settle exactly on neutral so the idle CSS tilt takes over cleanly.
+        card.style.removeProperty("transform");
+        card.style.setProperty("--cx", "50%");
+        card.style.setProperty("--cy", "50%");
+        card.style.setProperty("--tx", "0px");
+        card.style.setProperty("--ty", "0px");
+        raf = 0;
+      }
+    }
+
+    function onMove(e: PointerEvent) {
+      const r = card.getBoundingClientRect();
+      const nx = (e.clientX - r.left) / r.width; // 0..1
+      const ny = (e.clientY - r.top) / r.height;
+      // Card tilts *toward* the cursor — positive rotateX when cursor is above
+      // center, negative rotateY when cursor is to the right.
+      targetRY = (nx - 0.5) * 2 * MAX_RY;
+      targetRX = -(ny - 0.5) * 2 * MAX_RX;
+      targetCX = nx * 100;
+      targetCY = ny * 100;
+      targetTX = (nx - 0.5) * 2 * PARALLAX;
+      targetTY = (ny - 0.5) * 2 * PARALLAX;
+      if (!raf) raf = requestAnimationFrame(tick);
+    }
+
+    function onEnter() {
+      hovering = true;
+      if (!raf) raf = requestAnimationFrame(tick);
+    }
+    function onLeave() {
+      hovering = false;
+      targetRX = 0;
+      targetRY = 0;
+      targetCX = 50;
+      targetCY = 50;
+      targetTX = 0;
+      targetTY = 0;
+      if (!raf) raf = requestAnimationFrame(tick);
+    }
+
+    card.addEventListener("pointerenter", onEnter);
+    card.addEventListener("pointermove", onMove, { passive: true });
+    card.addEventListener("pointerleave", onLeave);
+
+    // Clean up if the element is removed by ClientRouter between page swaps.
+    // Astro's view transitions persist the DOM when possible, so this is
+    // mostly a safety net.
+    const observer = new MutationObserver(() => {
+      if (!card.isConnected) {
+        card.removeEventListener("pointerenter", onEnter);
+        card.removeEventListener("pointermove", onMove);
+        card.removeEventListener("pointerleave", onLeave);
+        if (raf) cancelAnimationFrame(raf);
+        observer.disconnect();
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  function init() {
+    if (reduced) return;
+    document
+      .querySelectorAll<HTMLElement>("[data-porthole]")
+      .forEach(attach);
+  }
+
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>

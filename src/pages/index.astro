@@ -1,16 +1,208 @@
 ---
+import DarkScene from "../layouts/DarkScene.astro";
+import WelcomeHero from "../components/welcome/WelcomeHero.astro";
+import ShootingStars from "../components/welcome/ShootingStars.astro";
+import Starfield from "../components/welcome/Starfield.astro";
+import WelcomeCursor from "../components/welcome/WelcomeCursor.astro";
+import SparkBurst from "../components/welcome/SparkBurst.astro";
+import { getCurrentVisitor } from "../lib/visitor-server";
 
+export const prerender = false;
+
+const visitor = await getCurrentVisitor(Astro);
+const isReturning = visitor !== null;
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<DarkScene title="Welcome — Megan's World">
+  <Starfield />
+  <ShootingStars />
+  <WelcomeHero returning={isReturning} />
+  <SparkBurst />
+  <WelcomeCursor />
+
+  <script>
+    // The welcome → onboarding "sunrise" is a cream disc that literally
+    // grows out of the explore button. We run it as a DOM overlay pinned
+    // to <html> (so it survives Astro's SPA body-swap) and use
+    // `navigate()` instead of a full reload — that keeps the Web Audio
+    // context alive so the sunrise chord we kick off on click plays
+    // continuously through the hand-off. The overlay covers the whole
+    // viewport before navigation starts, so the VT crossfade is hidden
+    // entirely behind cream and the landing page has no empty moment.
+    import { navigate } from "astro:transitions/client";
+    import { playSunrise, resetSunrise } from "../lib/sunrise-sound";
+
+    // Disc fully covers right as the sunrise chord's chime hits and the
+    // pads reach peak sustain — so the moment the cream locks in
+    // visually is the moment the audio blooms. The cross-reveal then
+    // runs through the peak.
+    const SUNRISE_MS = 1100;
+    const REVEAL_MS = 400;
+
+    function buildDisc(cx: number, cy: number): HTMLDivElement {
+      const d = document.createElement("div");
+      d.setAttribute("aria-hidden", "true");
+      d.setAttribute("data-sunrise-disc", "");
+      d.style.cssText = [
+        "position:fixed",
+        "left:" + cx + "px",
+        "top:" + cy + "px",
+        "width:260vmax",
+        "height:260vmax",
+        "margin-left:-130vmax",
+        "margin-top:-130vmax",
+        "background:var(--color-bg)",
+        "border-radius:50%",
+        "z-index:9999",
+        "pointer-events:none",
+        "transform-origin:center center",
+        "transform:scale(0.01)",
+        "will-change:transform",
+      ].join(";");
+      return d;
+    }
+
+    function initWelcome() {
+      const btn = document.getElementById("enter-cta") as HTMLAnchorElement | null;
+      if (!btn) return;
+      if (btn.dataset.wired === "1") return;
+      btn.dataset.wired = "1";
+
+      // A fresh arrival at welcome — make sure the sunrise chord plays
+      // again the next time the user enters.
+      resetSunrise();
+
+      // Clean up any stale overlay / attribute left over from a back nav
+      // that was interrupted mid-flight.
+      document
+        .querySelectorAll("[data-sunrise-disc]")
+        .forEach((el) => el.remove());
+      document.documentElement.removeAttribute("data-sunrise-play");
+
+      let triggered = false;
+
+      async function proceed() {
+        if (triggered) return;
+        triggered = true;
+
+        const isReturning = btn!.hasAttribute("data-returning");
+        const destination = isReturning ? "/home" : "/onboarding";
+
+        const reducedMotion = window.matchMedia?.(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        if (reducedMotion) {
+          if (isReturning) {
+            try { sessionStorage.setItem("wallet:arrival", "1"); } catch {}
+          }
+          navigate(destination);
+          return;
+        }
+
+        const r = btn!.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+
+        try {
+          sessionStorage.setItem(
+            "sunrise:origin",
+            JSON.stringify({ x: cx, y: cy }),
+          );
+        } catch {
+          // Storage disabled — back animation will fall back to viewport
+          // center.
+        }
+        try {
+          sessionStorage.setItem("sunrise:armed", "1");
+        } catch {
+          // Onboarding will still render; audio has already been kicked
+          // off on this same document so the chord reaches the new page.
+        }
+
+        // Gate onboarding's paint: body cream, form at opacity 0 until
+        // the disc has settled on the other side. Set on <html> so it
+        // survives Astro's body swap.
+        document.documentElement.setAttribute("data-sunrise-play", "");
+
+        // Audio + visual start together, from the same click gesture.
+        playSunrise();
+
+        const disc = buildDisc(cx, cy);
+        document.documentElement.appendChild(disc);
+
+        const expand = disc.animate(
+          [{ transform: "scale(0.01)" }, { transform: "scale(1)" }],
+          {
+            duration: SUNRISE_MS,
+            easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+            fill: "forwards",
+          },
+        );
+
+        try {
+          await expand.finished;
+        } catch {
+          // Animation aborted (e.g. tab backgrounded); proceed anyway so
+          // the user isn't stuck.
+        }
+
+        // Returning visitors skip onboarding — go straight to /home with
+        // the wallet:arrival flag so the finale animation plays.
+        if (isReturning) {
+          try { sessionStorage.setItem("wallet:arrival", "1"); } catch {}
+        }
+
+        // VT root crossfade is collapsed to 1ms via data-sunrise-play,
+        // so navigate() resolves almost instantly — no dead cream
+        // moment between cover and reveal.
+        await navigate(destination);
+
+        // Cross-reveal: as the overlay fades out, onboarding's form
+        // fades in underneath (its CSS animation started when the new
+        // body parsed). By the time the overlay hits opacity 0, the
+        // form is fully visible, and the chord is still sustaining.
+        const fadeOut = disc.animate(
+          [{ opacity: 1 }, { opacity: 0 }],
+          {
+            duration: REVEAL_MS,
+            easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+            fill: "forwards",
+          },
+        );
+        try {
+          await fadeOut.finished;
+        } catch {
+          // Aborted; clean up regardless.
+        }
+
+        disc.remove();
+        document.documentElement.removeAttribute("data-sunrise-play");
+      }
+
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        proceed();
+      });
+    }
+
+    // Wire on initial load and on every SPA return to this page (e.g.
+    // after clicking Back on onboarding). Guarded via `data-wired` on the
+    // button so repeated astro:page-load events don't stack listeners.
+    initWelcome();
+    document.addEventListener("astro:page-load", initWelcome);
+
+    // Enter key on welcome triggers the same flow as clicking the CTA.
+    // A window-level listener is set exactly once per document session.
+    if (!(window as any).__welcomeEnterWired) {
+      (window as any).__welcomeEnterWired = true;
+      window.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter") return;
+        if (location.pathname !== "/") return;
+        const cta = document.getElementById("enter-cta");
+        if (!cta) return;
+        e.preventDefault();
+        cta.click();
+      });
+    }
+  </script>
+</DarkScene>

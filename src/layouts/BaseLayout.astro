@@ -1,0 +1,83 @@
+---
+import "../styles/global.css";
+import { ClientRouter } from "astro:transitions";
+import SitePet from "../components/site/SitePet.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  bodyClass?: string;
+  showPet?: boolean;
+}
+
+const {
+  title = "Megan Yap",
+  description = "Portfolio of Megan Yap.",
+  bodyClass = "",
+  showPet = true,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/png" href="/portfolio-logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300;400;500;600&display=swap"
+    />
+    <title>{title}</title>
+    <ClientRouter />
+
+    <style is:global>
+      /*
+        View Transitions — disable all default animations so page swaps
+        are instant. Named groups (wallet-veil) can opt back in.
+      */
+      ::view-transition-old(root),
+      ::view-transition-new(root) {
+        animation: none !important;
+      }
+
+      /* Wallet finale: the cream overlay on onboarding shares `wallet-veil`
+         with a matching veil on home, so the cream fades out while home's
+         content slides in under it. */
+      ::view-transition-old(wallet-veil),
+      ::view-transition-new(wallet-veil) {
+        animation-duration: 720ms;
+        animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      /* Sunrise flow — already covered by instant root, but keep for safety. */
+      html[data-sunrise-play]::view-transition-old(root),
+      html[data-sunrise-play]::view-transition-new(root) {
+        animation: none !important;
+      }
+
+      /* Edit card: card flies from gallery position to edit screen center. */
+      ::view-transition-old(edit-card),
+      ::view-transition-new(edit-card) {
+        animation-duration: 480ms;
+        animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      /* Named groups (sidebar, footer) — no animation either. */
+      ::view-transition-old(sidebar),
+      ::view-transition-new(sidebar),
+      ::view-transition-old(footer),
+      ::view-transition-new(footer) {
+        animation: none !important;
+      }
+    </style>
+  </head>
+  <body class={bodyClass}>
+    <slot />
+    {showPet && <SitePet />}
+  </body>
+</html>

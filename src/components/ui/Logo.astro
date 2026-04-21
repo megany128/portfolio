@@ -1,0 +1,15 @@
+---
+interface Props {
+  class?: string;
+}
+
+const { class: className = "" } = Astro.props;
+---
+
+<img
+  src="/portfolio-logo.png"
+  alt="Megan Yap"
+  width="45"
+  height="36"
+  class={className}
+/>

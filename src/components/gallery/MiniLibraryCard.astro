@@ -1,0 +1,157 @@
+---
+// Gallery card — the onboarding LibraryCard wrapped with gallery-specific
+// chrome (hover tilt hook, gloss overlay, "that's you" pill). Renders at the
+// same size as the onboarding card so the signature sits in the exact pixel
+// position the visitor drew it.
+import LibraryCard from "../onboarding/LibraryCard.astro";
+import type { CardColor } from "../../lib/visitor";
+
+interface Props {
+  name: string;
+  color: CardColor;
+  number: number;
+  issuedAt?: string;
+  isYou?: boolean;
+  signature?: string | null;
+  id?: string;
+}
+
+const {
+  name,
+  color,
+  number,
+  issuedAt = new Date().toISOString(),
+  isYou = false,
+  signature = null,
+  id,
+} = Astro.props;
+---
+
+<div
+  class="mini-card-wrap relative"
+  data-color={color}
+  data-cursor-bg={color}
+  data-mini-card-wrap
+  data-id={id}
+  transition:name={isYou ? "edit-card" : undefined}
+  transition:animate={isYou ? "initial" : undefined}
+>
+  {isYou && (
+    <span
+      class="mini-card-pill absolute -top-3 left-1/2 -translate-x-1/2 z-20 font-[family-name:var(--font-mono)] font-bold text-[12px] uppercase px-1.5 py-0.5 rounded-[2.5px] tracking-wide"
+    >
+      That&rsquo;s you!
+    </span>
+  )}
+
+  <div
+    data-color={color}
+    data-mini-card
+    class={`mini-card rounded-[24px] cursor-pointer ${
+      isYou ? "ring-1 ring-white shadow-[0_14px_28px_-8px_rgba(0,0,0,0.28),0_4px_10px_-2px_rgba(0,0,0,0.18)]" : ""
+    }`}
+  >
+    <LibraryCard
+      name={name}
+      color={color}
+      number={number}
+      issuedAt={issuedAt}
+      id={id ? `gallery-card-${id}` : undefined}
+      signature={signature}
+      glimmerSeedSalt={(number * 2654435761) ^ (id ? id.charCodeAt(0) * 131 + id.length : 0)}
+    />
+
+    <!-- glossy highlight that follows the cursor on hover -->
+    <div
+      aria-hidden="true"
+      data-mini-gloss
+      class="mini-gloss absolute inset-0 pointer-events-none opacity-0 rounded-[24px] transition-opacity duration-200"
+    ></div>
+  </div>
+</div>
+
+<style is:global>
+  /*
+    3D transform wrapper — the parent grid provides the perspective. We hold
+    off on will-change + preserve-3d until the user actually interacts so the
+    resting state stays on the text layer (no GPU rasterization blur).
+  */
+  /*
+    Gallery-card scaling — the underlying LibraryCard is fixed 388x252. We
+    scale the inner .mini-card via CSS transform and give the wrap a matching
+    layout box so flex sees the scaled size (3-4 cards fit per row).
+    Scale factor matches --mini-card-scale below.
+  */
+  .mini-card-wrap {
+    --mini-card-scale: 0.72;
+    width: calc(388px * var(--mini-card-scale));
+    height: calc(252px * var(--mini-card-scale));
+    transition: transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .mini-card-wrap .mini-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 388px;
+    height: 252px;
+    transform: scale(var(--mini-card-scale));
+    transform-origin: top left;
+  }
+  .mini-card-wrap:hover,
+  .mini-card-wrap[data-tilting],
+  .mini-card-wrap[data-flying] {
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .mini-card-wrap[data-tilting] {
+    transition: none;
+  }
+  .mini-card-wrap[data-flying] {
+    transition: none;
+    z-index: 40;
+  }
+
+  .mini-card {
+    transition: box-shadow 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .mini-card-wrap:hover .mini-card {
+    box-shadow:
+      0 24px 48px -12px rgba(0, 0, 0, 0.35),
+      0 8px 18px -6px rgba(0, 0, 0, 0.22);
+  }
+
+  /* Glossy cursor-tracked highlight. */
+  .mini-gloss {
+    background: radial-gradient(
+      180px 180px at var(--gloss-x, 50%) var(--gloss-y, 50%),
+      rgba(255, 255, 255, 0.35),
+      rgba(255, 255, 255, 0) 70%
+    );
+    mix-blend-mode: soft-light;
+  }
+  .mini-card-wrap:hover .mini-gloss {
+    opacity: 1;
+  }
+
+  /* "THAT'S YOU!" pill — color matches the card's family. */
+  [data-color="pink"] > .mini-card-pill {
+    background: var(--color-pink-2);
+    color: #6f1f3a;
+  }
+  [data-color="teal"] > .mini-card-pill {
+    background: var(--color-teal-3);
+    color: #0f4a55;
+  }
+  [data-color="green"] > .mini-card-pill {
+    background: var(--color-green-2);
+    color: #0d3a1d;
+  }
+  [data-color="orange"] > .mini-card-pill {
+    background: var(--color-orange-2);
+    color: #7e4314;
+  }
+  [data-color="neutral"] > .mini-card-pill {
+    background: var(--color-bg-neutral);
+    color: var(--color-ink-dim);
+  }
+</style>

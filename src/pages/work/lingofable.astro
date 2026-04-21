@@ -1,0 +1,858 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import CaseStudySidebar from "../../components/casestudy/CaseStudySidebar.astro";
+import Footer from "../../components/home/Footer.astro";
+import CustomCursor from "../../components/home/CustomCursor.astro";
+import Tag from "../../components/ui/Tag.astro";
+import Button from "../../components/ui/Button.astro";
+import { getCurrentVisitor } from "../../lib/visitor-server";
+
+export const prerender = false;
+
+const visitor = await getCurrentVisitor(Astro);
+const cursorColor = visitor?.color ?? "pink";
+
+// Sidebar sections — ids map 1:1 to the section elements below.
+const tocSections = [
+  { id: "context", label: "Context" },
+  { id: "solution", label: "The solution" },
+  { id: "features", label: "Features" },
+  { id: "interaction", label: "Interaction design" },
+  { id: "onboarding", label: "Onboarding & conversion" },
+  { id: "reflection", label: "Reflection" },
+];
+
+const features = [
+  {
+    title: "Stories for every interest",
+    body: "Explore fantasy, thriller, romance, and more. Always at your level.",
+    video: "/images/work/lingofable/feature-stories.mp4",
+  },
+  {
+    title: "Tap any word, instantly understand",
+    body: "Translations appear as you read, so you get to stay in the flow without any interruptions.",
+    video: "/images/work/lingofable/feature-tap.mp4",
+  },
+  {
+    title: "Listen and read at the same time",
+    body: "Follow along with audio narration for every fable. Read, listen, or both.",
+    video: "/images/work/lingofable/feature-listen.mp4",
+  },
+  {
+    title: "Watch yourself improve",
+    body: "Track your progress: CEFR level, words learned, reading streaks, and more.",
+    video: "/images/work/lingofable/feature-progress.mp4",
+  },
+];
+
+const interactions = [
+  {
+    src: "/images/work/lingofable/interaction-word.gif",
+    alt: "Animation showing how tapping a word reveals its definition",
+    caption: "Looking up a word",
+  },
+  {
+    src: "/images/work/lingofable/interaction-sentence.gif",
+    alt: "Animation showing how a sentence is translated on tap in the reader",
+    caption: "Translating a sentence",
+  },
+];
+
+const reflections = [
+  {
+    title: "Retention is the hardest part",
+    body: "In order for users to actually appreciate your designs, they have to come back to the app in the first place! It's all about finding a core value loop and meeting your users where they are.",
+  },
+  {
+    title: "Claude Code is my best friend!",
+    body: "Honestly, I've become addicted to Claude Code. Iterating, polishing, and debugging is way easier with Claude Code, and I've learned how to best use subagents, worktrees, and MCP servers.",
+  },
+  {
+    title: "Design extends beyond the app",
+    body: "Before this, I had no idea just how important notifications were! They really do make a difference, from their copy to their frequency and time of day sent. Next up is widgets!",
+  },
+];
+---
+
+<BaseLayout title="Lingofable — Megan Yap">
+  <div class="flex items-stretch min-h-screen" id="top">
+    <CaseStudySidebar sections={tocSections} active="context" />
+
+    <main class="flex-1 min-w-0 p-10 flex flex-col gap-10">
+      <!-- Hero image -->
+      <section class="cs-hero-wrap">
+        <div class="cs-hero rounded-[24px] overflow-hidden max-h-[360px]">
+          <img
+            src="/images/work/lingofable/hero-banner.png"
+            alt="Lingofable — Language learning, one story at a time"
+            loading="eager"
+            class="block w-full h-full object-cover"
+          />
+        </div>
+      </section>
+
+      <!-- Hero meta: tags, title, description -->
+      <section class="flex flex-col gap-3">
+        <div class="flex items-center gap-2">
+          <Tag>Side Project</Tag>
+          <Tag>Shipped</Tag>
+        </div>
+        <h1
+          class="font-[family-name:var(--font-display)] font-light text-[40px] leading-[1.1] text-[var(--color-ink)] flex items-start gap-3"
+        >
+          <img
+            src="/images/work/lingofable/hero-star.svg"
+            alt=""
+            aria-hidden="true"
+            class="w-[22px] h-[22px] flex-shrink-0 self-center"
+          />
+          Building Lingofable from 0-1
+        </h1>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+        >
+          I designed &amp; built Lingofable together with
+          <a
+            href="https://simonilincev.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="cs-mention text-[var(--color-ink)]">@Simon Ilincev</a
+          >
+          as a passion project. It is a language app focused on learning through stories — we launched
+          on the App Store in
+          <span class="cs-emph" data-cs-emph>March 2026</span>, pitched to Pinterest&rsquo;s ex-CPO,
+          and were featured on Cornell&rsquo;s
+          <span class="cs-emph" data-cs-emph>Speaking of Language</span>
+          podcast!
+        </p>
+        <Button href="https://lingofable.com" variant="outline" target="_blank">
+          Visit Lingofable <span aria-hidden="true">→</span>
+        </Button>
+      </section>
+
+      <!-- Meta grid: role, team, timeline, skills -->
+      <section class="grid grid-cols-2 md:grid-cols-4 gap-[60px] p-4 bg-[#bf5a7a] rounded-[12px]">
+        <div class="flex flex-col gap-2">
+          <p class="font-[family-name:var(--font-mono)] text-base uppercase text-white">Role</p>
+          <p class="font-[family-name:var(--font-body)] text-base text-[#eabaca] leading-snug">
+            Founder<br />Design Engineer<br />Marketing
+          </p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <p class="font-[family-name:var(--font-mono)] text-base uppercase text-white">Team</p>
+          <p class="font-[family-name:var(--font-body)] text-base text-[#eabaca] leading-snug">
+            <span class="text-[#f6e7ec]">Simon Ilincev</span> (Co-Founder &amp; Software Engineer)
+          </p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <p class="font-[family-name:var(--font-mono)] text-base uppercase text-white">Timeline</p>
+          <p class="font-[family-name:var(--font-body)] text-base text-[#eabaca] leading-snug">
+            Oct 2025 &ndash; Apr 2026
+          </p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <p class="font-[family-name:var(--font-mono)] text-base uppercase text-white">Skills</p>
+          <p class="font-[family-name:var(--font-body)] text-base text-[#eabaca] leading-snug">
+            Vibe coding<br />Interaction design<br />Motion design
+          </p>
+        </div>
+      </section>
+
+      <!-- 01. Context -->
+      <section id="context" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p
+          class="font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-ink-dim)] tracking-wider"
+        >
+          Context
+        </p>
+        <h2
+          class="font-[family-name:var(--font-display)] font-light text-[28px] text-[var(--color-ink)] leading-tight"
+        >
+          Language learning is tricky
+        </h2>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+        >
+          Having learned Mandarin Chinese over the pandemic, I know from experience that language
+          learning is tough. Engaging in native media is no doubt the best way to learn, but
+          it&rsquo;s really difficult to find media that is both interesting and at your level.
+        </p>
+      </section>
+
+      <!-- 02. The solution -->
+      <section id="solution" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p
+          class="font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-ink-dim)] tracking-wider"
+        >
+          The solution
+        </p>
+        <h2
+          class="font-[family-name:var(--font-display)] font-light text-[28px] text-[var(--color-ink)] leading-tight"
+        >
+          Comprehensible input at scale, delivered through stories
+        </h2>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+        >
+          The main thing that prevents learners from reading books in their target language is that
+          most of the time, content is either:
+        </p>
+        <ol
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed list-decimal list-inside flex flex-col gap-1"
+        >
+          <li>
+            Interesting but written for native speakers (and therefore linguistically complex), or
+          </li>
+          <li>Boring and written for children.</li>
+        </ol>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+        >
+          As a solution, we built Lingofable to generate engaging stories that are exactly tailored
+          towards readers — using the specific vocabulary they know, and written to complement their
+          interests / favorite genres. This way, we can deliver stories that are at the perfect
+          difficulty for learners to progress without feeling too much friction.
+        </p>
+
+        <!-- Bento grid (image-based, matches marketing site layout) -->
+        <div class="grid gap-4 md:gap-6 md:grid-cols-2 mt-3">
+          <!-- Left: From fairy tales to Reddit threads (tall) -->
+          <div
+            class="relative w-full aspect-[508/585] md:aspect-[628/580] rounded-[24px] overflow-hidden bg-[var(--color-bg-light)]"
+          >
+            <img
+              src="/images/work/lingofable/bento-1-fairy-tales-alt.png"
+              alt="From fairy tales to Reddit threads — Pick what you want to read. We'll match it to your level."
+              loading="lazy"
+              class="md:hidden absolute inset-0 w-full h-full object-contain rounded-[24px]"
+            />
+            <img
+              src="/images/work/lingofable/bento-1-fairy-tales.png"
+              alt="From fairy tales to Reddit threads — Pick what you want to read. We'll match it to your level."
+              loading="lazy"
+              class="hidden md:block absolute inset-0 w-full h-full object-contain rounded-[24px] p-[5%]"
+            />
+          </div>
+
+          <!-- Right: Two stacked bentos -->
+          <div class="flex flex-col gap-4 md:gap-6">
+            <!-- Track your progress -->
+            <img
+              src="/images/work/lingofable/bento-2-track-progress.png"
+              alt="Track your progress — See your CEFR level rise and your vocabulary grow as you read."
+              loading="lazy"
+              class="w-full h-auto rounded-[24px]"
+            />
+
+            <!-- i+1 difficulty -->
+            <img
+              src="/images/work/lingofable/bento-3-i+1-difficulty.png"
+              alt="Always at the perfect i+1 difficulty — Stories adapt to your level, never too hard, never too easy."
+              loading="lazy"
+              class="w-full h-auto rounded-[24px]"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- 03. Features -->
+      <section id="features" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p
+          class="font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-ink-dim)] tracking-wider"
+        >
+          Features
+        </p>
+        <h2
+          class="font-[family-name:var(--font-display)] font-light text-[28px] text-[var(--color-ink)] leading-tight"
+        >
+          Designed to help learners make real progress
+        </h2>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+        >
+          Users are able to browse a library of stories in their target language, and track weekly
+          goals to keep on track with their learning. The library refreshes regularly to keep the
+          most relevant stories at the top for readers.
+        </p>
+
+        <div
+          data-feature-section
+          class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 mt-4 md:items-start"
+        >
+          <div class="flex flex-col gap-4" data-feature-list>
+            {
+              features.map((feature, idx) => (
+                <button
+                  type="button"
+                  data-feature-tile
+                  data-feature-idx={idx}
+                  data-feature-video={feature.video}
+                  class:list={[
+                    "cs-feature-tile bg-[var(--color-bg-light)] rounded-[16px] p-4 flex flex-col gap-1.5 text-left cursor-pointer",
+                    idx === 0 && "cs-feature-tile--active",
+                  ]}
+                >
+                  <h3 class="font-[family-name:var(--font-body)] font-semibold text-[16px] text-[var(--color-ink)]">
+                    {feature.title}
+                  </h3>
+                  <p class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug">
+                    {feature.body}
+                  </p>
+                </button>
+              ))
+            }
+          </div>
+          <div
+            class="cs-features-phone-wrap flex items-start justify-center md:sticky md:top-[40px]"
+          >
+            <div class="cs-features-phone-frame">
+              <video
+                data-feature-player
+                src={features[0].video}
+                autoplay
+                loop
+                muted
+                playsinline
+                class="cs-features-phone-video"></video>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04. Interaction design -->
+      <section id="interaction" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p
+          class="font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-ink-dim)] tracking-wider"
+        >
+          Interaction design
+        </p>
+        <h2
+          class="font-[family-name:var(--font-display)] font-light text-[28px] text-[var(--color-ink)] leading-tight"
+        >
+          Teaching users how to interact
+        </h2>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+        >
+          During our beta testing, users told us that interacting with the reading page was
+          confusing. Although this is a standard interaction pattern in other apps such as Du
+          Chinese, many users had not encountered such apps before. Using Lottielab, I created two
+          different tutorial animations that would play when the user opened a story for the first
+          time.
+        </p>
+
+        <div
+          data-interaction-carousel
+          data-interaction-captions={JSON.stringify(interactions.map((i) => i.caption))}
+          class="cs-interaction bg-[var(--color-bg-light)] rounded-[12px] px-4 py-10 mt-2 flex items-center justify-between gap-4"
+        >
+          <!-- Left arrow -->
+          <button
+            type="button"
+            data-interaction-prev
+            class="cs-interaction-arrow"
+            aria-label="Previous animation"
+          >
+            <span aria-hidden="true">←</span>
+          </button>
+
+          <figure class="flex flex-col items-center gap-10 flex-1 min-w-0">
+            <div
+              class="cs-interaction-frame overflow-hidden relative w-[280px]"
+              data-interaction-frame
+            >
+              {
+                interactions.map((item, idx) => (
+                  <img
+                    src={item.src}
+                    alt={item.alt}
+                    loading="eager"
+                    data-interaction-slide={idx}
+                    class:list={["block w-full h-auto", idx === 0 ? "" : "hidden"]}
+                  />
+                ))
+              }
+            </div>
+            <figcaption
+              data-interaction-caption
+              class="font-[family-name:var(--font-mono)] text-[18px] uppercase text-[var(--color-ink-dim)]"
+            >
+              {interactions[0].caption}
+            </figcaption>
+          </figure>
+
+          <!-- Right arrow -->
+          <button
+            type="button"
+            data-interaction-next
+            class="cs-interaction-arrow"
+            aria-label="Next animation"
+          >
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 05. Onboarding & conversion -->
+      <section id="onboarding" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p
+          class="font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-ink-dim)] tracking-wider"
+        >
+          Onboarding &amp; conversion
+        </p>
+        <h2
+          class="font-[family-name:var(--font-display)] font-light text-[28px] text-[var(--color-ink)] leading-tight"
+        >
+          Crafting the perfect onboarding
+        </h2>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+        >
+          The longer the onboarding, the higher the conversion rate. But at the same time, we had to
+          ensure that users felt engaged and like they were making progress. To do this, I wove
+          haptics into every single onboarding step, and made it easy to start off with a library
+          filled with interesting stories.
+        </p>
+
+        <div class="flex flex-wrap gap-6 justify-center mt-4">
+          <div class="cs-phone">
+            <img
+              src="/images/work/lingofable/onboarding-words.png"
+              alt="Onboarding screen: tap the words you know"
+              loading="lazy"
+              class="w-full h-auto"
+            />
+          </div>
+          <div class="cs-phone">
+            <img
+              src="/images/work/lingofable/onboarding-fables.png"
+              alt="Onboarding screen: pick fables to bookmark"
+              loading="lazy"
+              class="w-full h-auto"
+            />
+          </div>
+          <div class="cs-phone">
+            <img
+              src="/images/work/lingofable/onboarding-commit.png"
+              alt="Onboarding screen: commit to your goal"
+              loading="lazy"
+              class="w-full h-auto"
+            />
+          </div>
+        </div>
+
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed mt-4"
+        >
+          In order to get the best estimate of a user&rsquo;s Spanish skills, we wanted them to do a
+          30-question long comprehension test. But this would clearly be a lot of friction. So
+          instead, we gave them the option to quit whenever they wanted and come back to the test
+          later, as long as they did at least ten questions. They would then be prompted to finish
+          the test on their explore page later.
+        </p>
+
+        <div class="flex flex-wrap gap-6 justify-center mt-4">
+          <div class="cs-phone">
+            <img
+              src="/images/work/lingofable/onboarding-test-1.png"
+              alt="Comprehension test screen 1"
+              loading="lazy"
+              class="w-full h-auto"
+            />
+          </div>
+          <div class="cs-phone">
+            <img
+              src="/images/work/lingofable/onboarding-test-2.png"
+              alt="Comprehension test screen 2"
+              loading="lazy"
+              class="w-full h-auto"
+            />
+          </div>
+          <div class="cs-phone">
+            <img
+              src="/images/work/lingofable/onboarding-test-3.png"
+              alt="Comprehension test screen 3"
+              loading="lazy"
+              class="w-full h-auto"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- 06. Reflection -->
+      <section id="reflection" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p
+          class="font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-ink-dim)] tracking-wider"
+        >
+          Reflection
+        </p>
+        <h2
+          class="font-[family-name:var(--font-display)] font-light text-[28px] text-[var(--color-ink)] leading-tight"
+        >
+          What I&rsquo;ve learned
+        </h2>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+        >
+          Building an app for real users is very different from working on a design case study or
+          even a small side project.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+          {
+            reflections.map((r) => (
+              <article class="cs-reflection-tile bg-[var(--color-bg-light)] rounded-[16px] p-4 flex flex-col gap-2">
+                <h3 class="font-[family-name:var(--font-body)] font-semibold text-[16px] text-[var(--color-ink)]">
+                  {r.title}
+                </h3>
+                <p class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug">
+                  {r.body}
+                </p>
+              </article>
+            ))
+          }
+        </div>
+
+        <figure class="mt-6 rounded-[16px] overflow-hidden cs-reflection-photo-wrap" data-cursor="photo" data-cursor-label="pitching to the ex-CPO of Pinterest">
+          <img
+            src="/images/work/lingofable/reflection-photo.jpg"
+            alt="Megan presenting Lingofable on stage"
+            loading="lazy"
+            class="cs-reflection-photo w-full max-h-[520px] object-cover"
+          />
+        </figure>
+      </section>
+    </main>
+  </div>
+
+  <Footer color={cursorColor} active="home" />
+
+  <CustomCursor color={cursorColor} />
+</BaseLayout>
+
+<style>
+  /* ===========================================================
+     Section entry — fade + 8px rise when the section enters view.
+     Headings reuse the same transition via the .cs-section class.
+     =========================================================== */
+  .cs-section {
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 400ms var(--ease-out-soft),
+      transform 400ms var(--ease-out-soft);
+  }
+  .cs-section[data-visible] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Hero */
+  .cs-hero {
+    box-shadow: 0 14px 38px -22px rgba(36, 36, 36, 0.35);
+  }
+  .cs-hero img {
+    transition: transform 600ms var(--ease-out-soft);
+  }
+  .cs-hero:hover img {
+    transform: scale(1.015);
+  }
+
+  /* Emphasis words pick up a hand-drawn pink underline on hover. */
+  .cs-emph {
+    color: var(--color-ink);
+    background-image: linear-gradient(to right, var(--color-pink-1), var(--color-pink-1));
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 6px;
+    padding-bottom: 1px;
+    transition: background-size var(--duration-base) var(--ease-out-soft);
+  }
+  .cs-emph:hover {
+    background-size: 100% 6px;
+  }
+  .cs-mention {
+    text-decoration: underline;
+    text-decoration-color: var(--color-pink-1);
+    text-underline-offset: 3px;
+    transition: color var(--duration-fast) var(--ease-out-soft);
+  }
+  .cs-mention:hover {
+    color: var(--color-pink);
+  }
+
+  /* ---- Features phone ---- */
+  .cs-features-phone-frame {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 32px;
+    overflow: hidden;
+    background: #242424;
+    padding: 8px;
+    box-shadow: 0 18px 48px -24px rgba(36, 36, 36, 0.4);
+  }
+  .cs-features-phone-video {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 24px;
+  }
+
+  /* ---- Interaction carousel arrows ---- */
+  .cs-interaction-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 28px;
+    border: 0;
+    border-radius: 4px;
+    background: var(--color-bg-neutral-2);
+    color: var(--color-ink-dim);
+    font-family: var(--font-mono);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition:
+      background var(--duration-fast) var(--ease-out-soft),
+      color var(--duration-fast) var(--ease-out-soft);
+  }
+  .cs-interaction-arrow:hover {
+    background: var(--color-bg-neutral);
+    color: var(--color-ink);
+  }
+
+  /* ---- Feature tiles ---- */
+  .cs-feature-tile {
+    border: 2px solid transparent;
+    transition:
+      background var(--duration-base) var(--ease-out-soft),
+      border-color var(--duration-base) var(--ease-out-soft),
+      transform var(--duration-base) var(--ease-out-soft);
+  }
+  .cs-feature-tile:hover {
+    background: var(--color-bg-neutral);
+  }
+  .cs-feature-tile--active {
+    border-color: #5c4a3a;
+    background: var(--color-bg-neutral);
+  }
+
+  /* ---- Onboarding phones ---- */
+  .cs-phone {
+    width: 260px;
+    flex-shrink: 0;
+    transition: transform 520ms var(--ease-out-soft);
+  }
+  .cs-phone:hover {
+    transform: translateY(-4px);
+  }
+
+  /* Reflection photo */
+  .cs-reflection-photo-wrap {
+    box-shadow: 0 18px 42px -24px rgba(36, 36, 36, 0.35);
+    transition: transform var(--duration-base) var(--ease-out-soft);
+  }
+  .cs-reflection-photo-wrap:hover {
+    transform: translateY(-2px);
+  }
+  .cs-reflection-photo {
+    transition: transform 600ms var(--ease-out-soft);
+  }
+  .cs-reflection-photo-wrap:hover .cs-reflection-photo {
+    transform: scale(1.02);
+  }
+
+  .cs-reflection-tile {
+    transition:
+      transform var(--duration-base) var(--ease-out-soft),
+      background var(--duration-base) var(--ease-out-soft);
+  }
+  .cs-reflection-tile:hover {
+    transform: translateY(-2px);
+    background: var(--color-bg-neutral);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cs-section,
+    .cs-hero img,
+    .cs-emph,
+    .cs-mention,
+    .cs-features-phone-frame,
+    .cs-feature-tile,
+    .cs-phone,
+    .cs-reflection-photo-wrap,
+    .cs-reflection-photo,
+    .cs-reflection-tile,
+    .cs-interaction-frame {
+      transition: none !important;
+      animation: none !important;
+    }
+    .cs-section {
+      opacity: 1;
+      transform: none;
+    }
+    .cs-phone:hover {
+      transform: none;
+    }
+    .cs-reflection-photo-wrap:hover,
+    .cs-reflection-photo-wrap:hover .cs-reflection-photo,
+    .cs-reflection-tile:hover {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  /*
+    Section-entry fade. Uses a scroll listener (rAF-throttled) to mark each
+    section visible once it enters the viewport from below. IntersectionObserver
+    is avoided here for parity with the scrollspy — a single source of truth
+    for "is this section on screen" works reliably in all environments.
+    Once visible, sections stay visible (we don't re-animate on scroll-up).
+  */
+  function initCaseStudyEntries() {
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const sections = Array.from(document.querySelectorAll<HTMLElement>(".cs-section"));
+    if (sections.length === 0) return;
+
+    if (reduced) {
+      sections.forEach((s) => s.setAttribute("data-visible", ""));
+      return;
+    }
+
+    let pending: HTMLElement[] = sections.slice();
+    let scheduled = false;
+
+    function check() {
+      scheduled = false;
+      const wh = window.innerHeight;
+      pending = pending.filter((sec) => {
+        const r = sec.getBoundingClientRect();
+        // Reveal when any part of the section is in the viewport.
+        if (r.top < wh - 40 && r.bottom > 0) {
+          sec.setAttribute("data-visible", "");
+          return false;
+        }
+        return true;
+      });
+    }
+    function schedule() {
+      if (scheduled) return;
+      scheduled = true;
+      if (document.visibilityState === "visible") {
+        requestAnimationFrame(check);
+      } else {
+        setTimeout(check, 16);
+      }
+    }
+
+    // Initial measurement.
+    check();
+    if (pending.length === 0) return;
+
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+
+    // Safety: reveal everything after a short timeout so content is never
+    // stuck at opacity:0 if the user's browser is being weird.
+    setTimeout(() => {
+      pending.forEach((s) => s.setAttribute("data-visible", ""));
+      pending = [];
+    }, 2000);
+  }
+  initCaseStudyEntries();
+  document.addEventListener("astro:page-load", initCaseStudyEntries);
+
+  /*
+    Interactive features — clicking a tile swaps the phone video and
+    highlights the selected tile.
+  */
+  function initFeatureSelector() {
+    const tiles = document.querySelectorAll<HTMLElement>("[data-feature-tile]");
+    const video = document.querySelector<HTMLVideoElement>("[data-feature-player]");
+    if (!tiles.length || !video) return;
+
+    tiles.forEach((tile) => {
+      tile.addEventListener("click", () => {
+        // Update active state
+        tiles.forEach((t) => t.classList.remove("cs-feature-tile--active"));
+        tile.classList.add("cs-feature-tile--active");
+
+        // Swap video source
+        const src = tile.dataset.featureVideo;
+        if (src && !video.src.endsWith(src)) {
+          video.src = src;
+          video.load();
+          video.play();
+        }
+      });
+    });
+  }
+  initFeatureSelector();
+  document.addEventListener("astro:page-load", initFeatureSelector);
+
+  /*
+    Interaction carousel — prev/next arrows cycle through demo gifs.
+  */
+  function initInteractionCarousel() {
+    const carousel = document.querySelector<HTMLElement>("[data-interaction-carousel]");
+    if (!carousel) return;
+
+    const slides = Array.from(carousel.querySelectorAll<HTMLElement>("[data-interaction-slide]"));
+    const caption = carousel.querySelector<HTMLElement>("[data-interaction-caption]");
+    const prevBtn = carousel.querySelector<HTMLElement>("[data-interaction-prev]");
+    const nextBtn = carousel.querySelector<HTMLElement>("[data-interaction-next]");
+    if (slides.length < 2 || !caption) return;
+
+    let captionTexts: string[] = [];
+    try {
+      captionTexts = JSON.parse(carousel.dataset.interactionCaptions || "[]");
+    } catch {}
+    let current = 0;
+
+    const frame = carousel.querySelector<HTMLElement>("[data-interaction-frame]");
+
+    // Once all images load, lock frame to tallest height
+    function lockHeight() {
+      if (!frame) return;
+      let maxH = 0;
+      slides.forEach((s) => {
+        s.classList.remove("hidden");
+        maxH = Math.max(maxH, s.offsetHeight);
+      });
+      frame.style.minHeight = `${maxH}px`;
+      slides.forEach((s, i) => {
+        s.classList.toggle("hidden", i !== current);
+      });
+    }
+    let loaded = 0;
+    slides.forEach((s) => {
+      const img = s as HTMLImageElement;
+      const onLoad = () => {
+        loaded++;
+        if (loaded >= slides.length) lockHeight();
+      };
+      if (img.complete) onLoad();
+      else img.addEventListener("load", onLoad, { once: true });
+    });
+
+    function show(idx: number) {
+      slides.forEach((s, i) => {
+        s.classList.toggle("hidden", i !== idx);
+      });
+      if (caption) caption.textContent = captionTexts[idx] ?? "";
+      current = idx;
+    }
+
+    prevBtn?.addEventListener("click", () => {
+      show((current - 1 + slides.length) % slides.length);
+    });
+    nextBtn?.addEventListener("click", () => {
+      show((current + 1) % slides.length);
+    });
+  }
+  initInteractionCarousel();
+  document.addEventListener("astro:page-load", initInteractionCarousel);
+</script>

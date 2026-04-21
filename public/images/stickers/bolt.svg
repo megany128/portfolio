@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <defs>
+    <radialGradient id="bolt-body" cx="35%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#fff4b8"/>
+      <stop offset="55%" stop-color="#e3a06b"/>
+      <stop offset="100%" stop-color="#a85a24"/>
+    </radialGradient>
+    <radialGradient id="bolt-gloss" cx="35%" cy="25%" r="22%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="bolt-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.4"/>
+      <feOffset dy="1.8"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.35"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#bolt-shadow)">
+    <path d="M46 6 L 20 42 L 36 44 L 30 74 L 60 34 L 42 32 L 50 6 Z"
+      fill="url(#bolt-body)" stroke="#ffffff" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M42 18 L 30 36 L 38 37" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
+    <ellipse cx="34" cy="24" rx="5" ry="3" fill="url(#bolt-gloss)" transform="rotate(-55 34 24)"/>
+  </g>
+</svg>

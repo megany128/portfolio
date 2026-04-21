@@ -1,0 +1,647 @@
+---
+// Submission animation overlay (Figma 7:347).
+// Hidden until VisitorCard dispatches `wallet:play`. Then:
+//   1. Snapshot the hero signature canvas BEFORE the page changes.
+//   2. Fetch a few other visitors' cards.
+//   3. Slide them into a horizontal row from the right.
+//   4. The user's card drops from above and snaps into the row.
+//   5. The whole row whooshes off to the left.
+//   6. Navigate to /home.
+//
+// Mini-card visuals mirror LibraryCard: same dimensions, same per-color art,
+// same glimmer shader. We reuse the `.library-card` class so the global CSS
+// from LibraryCard (backgrounds, tints, flower opacity, @keyframes
+// flower-glimmer) applies without duplication. `.wallet-mini` only owns
+// animation-specific positioning/shadow concerns.
+---
+
+<div
+  data-wallet-overlay
+  aria-hidden="true"
+  class="fixed inset-0 z-50 grid place-items-center pointer-events-none opacity-0"
+>
+  <!-- Cream backdrop matching the spotlight, fades in to cover the form.
+       Shares `transition:name="wallet-veil"` with a matching cream veil on
+       /home so the cream persists seamlessly across the navigation and
+       then peels back to reveal the home content. -->
+  <div
+    data-wallet-bg
+    transition:name="wallet-veil"
+    class="absolute inset-0 bg-[var(--color-bg)] opacity-0"
+  ></div>
+
+  <!-- Card track. Cards are absolutely positioned within so we have full GSAP control. -->
+  <div
+    data-wallet-track
+    class="relative w-full h-[252px] overflow-visible flex items-center justify-center"
+  ></div>
+</div>
+
+<style is:global>
+  /*
+    `.wallet-mini` layers animation concerns on top of `.library-card`:
+    centered absolute positioning (GSAP x/y becomes an offset from center)
+    and a soft lift shadow. Everything visual — background color, tint vars,
+    braille art, glimmers, typography — comes from `.library-card`.
+  */
+  .wallet-mini {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -194px;  /* -cardW / 2 */
+    margin-top: -126px;   /* -cardH / 2 */
+    will-change: transform, opacity;
+    box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Signature image rendered inside a wallet hero card. Sits in the same
+     inset as the live SignaturePad canvas so the ink lands in the exact
+     spot the user drew it. */
+  .wallet-mini .wallet-signature {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    user-select: none;
+  }
+</style>
+
+<script>
+  import { gsap } from "gsap";
+  import { navigate } from "astro:transitions/client";
+  import type { VisitorCard, CardColor } from "../../lib/visitor";
+  import { playSlotIn, playWhoosh } from "../../lib/wallet-sound";
+
+  type AnyCard = {
+    id?: string;
+    number: number;
+    name: string;
+    color: CardColor;
+    issuedAt?: string;
+    signature?: string | null;
+  };
+
+  // --- Art data (mirrors LibraryCard's ARTS record) --------------------------
+  // Kept inline so WalletTransition stays self-contained and we avoid
+  // expanding scope. If a third component ever needs these, hoist them to a
+  // shared module — for now this is the narrowest change.
+
+  const BUTTERFLIES: string[] = [
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⢔⣶⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡼⠗⡿⣾⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡼⠓⡞⢩⣯⡀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠰⡹⠁⢰⠃⣩⣿⡇⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢷⣿⠿⣉⣩⠛⠲⢶⡠⢄⠐⣣⠃⣰⠗⠋⢀⣯⠁⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣯⣠⠬⠦⢤⣀⠈⠓⢽⣾⢔⣡⡴⠞⠻⠙⢳⡄",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣵⣳⠖⠉⠉⢉⣩⣵⣿⣿⣒⢤⣴⠤⠽⣬⡇",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⢻⣟⠟⠋⢡⡎⢿⢿⠳⡕⢤⡉⡷⡽⠁",
+    "⣧⢮⢭⠛⢲⣦⣀⠀⠀⠀⠠⡀⠀⠀⠀⡾⣥⣏⣖⡟⠸⢺⠀⠀⠈⠙⠋⠁⠀⠀",
+    "⠈⠻⣶⡛⠲⣄⠀⠙⠢⣀⠀⢇⠀⠀⠀⠘⠿⣯⣮⢦⠶⠃⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⢻⣿⣥⡬⠽⠶⠤⣌⣣⣼⡔⠊⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⢠⣿⣧⣤⡴⢤⡴⣶⣿⣟⢯⡙⠒⠤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠘⣗⣞⣢⡟⢋⢜⣿⠛⡿⡄⢻⡮⣄⠈⠳⢦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠈⠻⠮⠴⠵⢋⣇⡇⣷⢳⡀⢱⡈⢋⠛⣄⣹⣲⡀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣱⡇⣦⢾⣾⠿⠟⠿⠷⠷⣻⠧⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠻⠽⠞⠊⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+  ];
+
+  const TEAL_ART: string[] = [
+    "⠀⠀⠀⢸⣦⡀⠀⠀⠀⠀⢀⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⢸⣏⠻⣶⣤⡶⢾⡿⠁⠀⢠⣄⡀⢀⣴⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⣀⣼⠷⠀⠀⠁⢀⣿⠃⠀⠀⢀⣿⣿⣿⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠴⣾⣯⣅⣀⠀⠀⠀⠈⢻⣦⡀⠒⠻⠿⣿⡿⠿⠓⠂⠀⠀⢀⡇⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠉⢻⡇⣤⣾⣿⣷⣿⣿⣤⠀⠀⣿⠁⠀⠀⠀⢀⣴⣿⣿⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠸⣿⡿⠏⠀⢀⠀⠀⠿⣶⣤⣤⣤⣄⣀⣴⣿⡿⢻⣿⡆⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠟⠁⠀⢀⣼⠀⠀⠀⠹⣿⣟⠿⠿⠿⡿⠋⠀⠘⣿⣇⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⢳⣶⣶⣿⣿⣇⣀⠀⠀⠙⣿⣆⠀⠀⠀⠀⠀⠀⠛⠿⣿⣦⣤⣀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⣹⣿⣿⣿⣿⠿⠋⠁⠀⣹⣿⠳⠀⠀⠀⠀⠀⠀⢀⣠⣽⣿⡿⠟⠃",
+    "⠀⠀⠀⠀⠀⢰⠿⠛⠻⢿⡇⠀⠀⠀⣰⣿⠏⠀⠀⢀⠀⠀⠀⣾⣿⠟⠋⠁⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠋⠀⠀⣰⣿⣿⣾⣿⠿⢿⣷⣀⢀⣿⡇⠁⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠋⠉⠁⠀⠀⠀⠀⠙⢿⣿⣿⠇⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀",
+  ];
+
+  const GREEN_ART: string[] = [
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⠴⢤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⢾⣛⡆⠈⡏⠰⠶⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢦⣿⣄⣉⣁⣤⠽⣦⣤⡶⠶⣤⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠚⠹⡉⢃⣴⠟⠉⠀⠀⠀⠀⠉⠻⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⢡⡿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠈⢷⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡂⣿⡇⠀⠀⠀⠀⣠⣤⣀⠀⠀⠀⠘⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⢻⣷⠀⠀⠀⠀⢯⡉⣿⡆⠀⠀⣰⡇⠀⢀⣀⢤⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣧⣀⠀⠀⢀⣴⡟⠀⠀⣰⣿⡷⢏⡭⠔⠹⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠛⠿⠿⠟⠋⠀⢀⣼⣿⣿⣿⠿⣭⡉⢛⡃⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⣀⣤⠶⠿⣟⣟⣝⡷⣲⢤⣀⠀⠀⠀⠀⠀⠀⢠⠀⠀⠀⠀⠀⠀⣠⣾⡿⠃⠹⡟⢖⠢⠽⠦⠁⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⢀⣴⠞⠁⠀⠀⠀⠀⠀⠉⠙⢦⣕⡯⣷⣄⠀⠀⠠⣴⠋⢓⡶⠂⠀⢀⣼⣿⠟⠁⠀⠀⠈⠺⡄⠋⣀⣰⣀⠀⠀⠀⠀⠀⠀",
+    "⠀⣠⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢯⣒⢭⣦⠀⠀⢸⠕⠦⠇⠀⣤⣿⡿⠃⣠⠴⠶⠶⣤⡀⠀⠀⠼⠿⡏⠀⠀⠀⠀⠀⠀",
+    "⢀⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣝⡫⢧⠀⠀⠀⠀⣠⣾⡿⠉⠀⢸⠁⢀⣀⠀⠈⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⣼⠁⠀⠀⠀⠀⣠⣶⣿⣿⣷⣦⡀⠀⠀⠀⠀⠙⡮⣛⡆⠀⠀⣰⣿⡏⢐⡀⠀⠸⣦⣀⣨⠇⠒⣸⣀⣀⣄⣀⡀⠀⠀⠀⠀⠀⠀",
+    "⢹⠆⠀⠀⠀⢠⣿⡿⠃⠀⠀⠉⢻⡄⠀⠀⠀⠀⠙⣗⢿⠀⣸⡟⡙⢷⡈⢠⠀⡀⠈⠉⣁⠘⣠⠟⠉⠉⠙⢿⣿⡆⠀⠀⠀⠀⠀",
+    "⠘⣇⠀⠀⠀⠈⢿⡇⠀⢲⠀⠀⠀⢻⡀⠀⢤⣴⡀⠹⣽⣴⡿⣁⠀⠈⠻⣦⣤⣥⣌⣡⡤⠞⠁⠀⣰⠛⠆⣸⣿⡇⠀⠀⠀⠀⠀",
+    "⠀⢻⡄⠀⠀⠀⠀⠉⠙⠉⠀⠀⠀⢸⠀⠀⠚⠻⠁⠀⢿⣿⢣⢀⡤⠶⠲⢮⣍⡉⠉⠁⠀⣤⠀⠀⠘⢿⣿⡿⠏⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⢻⣄⠀⠀⠀⠀⠀⠀⠀⠀⣰⠋⠀⡀⠀⠀⠀⠀⢸⣿⣰⠏⢀⡴⢶⡄⢸⡇⠀⢖⠚⠉⠓⣲⠆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠙⠷⣦⣄⣀⣀⣠⣴⠾⠁⠀⢰⣕⢲⣪⡉⠅⣾⣿⡟⠀⠈⠳⠭⠵⠋⠀⠀⣼⣁⢄⣸⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠉⠉⠉⠉⠀⠀⠀⢤⡼⠉⢹⡣⣉⠀⣿⣿⡇⠀⠀⢠⣴⠶⢦⡀⠀⠁⠀⠀⣙⡂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡔⠟⡛⡀⡆⣿⡟⣷⠀⠀⣿⣇⣲⠈⡿⢀⣴⣾⣿⠿⠿⣿⣷⣦⡀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⢰⡀⡷⣰⣇⡴⠠⠜⠀⠀⠀⠀⣿⡇⡘⣷⣄⠀⠙⣉⠞⢡⣿⡟⠁⠀⠀⠀⠀⠈⠻⣿⣆⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠠⣤⣯⣷⣧⠿⠵⠶⠶⣤⣄⡀⠀⢻⣇⠡⡌⠻⣏⠉⠁⠀⢺⣿⠀⠀⢀⣶⣶⣤⠀⠀⠘⣿⡀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠠⢾⡿⡋⠗⠈⠃⠈⠁⠰⠉⡻⢶⣜⣿⢘⠂⣠⣌⣷⡀⠀⢸⣿⡆⠀⠈⠧⠄⢸⡇⠀⠀⣹⠇⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⣰⠏⠄⠁⠀⠀⠀⠀⠀⠀⠀⠁⠈⠙⢿⣏⠰⡏⣬⣿⢻⡀⠀⠻⣿⣄⠀⠀⣠⠞⠀⠀⢠⡟⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⢰⡏⠴⠀⠀⠀⠀⢀⣠⣀⣀⠀⠀⠀⠀⠈⢻⣧⡙⢦⣤⡾⠁⠀⠀⠈⠙⠛⠋⠁⠀⠀⣠⡞⠁⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠸⢿⡀⠀⠀⠀⣰⠋⠁⠀⠉⠙⢦⠀⠀⠀⠀⢻⣟⢦⣄⡀⠀⠀⠀⠀⠀⠀⠀⣀⣤⠾⠋⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⢹⡹⣇⠀⠀⠘⡇⠀⠀⠖⡆⠀⠘⣧⠀⠀⠀⠀⠻⣎⢿⠹⠳⢲⡲⢶⠶⠾⠛⠉⣁⣠⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠸⣎⡹⣧⡀⠀⠻⣦⣤⠴⠃⠀⢰⠏⠀⣤⣀⣴⠀⠙⣧⡱⡀⢠⡾⢟⣛⡓⣆⠀⠿⣿⠛⠁⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠱⣊⠜⣻⣶⣄⣀⠀⠀⠀⣀⠟⠠⣔⣊⠁⣶⣄⠀⠈⢷⣅⢸⠅⢸⣓⣃⣼⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠙⢮⡞⡜⡝⡝⡟⡯⠟⠁⠀⠀⠀⠈⠿⠀⠀⠀⠀⠀⠹⣶⡳⢤⣹⣯⡥⠴⠶⠶⠦⣄⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⣤⣀⠀⠈⠻⣦⡀⠀⠀⡞⣙⣷⠀⢈⡆⠀⠀⣀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⠏⣤⢈⣿⠀⠀⠀⠈⠳⣄⠈⣷⣈⣉⣠⡼⢡⡾⠛⠉⠙⢳⡀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣄⠈⠉⠁⢀⣀⣤⣶⣶⣾⣷⣌⠙⠋⠁⠀⣿⠀⢤⡀⠀⠀⣷",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠛⠻⠿⠛⠛⠉⠁⡼⠋⢠⠨⠍⡳⢄⡀⠀⠘⠻⠛⠁⠀⣰⡿",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⣔⡒⡞⡀⠁⠰⠙⡲⢦⣤⣤⣤⣾⠿⠁",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⠺⠞⠧⠁⠀⠀⠀⠁⠐⠉⠉⠉⠀⠀⠀",
+  ];
+
+  const ORANGE_ART: string[] = [
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣤⣴⣦⣦⡄⠀⠀⠀⠀",
+    "⠀⠀⠀⣀⣤⣤⣤⣤⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣶⣿⣿⣿⣿⣿⣿⣿⣷⣄⠀⠀",
+    "⠀⣰⣿⣿⠿⢿⣿⣿⣿⣿⣿⣷⣦⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⣿⣿⠿⠛⠉⠉⠁⠉⠉⠙⠻⣧⠀",
+    "⣰⣿⣿⡟⠀⠀⠈⠙⠛⠿⣿⣿⣿⣿⣿⣶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⡿⠟⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡆",
+    "⣿⣿⣿⠁⠀⠀⠀⠀⠀⠀⠀⠈⠙⠛⠿⢿⣿⣿⣦⣀⠀⠀⠀⠀⠀⠀⢀⣴⣿⡿⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣽⣧",
+    "⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⢀⠈⠙⠻⣿⣷⣄⣤⣤⣤⣦⣾⡿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⣿⡿",
+    "⣿⣿⣿⣷⣄⣀⣀⣀⣀⣠⣤⣶⣾⣿⣿⣿⣿⣿⣿⣷⣾⣿⣿⣿⣿⣿⣿⣶⣶⣿⣶⣶⣤⣀⠀⠀⢀⠀⠀⠀⠀⣀⣠⣾⣿⣿⠃",
+    "⠘⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠟⠛⠋⠉⠉⣴⣾⣿⣿⣿⣿⣿⣿⣯⣍⠉⠛⠻⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠃⠀",
+    "⠀⠀⠉⠛⠻⠿⠿⠿⠿⠿⠿⠛⠋⠀⠀⠀⠀⢠⣾⣿⣿⠟⠁⠁⠀⠈⠻⣿⣿⣷⡀⠀⠀⠉⠛⠻⠿⠿⠻⠿⠿⠟⠋⠁⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣿⣿⠃⠀⠀⠀⠀⠀⠀⠹⣿⣿⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣿⡏⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣿⣿⣿⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⣀⣠⣤⣴⣶⣶⣾⣿⣿⣿⣿⠟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⣧⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⠀⣠⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⣿⣷⣦⣤⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀",
+    "⠀⠀⣴⣿⣿⣿⠟⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⢿⣿⣿⣿⣿⣿⣿⣷⣤⡀⠀⠀⠀⠀⠀",
+    "⠀⣸⣿⣿⡿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠛⠻⣿⣿⣿⣧⡀⠀⠀⠀",
+    "⢀⣿⣿⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣿⣿⣧⠀⠀⠀",
+    "⠸⣿⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣿⣿⡆⠀⠀",
+    "⠀⠹⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⣿⡧⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⠏⠀⠀",
+    "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⠟⠀⠀⠀",
+  ];
+
+  type ArtConfig = {
+    lines: string[];
+    fontSize: string;
+    right: string;
+    bottom: string;
+    lineHeight: string;
+    glimmerCount: number;
+    seed: number;
+  };
+
+  const ARTS: Record<CardColor, ArtConfig> = {
+    pink:    { lines: BUTTERFLIES, fontSize: "15px",  lineHeight: "1.08", right: "-32px", bottom: "-18px", glimmerCount: 14, seed: 0xa1b2 },
+    neutral: { lines: BUTTERFLIES, fontSize: "15px",  lineHeight: "1.08", right: "-32px", bottom: "-18px", glimmerCount: 14, seed: 0x4242 },
+    teal:    { lines: TEAL_ART,    fontSize: "15px",  lineHeight: "1.08", right: "-10px", bottom: "-8px",  glimmerCount: 12, seed: 0x7e4c },
+    green:   { lines: GREEN_ART,   fontSize: "7.5px", lineHeight: "1.1",  right: "-6px",  bottom: "-16px", glimmerCount: 20, seed: 0x0f1b },
+    orange:  { lines: ORANGE_ART,  fontSize: "9px",   lineHeight: "1.08", right: "-8px",  bottom: "-6px",  glimmerCount: 16, seed: 0xfc03 },
+  };
+
+  // Deterministic PRNG so glimmer positions are stable across renders
+  // (same choice as LibraryCard).
+  function mulberry32(a: number) {
+    return function () {
+      a = (a + 0x6d2b79f5) | 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function pickGlimmers(lines: string[], count: number, seed: number) {
+    const rng = mulberry32(seed);
+    const positions: Array<{ row: number; col: number }> = [];
+    for (let r = 0; r < lines.length; r++) {
+      const chars = Array.from(lines[r]);
+      for (let c = 0; c < chars.length; c++) {
+        const ch = chars[c];
+        if (ch !== "⠀" && ch !== " " && ch !== "") positions.push({ row: r, col: c });
+      }
+    }
+    for (let i = positions.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [positions[i], positions[j]] = [positions[j], positions[i]];
+    }
+    return positions.slice(0, count).map((p) => ({
+      row: p.row,
+      col: p.col,
+      delay: Number((rng() * 3.6).toFixed(2)),
+      duration: Number((2.2 + rng() * 1.6).toFixed(2)),
+    }));
+  }
+
+  function renderArtHtml(cfg: ArtConfig): { html: string; style: string } {
+    const glimmers = pickGlimmers(cfg.lines, cfg.glimmerCount, cfg.seed);
+    const glimmerMap = new Map<string, { delay: number; duration: number }>();
+    for (const g of glimmers) {
+      glimmerMap.set(`${g.row}:${g.col}`, { delay: g.delay, duration: g.duration });
+    }
+    const html = cfg.lines
+      .map((line, r) => {
+        const chars = Array.from(line);
+        return chars
+          .map((ch, c) => {
+            const g = glimmerMap.get(`${r}:${c}`);
+            if (g) {
+              return `<span class="glimmer" style="--glimmer-delay:${g.delay}s;--glimmer-duration:${g.duration}s">${ch}</span>`;
+            }
+            return ch;
+          })
+          .join("");
+      })
+      .join("\n");
+    const style = `font-size:${cfg.fontSize};line-height:${cfg.lineHeight};right:${cfg.right};bottom:${cfg.bottom};`;
+    return { html, style };
+  }
+
+  function escapeHtml(s: string) {
+    return s.replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    }[c]!));
+  }
+
+  /**
+   * Build a full-fidelity mini library card: same dimensions, same art,
+   * same glimmer shader as LibraryCard. Pass `signatureDataUrl` on the
+   * hero card to overlay the user's ink.
+   */
+  function buildCard(card: AnyCard, signatureDataUrl?: string): HTMLElement {
+    const el = document.createElement("article");
+    // `library-card` carries all the visual styling from LibraryCard's
+    // global CSS (backgrounds, tints, flower reveal, transitions).
+    // `wallet-mini` layers animation-specific positioning on top.
+    el.className =
+      "library-card wallet-mini relative w-[388px] h-[252px] rounded-[24px] overflow-hidden p-7 flex flex-col text-[var(--color-ink-inverted)] font-[family-name:var(--font-mono)] uppercase select-none";
+    el.dataset.color = card.color;
+    el.dataset.name = card.name;
+
+    const issued = card.issuedAt ? new Date(card.issuedAt) : new Date();
+    const date = `${String(issued.getMonth() + 1).padStart(2, "0")}/${String(issued.getDate()).padStart(2, "0")}/${String(issued.getFullYear()).slice(-2)}`;
+
+    // Render every per-color art — the library-card CSS only shows the one
+    // matching data-color (opacity 0 on the others), so cross-color cards
+    // each get the right silhouette for free.
+    const artBlocks = (Object.keys(ARTS) as CardColor[])
+      .map((key) => {
+        const { html, style } = renderArtHtml(ARTS[key]);
+        return `<pre aria-hidden="true" data-for="${key}" class="library-card__flower absolute pointer-events-none whitespace-pre" style="${style}">${html}</pre>`;
+      })
+      .join("");
+
+    // Signature overlay — hero uses the live canvas snapshot; other cards
+    // use their stored signature from the DB if present.
+    const sig = signatureDataUrl ?? card.signature ?? null;
+    const sigHtml = sig
+      ? `<img class="wallet-signature" src="${sig}" alt="" aria-hidden="true" />`
+      : "";
+
+    el.innerHTML = `
+      ${artBlocks}
+      <h2 class="font-[family-name:var(--font-display)] font-light text-[24px] leading-none normal-case relative">Megan&rsquo;s World</h2>
+      <dl class="mt-6 flex flex-col gap-2 relative">
+        <div class="flex flex-col">
+          <dt class="text-[14px] leading-none text-[var(--card-tint)]">Visitor</dt>
+          <dd class="text-[18px] leading-none mt-1.5">${escapeHtml(card.name)}</dd>
+        </div>
+        <div class="flex flex-col mt-2">
+          <dt class="text-[14px] leading-none text-[var(--card-tint)]">Issued on</dt>
+          <dd class="text-[18px] leading-none mt-1.5">${date}</dd>
+        </div>
+      </dl>
+      <div class="mt-auto flex items-end justify-between relative">
+        <p class="text-[14px] leading-none text-[var(--card-tint)]">No. ${card.number}</p>
+        <div class="flex items-end gap-2 grow ml-12">
+          <span class="text-[18px] leading-none">x</span>
+          <span class="block flex-1 border-b border-[var(--color-ink-inverted)] mb-1"></span>
+        </div>
+      </div>
+      ${sigHtml}
+    `;
+    return el;
+  }
+
+  /** Snapshot the live SignaturePad before the wallet overlay takes over. */
+  function snapshotSignature(): string | undefined {
+    const pad = document.querySelector<HTMLCanvasElement>(
+      "#library-card [data-signature-pad]"
+    );
+    if (!pad) return undefined;
+    try {
+      // Canvas is empty if width/height are 0 — skip to avoid a broken data URL.
+      if (!pad.width || !pad.height) return undefined;
+      return pad.toDataURL("image/png");
+    } catch {
+      return undefined;
+    }
+  }
+
+  async function fetchOthers(excludeId: string | undefined): Promise<AnyCard[]> {
+    try {
+      const res = await fetch("/api/visitors?limit=20", { credentials: "same-origin" });
+      if (!res.ok) return [];
+      const data = (await res.json()) as { visitors: AnyCard[] };
+      const list = data.visitors.filter((v) => v.id !== excludeId);
+      return list.length ? list : await seedSamples();
+    } catch {
+      return await seedSamples();
+    }
+  }
+
+  /** Fallback so the animation always has cards to scroll, even on a fresh DB. */
+  async function seedSamples(): Promise<AnyCard[]> {
+    const { SEED_VISITORS } = await import("../../lib/seed-visitors");
+    return SEED_VISITORS;
+  }
+
+  /*
+    Re-queries the wallet overlay elements + re-binds the `wallet:play`
+    listener on every /onboarding arrival. Astro caches module scripts, so
+    without this the second SPA visit binds to a stale overlay (the one that
+    was discarded during the previous swap) and the submit animation silently
+    no-ops. `data-wallet-wired` on the overlay guards against double binds.
+  */
+  function wireWallet() {
+    const overlay = document.querySelector<HTMLElement>("[data-wallet-overlay]");
+    const bg = document.querySelector<HTMLElement>("[data-wallet-bg]");
+    const track = document.querySelector<HTMLElement>("[data-wallet-track]");
+    if (!overlay || !bg || !track) return;
+    if (overlay.dataset.walletWired === "1") return;
+    overlay.dataset.walletWired = "1";
+
+    window.addEventListener("wallet:play", async (e) => {
+      const issued = (e as CustomEvent<VisitorCard>).detail;
+
+      // CRITICAL: snapshot the signature canvas FIRST, before any async work
+      // or DOM changes — once the overlay mounts and the original card is
+      // eventually unmounted, `pad.toDataURL()` would return a blank canvas.
+      const signatureDataUrl = snapshotSignature();
+
+      const others = await fetchOthers(issued.id);
+
+      const gap = 32;
+      const cardW = 388;
+
+      // Cap to a count that fits the viewport with the hero centered.
+      const flanksTotal = Math.max(2, Math.floor((window.innerWidth - cardW) / (cardW + gap)));
+      const queue = others.slice(0, flanksTotal);
+      const leftCount = Math.ceil(queue.length / 2);
+
+      // Clear & build cards.
+      track.replaceChildren();
+      const elements: HTMLElement[] = [];
+
+      queue.forEach((c, i) => {
+        const el = buildCard(c);
+        track.appendChild(el);
+        elements.push(el);
+        // Start off-screen to the right.
+        gsap.set(el, {
+          x: window.innerWidth + i * (cardW + gap),
+          y: 0,
+          opacity: 1,
+          scale: 0.92,
+        });
+      });
+
+      // Hero card — user's — carries the signature snapshot.
+      const hero = buildCard({ ...issued }, signatureDataUrl);
+      hero.dataset.hero = "true";
+      track.appendChild(hero);
+      elements.push(hero);
+      gsap.set(hero, { x: 0, y: -window.innerHeight * 0.6, opacity: 0, scale: 1 });
+
+      // Reveal overlay (fully cover the form).
+      overlay.style.pointerEvents = "auto";
+      overlay.removeAttribute("aria-hidden");
+      gsap.to(overlay, { opacity: 1, duration: 0.25 });
+      gsap.to(bg, { opacity: 1, duration: 0.4 });
+
+      const tl = gsap.timeline({
+        defaults: { ease: "power3.out" },
+        onComplete: () => {
+          // Flag so /home knows this nav is arriving from the wallet finale
+          // and should run the cream-peel + staggered reveal animations.
+          try {
+            sessionStorage.setItem("wallet:arrival", "1");
+          } catch {}
+          // Navigate via ClientRouter so the cream veil persists across the
+          // page change (shared `wallet-veil` view-transition). Falls back to
+          // a hard nav if ClientRouter isn't available.
+          try {
+            navigate("/home");
+          } catch {
+            window.location.href = "/home";
+          }
+        },
+      });
+
+      // 1. Background cards stream in from the right, settling on either side of center.
+      function slotX(i: number): number {
+        if (i < leftCount) {
+          const distFromHero = leftCount - i;
+          return -distFromHero * (cardW + gap);
+        } else {
+          const r = i - leftCount;
+          return (r + 1) * (cardW + gap);
+        }
+      }
+
+      queue.forEach((_c, i) => {
+        const el = elements[i];
+        tl.to(el, { x: slotX(i), duration: 0.7 }, i * 0.08);
+      });
+
+      // 2. Hero card drops from above and snaps to viewport center.
+      //    The "slot-in" cue fires slightly before the easing lands so the
+      //    thump reads as the card meeting the lineup, not trailing after it.
+      tl.to(
+        hero,
+        {
+          y: 0,
+          x: 0,
+          opacity: 1,
+          duration: 0.55,
+          ease: "back.out(1.4)",
+          onStart: () => {
+            // Tiny pre-land offset — GSAP's onStart fires at t=0 of the tween,
+            // but the back.out ease makes the actual "snap" feel land around
+            // 75% in. A short setTimeout shifts the audio cue close to that.
+            window.setTimeout(playSlotIn, 380);
+          },
+        },
+        ">-0.2"
+      );
+
+      // 3. Tiny click shimmy on the hero.
+      tl.to(hero, { scale: 1.04, duration: 0.12, yoyo: true, repeat: 1, ease: "power1.inOut" });
+
+      // 4. Hold a beat so the hero is clearly visible.
+      tl.to({}, { duration: 0.6 });
+
+      // 5. The pack of OTHER cards whooshes off to the left. The hero is
+      //    peeled off the pack here so it can make its own exit (step 6).
+      const pack = elements.filter((el) => el !== hero);
+      tl.to(
+        pack,
+        {
+          x: `-=${window.innerWidth + cardW}`,
+          duration: 0.65,
+          stagger: 0.035,
+          ease: "power3.in",
+          onStart: playWhoosh,
+        },
+        "+=0"
+      );
+
+      // 6. Hero card's personal exit — it sinks toward where the /home sidebar
+      //    will appear (top-left area of the viewport) while shrinking and
+      //    dissolving into sparkles. Timed to kick off just AFTER the pack
+      //    whoosh has started, so the eye reads it as "everyone leaves, but
+      //    yours lingers for a beat."
+      const sidebarW = 303;
+      const sidebarHalf = sidebarW / 2;
+      // Land target — roughly where the visitor's name would sit on /home.
+      const heroTargetX = -((window.innerWidth / 2) - sidebarHalf - 60);
+      const heroTargetY = -((window.innerHeight / 2) - 220);
+
+      const heroExitMs = 900;
+      tl.to(
+        hero,
+        {
+          x: heroTargetX,
+          y: heroTargetY,
+          scale: 0.22,
+          opacity: 0,
+          rotation: -6,
+          duration: heroExitMs / 1000,
+          ease: "power2.in",
+          onStart: () => {
+            // Light the card up for its exit — a soft colored glow makes
+            // the flight read as "the card is being carried into the
+            // portfolio" rather than "the card is quietly disappearing".
+            hero.style.filter =
+              "drop-shadow(0 0 24px var(--card-tint, rgba(255,255,255,0.6))) drop-shadow(0 0 56px rgba(255,255,255,0.35))";
+            spawnHeroTrail(hero, heroExitMs);
+          },
+        },
+        "-=0.55"
+      );
+      // Backdrop stays solid until navigation; no fade-out so the form never peeks through.
+    });
+  }
+
+  /*
+   * As the hero card shrinks toward the sidebar, emit a continuous trail
+   * of sparkles that tracks the card's LIVE position over the whole
+   * flight — the card visibly "sheds" light the whole way, so the exit
+   * reads as a magical handoff rather than "the card just disappeared".
+   *
+   * We sample the card's bounding rect on each animation frame and spawn
+   * 1–3 glyphs near it. Each glyph has a short burst-then-fade life of
+   * its own, so several waves are in flight simultaneously.
+   */
+  function spawnHeroTrail(hero: HTMLElement, durationMs: number) {
+    const overlay = document.querySelector<HTMLElement>("[data-wallet-overlay]");
+    if (!overlay) return;
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion) return;
+
+    const colors = [
+      "var(--color-pink)",
+      "var(--color-teal)",
+      "var(--color-orange)",
+      "var(--color-green)",
+    ];
+    const glyphs = ["✦", "⋆", "✧", "⊹", "˚", "·"];
+
+    function spawnOne(cx: number, cy: number, radius: number) {
+      const s = document.createElement("span");
+      s.textContent = glyphs[Math.floor(Math.random() * glyphs.length)];
+      s.setAttribute("aria-hidden", "true");
+      // Drift roughly outward from the card with some randomness — a bit
+      // of upward bias reads as "lifting off".
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 60 + Math.random() * 80;
+      const driftX = Math.cos(angle) * dist;
+      const driftY = Math.sin(angle) * dist - 30;
+      const rot = (Math.random() - 0.5) * 220;
+      const size = 14 + Math.random() * 18;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const spawnX = cx + (Math.random() - 0.5) * radius;
+      const spawnY = cy + (Math.random() - 0.5) * radius;
+      s.style.cssText = [
+        "position:fixed",
+        `left:${spawnX}px`,
+        `top:${spawnY}px`,
+        `color:${color}`,
+        `font-size:${size}px`,
+        "font-weight:300",
+        "pointer-events:none",
+        "z-index:60",
+        "opacity:0",
+        "transform:translate(-50%, -50%) scale(0.3) rotate(0deg)",
+        "transition:transform 820ms cubic-bezier(0.22,1,0.36,1),opacity 820ms cubic-bezier(0.22,1,0.36,1)",
+        `text-shadow:0 0 10px ${color}, 0 0 4px rgba(255,255,255,0.85)`,
+      ].join(";");
+      overlay!.appendChild(s);
+      requestAnimationFrame(() => {
+        s.style.opacity = "1";
+        s.style.transform = `translate(calc(-50% + ${driftX * 0.35}px), calc(-50% + ${driftY * 0.35}px)) scale(1.2) rotate(${rot * 0.4}deg)`;
+      });
+      window.setTimeout(() => {
+        s.style.opacity = "0";
+        s.style.transform = `translate(calc(-50% + ${driftX}px), calc(-50% + ${driftY}px)) scale(0.5) rotate(${rot}deg)`;
+      }, 340);
+      window.setTimeout(() => s.remove(), 1200);
+    }
+
+    // Opening puff — bigger, concentrated around the card as it starts
+    // to move so the eye catches the handoff moment.
+    {
+      const rect = hero.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const radius = Math.min(rect.width, rect.height) * 0.65;
+      for (let i = 0; i < 14; i++) spawnOne(cx, cy, radius);
+    }
+
+    // Continuous trail for the first ~80% of the flight. Using rAF so we
+    // sample the card's live getBoundingClientRect() and follow its
+    // actual on-screen path (GSAP transforms included).
+    const start = performance.now();
+    const trailUntil = durationMs * 0.82;
+    let lastSpawn = 0;
+    function tick(now: number) {
+      const elapsed = now - start;
+      if (elapsed >= trailUntil) return;
+      if (now - lastSpawn >= 32) {
+        lastSpawn = now;
+        const rect = hero.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const radius = Math.min(rect.width, rect.height) * 0.55;
+          // More sparkles early (card is bigger/brighter), fewer as it
+          // shrinks, so the trail thins out as it arrives at its target.
+          const progress = elapsed / durationMs;
+          const burst = progress < 0.4 ? 3 : progress < 0.7 ? 2 : 1;
+          for (let i = 0; i < burst; i++) spawnOne(cx, cy, radius);
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  wireWallet();
+  document.addEventListener("astro:page-load", wireWallet);
+</script>

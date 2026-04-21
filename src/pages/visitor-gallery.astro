@@ -1,0 +1,168 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/home/Sidebar.astro";
+import Footer from "../components/home/Footer.astro";
+import CustomCursor from "../components/home/CustomCursor.astro";
+import Grid from "../components/gallery/Grid.astro";
+import { getCurrentVisitor, listVisitors } from "../lib/visitor-server";
+import { SEED_VISITORS } from "../lib/seed-visitors";
+
+export const prerender = false;
+
+const visitor = await getCurrentVisitor(Astro);
+const cursorColor = visitor?.color ?? "pink";
+
+const realVisitors = await listVisitors(Astro, 200);
+const seedCount = SEED_VISITORS.length;
+const offsetVisitors = realVisitors.map((v) => ({ ...v, number: v.number + seedCount }));
+const visitors = [...offsetVisitors, ...SEED_VISITORS].sort((a, b) => b.number - a.number);
+const total = visitors.length;
+
+const ordinal = (n: number) => {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+};
+
+const visitorNumber = visitor ? visitor.number + seedCount : 0;
+const subtitle = visitor
+  ? `You're our ${ordinal(visitorNumber)} guest!`
+  : total === 0
+    ? "Be the first to sign in."
+    : `${total} ${total === 1 ? "guest has" : "guests have"} signed in.`;
+---
+
+<BaseLayout title="Visitor Gallery — Megan Yap">
+  <div class="flex items-stretch min-h-screen">
+    <Sidebar active="gallery" />
+
+    <main class="flex flex-col gap-6 p-10 flex-1 min-w-0">
+      <header class="flex items-end justify-between gap-6">
+        <div class="flex items-end gap-4 flex-wrap">
+          <h1
+            class="font-[family-name:var(--font-display)] font-light text-[36px] leading-none text-[var(--color-ink)]"
+          >
+            Visitor Gallery
+          </h1>
+          <p
+            class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)] mb-1"
+          >
+            {subtitle}
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          {
+            visitor && (
+              <a
+                href="/onboarding?edit"
+                class="gallery-action bg-[var(--color-bg-neutral)] rounded-[4px] px-2 py-1 flex items-center gap-2 font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-fg-neutral)] hover:text-[var(--color-ink)] hover:bg-[var(--color-bg-neutral-2)] transition-colors"
+              >
+                Edit my card
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                  <path d="m15 5 4 4" />
+                </svg>
+              </a>
+            )
+          }
+          {
+            visitors.length > 1 && (
+              <button
+                type="button"
+                data-shuffle
+                class="gallery-shuffle bg-[var(--color-bg-neutral)] rounded-[4px] px-2 py-1 flex items-center gap-2 font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-fg-neutral)] hover:text-[var(--color-ink)] hover:bg-[var(--color-bg-neutral-2)] transition-colors"
+              >
+                Shuffle
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M16 3h5v5" />
+                  <path d="M4 20L21 3" />
+                  <path d="M21 16v5h-5" />
+                  <path d="M15 15l6 6" />
+                  <path d="M4 4l5 5" />
+                </svg>
+              </button>
+            )
+          }
+        </div>
+      </header>
+
+      {
+        visitors.length === 0 ? (
+          <div class="border border-dashed border-[var(--color-bg-neutral-2)] rounded-[12px] p-10 text-center">
+            <p class="font-[family-name:var(--font-mono)] uppercase text-sm text-[var(--color-ink-dim)]">
+              No visitors yet — sign the visitor card on your way in.
+            </p>
+          </div>
+        ) : (
+          <Grid visitors={visitors} youId={visitor?.id} />
+        )
+      }
+    </main>
+  </div>
+
+  <Footer color={cursorColor} active="gallery" />
+
+  <CustomCursor color={cursorColor} />
+
+  <style>
+    /* Shuffle button icon spins + the button nudges right on click. */
+    .gallery-shuffle svg {
+      transition: transform 0.18s var(--ease-out-soft);
+    }
+    .gallery-shuffle[data-spinning] svg {
+      animation: gallery-shuffle-spin 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes gallery-shuffle-spin {
+      from {
+        transform: rotate(0);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .gallery-shuffle[data-spinning] svg {
+        animation: none;
+      }
+    }
+  </style>
+
+  <script>
+    /*
+      Re-wire the shuffle button on every page visit so ClientRouter swaps
+      don't leave a stale listener. Uses [data-shuffle-wired] as a guard.
+    */
+    function wireShuffle() {
+      const btn = document.querySelector<HTMLButtonElement>("[data-shuffle]");
+      if (!btn) return;
+      if (btn.dataset.shuffleWired === "1") return;
+      btn.dataset.shuffleWired = "1";
+      btn.addEventListener("click", () => {
+        window.dispatchEvent(new CustomEvent("gallery:shuffle"));
+        btn.setAttribute("data-spinning", "");
+        window.setTimeout(() => btn.removeAttribute("data-spinning"), 620);
+      });
+    }
+    wireShuffle();
+    document.addEventListener("astro:page-load", wireShuffle);
+  </script>
+</BaseLayout>

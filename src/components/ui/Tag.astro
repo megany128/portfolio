@@ -1,0 +1,28 @@
+---
+// Tag — Figma node 120:2814.
+// Small uppercase chip used to label project cards.
+// The inner span handles text-overflow:ellipsis so the *right* edge clips
+// (an inline-flex parent with justify-center would clip both sides).
+
+interface Props {
+  variant?: "neutral" | "muted" | "outline";
+  class?: string;
+}
+
+const { variant = "neutral", class: className = "" } = Astro.props;
+
+const variants = {
+  neutral: "bg-[var(--color-bg-neutral-2)] text-[var(--color-ink-dim)]",
+  muted: "bg-[var(--color-bg-neutral)] text-[var(--color-ink-dim)]",
+  outline:
+    "bg-transparent text-[var(--color-ink-dim)] ring-1 ring-inset ring-[var(--color-bg-neutral-2)]",
+} as const;
+---
+
+<span
+  class={`inline-flex items-center min-w-0 max-w-full px-2 py-1 rounded-[4px] ${variants[variant]} ${className}`}
+>
+  <span class="font-[family-name:var(--font-mono)] text-[14px] leading-none uppercase whitespace-nowrap overflow-hidden text-ellipsis min-w-0">
+    <slot />
+  </span>
+</span>

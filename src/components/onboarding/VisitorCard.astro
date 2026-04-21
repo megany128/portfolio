@@ -1,0 +1,592 @@
+---
+import LibraryCard from "./LibraryCard.astro";
+import CardColorPicker from "./CardColorPicker.astro";
+import WalletTransition from "./WalletTransition.astro";
+import type { CardColor } from "../../lib/visitor";
+
+interface Props {
+  nextNumber: number;
+  edit?: boolean;
+  existingName?: string;
+  existingColor?: CardColor;
+  existingSignature?: string | null;
+}
+
+const { nextNumber, edit = false, existingName, existingColor, existingSignature } = Astro.props;
+
+// Pick a random starting color per sign-up so every visitor doesn't start on
+// the default pink. Keeps the picker itself available so they can still
+// change it.
+const PICKER_COLORS: CardColor[] = ["pink", "teal", "green", "orange"];
+const startColor: CardColor =
+  existingColor ?? PICKER_COLORS[Math.floor(Math.random() * PICKER_COLORS.length)];
+---
+
+<!--
+  Visitor card onboarding — Figma node 7:116 / 7:139.
+  Layout:
+    [ cream "spotlight" ellipse, animates outward like a sunrise ]
+      └─ centered 512px stack:
+          - "WELCOME, VISITOR." + i hope you enjoy your time here.
+          - NAME: [ input ] [ shuffle ]
+          - <LibraryCard signable> with drawing pad + pen cursor
+          - <CardColorPicker /> + pen/eraser toggle
+          - [ ENTER → ]
+-->
+<!--
+  Set the sunrise-play attribute on <html> before the rest of the page
+  parses. This gates the cream-background and form-opacity CSS below so
+  the very first paint of a fresh arrival is fully cream, with the form
+  hidden, and the form smoothly fades in after — matching the cream disc
+  that the welcome page grew out of the explore button.
+-->
+<script is:inline>
+  try {
+    if (
+      sessionStorage.getItem("sunrise:armed") === "1" &&
+      !new URLSearchParams(window.location.search).has("edit")
+    ) {
+      document.documentElement.setAttribute("data-sunrise-play", "");
+    }
+  } catch (e) {}
+</script>
+
+<section class="relative min-h-dvh grid place-items-center px-6 overflow-hidden">
+  <!-- Sunrise: renders at full cover by default. The welcome page grows its
+       own cream disc out of the explore button before navigating here, and
+       this element simply continues the cream fill so the first paint of
+       onboarding hands off seamlessly. On reload/deep-link (not armed),
+       it's still correct — the form just sits on a cream background. -->
+  <div
+    aria-hidden="true"
+    data-sunrise
+    class="sunrise absolute rounded-full bg-[var(--color-bg)] pointer-events-none"
+  >
+  </div>
+
+  <a
+    href={edit ? "/visitor-gallery" : "/"}
+    data-back-link
+    data-back-edit={edit ? "" : undefined}
+    aria-label={edit ? "Back to gallery" : "Back to welcome"}
+    class="group absolute top-5 left-5 z-10 flex items-center gap-2 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.18em] text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] opacity-0 [animation:fade-in_0.4s_var(--ease-out-soft)_0.2s_forwards] transition-colors"
+  >
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="transition-transform duration-[var(--duration-fast)] ease-[var(--ease-out-soft)] group-hover:-translate-x-0.5"
+    >
+      <path d="M19 12H5"></path>
+      <path d="M12 19l-7-7 7-7"></path>
+    </svg>
+    Back
+  </a>
+
+  <!-- Credit tooltip — info icon at top-right, text slides out left on hover -->
+  <div
+    class="group absolute top-3 right-3 z-10 flex items-center gap-1.5 p-2 opacity-0 [animation:fade-in_0.4s_var(--ease-out-soft)_0.2s_forwards]"
+  >
+    <span
+      class="overflow-hidden max-w-0 group-hover:max-w-[480px] transition-all duration-300 ease-[var(--ease-out-soft)] whitespace-nowrap font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-[0.14em] text-[var(--color-ink-dim)] leading-none"
+    >
+      INSPIRED BY <a href="https://x.com/joshpuckett" target="_blank" rel="noopener noreferrer" class="underline hover:text-[var(--color-ink)] transition-colors">@JOSHPUCKETT</a>'S ONBOARDING FOR <a href="https://interfacecraft.dev" target="_blank" rel="noopener noreferrer" class="underline hover:text-[var(--color-ink)] transition-colors">INTERFACECRAFT.DEV</a>&nbsp;
+    </span>
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="shrink-0 text-[var(--color-ink-dim)]"
+    >
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M12 16v-4"></path>
+      <path d="M12 8h.01"></path>
+    </svg>
+  </div>
+
+  <form
+    id="visitor-form"
+    novalidate
+    data-edit={edit ? "" : undefined}
+    data-existing-name={existingName ?? undefined}
+    class="relative w-[512px] max-w-full flex flex-col items-center gap-10 text-[var(--color-ink)]"
+  >
+    <header class="font-[family-name:var(--font-mono)] text-base uppercase text-center w-full leading-none">
+      {edit ? (
+        <p class="text-[var(--color-ink)]">Edit your card.</p>
+        <p class="text-[var(--color-ink-dim)] mt-2">change anything you like.</p>
+      ) : (
+        <p class="text-[var(--color-ink)]">Welcome, visitor.</p>
+        <p class="text-[var(--color-ink-dim)] mt-2">i hope you enjoy your time here.</p>
+      )}
+    </header>
+
+    <div class="flex items-center gap-6 w-full">
+      <label
+        for="visitor-name"
+        class="font-[family-name:var(--font-mono)] text-base uppercase whitespace-nowrap"
+      >
+        Name:
+      </label>
+      <div class="flex-1 flex items-center gap-3">
+        <input
+          id="visitor-name"
+          name="name"
+          type="text"
+          required
+          autocomplete="off"
+          spellcheck="false"
+          maxlength="40"
+          class="flex-1 min-w-0 bg-[var(--color-bg-white)] rounded-[12px] px-3 py-2.5 font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)] focus:text-[var(--color-ink)] outline-none border border-transparent focus:border-[var(--color-bg-neutral-2)] transition-colors"
+        />
+        <button
+          type="button"
+          data-shuffle
+          aria-label="Shuffle name"
+          class="shuffle-btn bg-[var(--color-bg-neutral)] rounded-[8px] px-2 py-1.5 text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] transition-colors"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+            <path d="M21 3v5h-5"></path>
+            <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+            <path d="M3 21v-5h5"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div transition:name={edit ? "edit-card" : undefined} transition:animate={edit ? "initial" : undefined}>
+      <LibraryCard
+        name={existingName ?? "flower dreamer"}
+        color={startColor}
+        number={nextNumber}
+        signable
+        existingSignature={edit ? existingSignature : undefined}
+      />
+    </div>
+
+    <div class="flex items-center gap-6">
+      <CardColorPicker selected={startColor} />
+
+      <!-- Pen / eraser toggle (Figma 7:678/7:679) -->
+      <div
+        role="radiogroup"
+        aria-label="Drawing tool"
+        data-tool-toggle
+        class="flex items-center gap-1 bg-[var(--color-bg-neutral)] rounded-[8px] p-1"
+      >
+        <button
+          type="button"
+          data-tool="pen"
+          aria-label="Pen"
+          aria-pressed="true"
+          class="size-7 rounded-[6px] grid place-items-center text-[var(--color-ink-dim)] transition-colors data-[active]:bg-[var(--color-bg-white)] data-[active]:text-[var(--color-ink)]"
+          data-active
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+            <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+            <path d="M2 2l7.586 7.586"></path>
+            <circle cx="11" cy="11" r="2"></circle>
+          </svg>
+        </button>
+        <button
+          type="button"
+          data-tool="eraser"
+          aria-label="Eraser"
+          aria-pressed="false"
+          class="size-7 rounded-[6px] grid place-items-center text-[var(--color-ink-dim)] transition-colors data-[active]:bg-[var(--color-bg-white)] data-[active]:text-[var(--color-ink)]"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 20H7l-4-4 12-12 8 8-8 8"></path>
+            <path d="M14 4l8 8"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <button
+      type="submit"
+      class="btn-springy enter-btn font-[family-name:var(--font-mono)] inline-flex items-center justify-center px-5 py-3 rounded-[14px] bg-[var(--color-ink)] text-[var(--color-ink-inverted)] text-[15px] uppercase leading-none whitespace-nowrap"
+    >
+      {edit ? "save →" : "enter →"}
+    </button>
+  </form>
+
+  <WalletTransition />
+</section>
+
+<style>
+  @keyframes fade-in {
+    to {
+      opacity: 1;
+    }
+  }
+
+  /*
+    The sunrise disc covers the full viewport by default. The welcome page
+    grows its own overlay disc out of the explore button and only navigates
+    once that overlay has filled the screen, so this element picks up a
+    fully-cream handoff on first paint.
+  */
+  .sunrise {
+    left: 50vw;
+    top: 50vh;
+    width: 220vmax;
+    height: 220vmax;
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  /* Paint the page cream from the first pixel on armed arrivals so there
+     is no dark flash between the welcome disc covering the screen and
+     onboarding's own disc rendering. */
+  html[data-sunrise-play],
+  html[data-sunrise-play] body {
+    background: var(--color-bg);
+  }
+  /*
+    Gate the form's appearance on a fresh sunrise arrival (armed flag).
+    Starts fading in the instant the new DOM is inserted — in parallel
+    with the overlay's opacity fade-out — so the form is emerging from
+    behind the dissolving cream rather than popping in afterwards. The
+    duration is tuned so both animations end together (~500ms), which
+    lands inside the chord's peak sustain.
+  */
+  html[data-sunrise-play] [id="visitor-form"] {
+    opacity: 0;
+    animation: fade-in 0.4s var(--ease-out-soft) forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sunrise,
+    [id="visitor-form"] {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: translate(-50%, -50%) scale(1) !important;
+    }
+  }
+
+  /* Tiny spin on click for the name-shuffle button — keyed to a transient
+     [data-spinning] attribute that JS sets + clears when the click fires. */
+  .shuffle-btn svg {
+    transition: transform 0.18s var(--ease-out-soft);
+  }
+  .shuffle-btn[data-spinning] svg {
+    animation: shuffle-btn-spin 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes shuffle-btn-spin {
+    from { transform: rotate(0); }
+    to   { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shuffle-btn[data-spinning] svg {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { submitCard, type CardColor, type VisitorCard } from "../../lib/visitor";
+  import { generateVisitorName } from "../../lib/visitor-name";
+  import { rippleColor, dissolveText, setTextPlain } from "../../lib/card-transitions";
+  import { playSunrise } from "../../lib/sunrise-sound";
+  import { primeAudio as primeWalletAudio } from "../../lib/wallet-sound";
+  import { navigate } from "astro:transitions/client";
+
+  // Mirrors SUNRISE_MS in src/pages/index.astro — the back nav's shrink
+  // is the forward expansion played in reverse.
+  const SUNRISE_MS = 1100;
+
+  function buildReverseDisc(cx: number, cy: number): HTMLDivElement {
+    const d = document.createElement("div");
+    d.setAttribute("aria-hidden", "true");
+    d.setAttribute("data-sunrise-disc", "");
+    d.style.cssText = [
+      "position:fixed",
+      "left:" + cx + "px",
+      "top:" + cy + "px",
+      "width:260vmax",
+      "height:260vmax",
+      "margin-left:-130vmax",
+      "margin-top:-130vmax",
+      "background:var(--color-bg)",
+      "border-radius:50%",
+      "z-index:9999",
+      "pointer-events:none",
+      "transform-origin:center center",
+      "transform:scale(1)",
+      "will-change:transform",
+    ].join(";");
+    return d;
+  }
+
+  /*
+    Runs on every /onboarding arrival — both the initial SSR page load AND
+    each Astro view-transition SPA swap into this page. Astro caches module
+    scripts, so if we do the DOM queries / listener attachment at the top
+    level, a second visit ends up with brand-new DOM but zero handlers (the
+    old ones were bound to the previous <form>, which no longer exists).
+    Wrapping init in a function + `astro:page-load` fixes it.
+
+    `data-wired` on the form guards against double-wiring on the first run
+    (astro:page-load fires on the initial load too in some modes).
+  */
+  function initVisitorCard() {
+    const form = document.getElementById("visitor-form") as HTMLFormElement | null;
+    if (!form) return;
+    if (form.dataset.wired === "1") return;
+    form.dataset.wired = "1";
+
+    const nameInput = document.getElementById("visitor-name") as HTMLInputElement | null;
+    const card = document.getElementById("library-card");
+    const cardName = card?.querySelector<HTMLElement>("[data-card-name]");
+    const shuffleBtn = document.querySelector<HTMLButtonElement>("[data-shuffle]");
+    const picker = document.querySelector<HTMLElement>("[data-color-picker]");
+    const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    const toolToggle = document.querySelector<HTMLElement>("[data-tool-toggle]");
+
+    if (!nameInput || !card || !cardName || !shuffleBtn || !picker || !submitBtn || !toolToggle) {
+      console.warn("VisitorCard: missing one of the required nodes");
+      return;
+    }
+
+    const isEdit = form.hasAttribute("data-edit");
+
+    // The inline script in the template has already set
+    // `data-sunrise-play` on <html> based on the sessionStorage armed flag,
+    // which gates the form fade-in CSS below and gives us a clean first
+    // paint on fresh arrivals. We consume the armed flag here so reloads
+    // skip the audio chord and subsequent navigations use default
+    // transitions again.
+    const armed = (() => {
+      try {
+        const v = sessionStorage.getItem("sunrise:armed") === "1";
+        if (v) sessionStorage.removeItem("sunrise:armed");
+        return v;
+      } catch {
+        return false;
+      }
+    })();
+
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+    if (armed && !isEdit) {
+      // Safety net: the welcome-side cross-reveal already clears this
+      // attribute after its overlay fade-out, but on direct deep-link
+      // arrivals with the armed flag set (rare) there's no welcome
+      // cleanup — this ensures the attribute doesn't linger on <html>
+      // past the form fade-in.
+      window.setTimeout(() => {
+        document.documentElement.removeAttribute("data-sunrise-play");
+      }, 800);
+    }
+
+    if (armed && !reducedMotion && !isEdit) {
+      let played = false;
+      const tryPlay = () => {
+        if (played) return;
+        if (playSunrise()) {
+          played = true;
+          window.removeEventListener("pointerdown", tryPlay);
+          window.removeEventListener("keydown", tryPlay);
+        }
+      };
+      tryPlay();
+      if (!played) {
+        window.addEventListener("pointerdown", tryPlay);
+        window.addEventListener("keydown", tryPlay);
+      }
+    }
+
+    // Back link: reverse the sunrise — a cream disc already covers the
+    // viewport (onboarding's .sunrise + our overlay), we SPA-navigate
+    // back to welcome (the VT crossfade is collapsed to 1ms by the
+    // data-sunrise-play gate), then the disc shrinks back to where the
+    // explore button sits, revealing the starfield. The overlay is
+    // pinned to <html> so it survives Astro's body swap.
+    const backLink = document.querySelector<HTMLAnchorElement>("[data-back-link]");
+    if (backLink && !backLink.dataset.wired) {
+      backLink.dataset.wired = "1";
+      backLink.addEventListener("click", async (e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return;
+        e.preventDefault();
+
+        // Edit mode: simple navigation back to gallery, no disc animation.
+        if (backLink.hasAttribute("data-back-edit")) {
+          navigate("/visitor-gallery");
+          return;
+        }
+
+        if (reducedMotion) {
+          navigate("/");
+          return;
+        }
+
+        // Recover the explore-button center stashed on the forward nav.
+        // Fall back to viewport center if it's missing (deep link / reload).
+        let cx = window.innerWidth / 2;
+        let cy = window.innerHeight / 2;
+        try {
+          const raw = sessionStorage.getItem("sunrise:origin");
+          if (raw) {
+            const p = JSON.parse(raw) as { x?: number; y?: number };
+            if (
+              typeof p.x === "number" &&
+              typeof p.y === "number" &&
+              Number.isFinite(p.x) &&
+              Number.isFinite(p.y)
+            ) {
+              cx = p.x;
+              cy = p.y;
+            }
+          }
+        } catch {
+          // JSON parse / storage failed — viewport center is fine.
+        }
+
+        // Collapse the VT root crossfade to 1ms so welcome's starfield
+        // doesn't flicker through behind the overlay mid-swap.
+        document.documentElement.setAttribute("data-sunrise-play", "");
+
+        const disc = buildReverseDisc(cx, cy);
+        document.documentElement.appendChild(disc);
+
+        await navigate("/");
+
+        // Welcome is live under the overlay now. Shrink the disc toward
+        // the button coordinates so the space scene reappears from where
+        // "EXPLORE" lives.
+        const shrink = disc.animate(
+          [{ transform: "scale(1)" }, { transform: "scale(0.01)" }],
+          {
+            duration: SUNRISE_MS,
+            easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+            fill: "forwards",
+          },
+        );
+        try {
+          await shrink.finished;
+        } catch {
+          // Animation aborted; remove anyway so we don't orphan it.
+        }
+        disc.remove();
+        document.documentElement.removeAttribute("data-sunrise-play");
+      });
+    }
+
+    const existingName = form.dataset.existingName;
+    const seed = (isEdit && existingName) ? existingName : generateVisitorName();
+    nameInput.value = seed;
+    cardName.textContent = seed;
+
+    nameInput.addEventListener("input", () => {
+      const v = nameInput.value.trim() || generateVisitorName();
+      setTextPlain(cardName, v);
+    });
+
+    shuffleBtn.addEventListener("click", () => {
+      const v = generateVisitorName();
+      nameInput.value = v;
+      dissolveText(cardName, v);
+      nameInput.focus();
+      // Spin the icon once per click — reads as the action actually happened
+      // in addition to the name dissolve.
+      shuffleBtn.setAttribute("data-spinning", "");
+      window.setTimeout(() => shuffleBtn.removeAttribute("data-spinning"), 520);
+    });
+
+    picker.addEventListener("change", (e) => {
+      const target = e.target as HTMLInputElement;
+      if (target?.name !== "card-color") return;
+
+      const swatch = target.closest("label");
+      const cardRect = card.getBoundingClientRect();
+      let origin = { x: 0.5, y: 0.5 };
+      if (swatch) {
+        const sRect = swatch.getBoundingClientRect();
+        const ox = (sRect.left + sRect.width / 2 - cardRect.left) / cardRect.width;
+        const oy = (sRect.top + sRect.height / 2 - cardRect.top) / cardRect.height;
+        origin = { x: ox, y: oy };
+      }
+      rippleColor(card, target.value as CardColor, origin);
+    });
+
+    toolToggle.addEventListener("click", (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-tool]");
+      if (!btn) return;
+      const tool = btn.dataset.tool as "pen" | "eraser";
+      toolToggle.querySelectorAll<HTMLButtonElement>("button[data-tool]").forEach((b) => {
+        const active = b === btn;
+        if (active) b.setAttribute("data-active", "");
+        else b.removeAttribute("data-active");
+        b.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+      window.dispatchEvent(new CustomEvent("signature:tool", { detail: { tool } }));
+    });
+
+    let submitting = false;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (submitting) return;
+      submitting = true;
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = "0.6";
+      primeWalletAudio();
+      try {
+        const name = nameInput.value.trim() || seed;
+        const colorInput = picker.querySelector<HTMLInputElement>(
+          'input[name="card-color"]:checked'
+        );
+        const color = (colorInput?.value as CardColor) ?? "pink";
+        // Snapshot the signature BEFORE the wallet overlay takes over. Only
+        // send a data URL when the canvas actually has ink (SignaturePad sets
+        // [data-has-ink] on the wrap) — otherwise store null so the gallery
+        // shows the empty x-line instead of a transparent PNG.
+        const sigWrap = card.querySelector<HTMLElement>("[data-signature-wrap]");
+        const sigPad = card.querySelector<HTMLCanvasElement>("[data-signature-pad]");
+        let signature: string | null = null;
+        if (sigWrap?.hasAttribute("data-has-ink") && sigPad && sigPad.width && sigPad.height) {
+          try {
+            signature = sigPad.toDataURL("image/png");
+          } catch {
+            signature = null;
+          }
+        }
+        const issued = await submitCard({ name, color, signature });
+        if (isEdit) {
+          // Edit mode: skip wallet animation, go straight back to gallery.
+          navigate("/visitor-gallery");
+          return;
+        }
+        const event = new CustomEvent<VisitorCard>("wallet:play", { detail: issued });
+        window.dispatchEvent(event);
+      } catch (err) {
+        console.error(err);
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = "";
+        submitting = false;
+      }
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && document.activeElement?.tagName !== "BUTTON") {
+        e.preventDefault();
+        form.requestSubmit();
+      }
+    });
+  }
+
+  initVisitorCard();
+  document.addEventListener("astro:page-load", initVisitorCard);
+</script>

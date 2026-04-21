@@ -1,0 +1,459 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Sidebar from "../components/home/Sidebar.astro";
+import LatestLog from "../components/home/LatestLog.astro";
+import ProjectIndexCard from "../components/home/ProjectIndexCard.astro";
+import Footer from "../components/home/Footer.astro";
+import CustomCursor from "../components/home/CustomCursor.astro";
+import { getCurrentVisitor } from "../lib/visitor-server";
+
+export const prerender = false;
+
+const visitor = await getCurrentVisitor(Astro);
+const cursorColor = visitor?.color ?? "pink";
+---
+
+<BaseLayout title="Megan Yap">
+  <!--
+    Wallet finale veil. Shares `transition:name="wallet-veil"` with the
+    cream backdrop on the onboarding wallet overlay, so the cream persists
+    across the ClientRouter nav from /onboarding → /home and then peels back
+    here. If the visitor lands on /home directly (refresh, deep-link), the
+    script below hides the veil immediately so the page reads normally.
+  -->
+  <div
+    data-home-veil
+    transition:name="wallet-veil"
+    aria-hidden="true"
+    class="home-veil fixed inset-0 z-50 bg-[var(--color-bg)] pointer-events-none"
+  >
+  </div>
+
+  <div class="flex items-stretch min-h-screen" data-home-shell>
+    <Sidebar />
+
+    <main class="flex flex-col gap-8 p-6 md:p-12 flex-1 min-w-0" data-home-main>
+      <div class="flex flex-col gap-8" data-home-stack>
+        <LatestLog date="Apr 12, 2026">
+          <a
+            href="https://simonilincev.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="latest-log__site-link">@Simon Ilincev</a
+          >
+          and I have just launched
+          <a
+            href="https://lingofable.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-site-preview
+            class="latest-log__site-link"
+          >Lingofable<span class="latest-log__preview" aria-hidden="true">
+              <span class="site-preview__chrome">
+                <span class="site-preview__dots"><i></i><i></i><i></i></span>
+                <span class="site-preview__url">lingofable.com</span>
+              </span>
+              <span
+                class="site-preview__thumb"
+                style="background-image: url(/images/projects/lingofable.png);"></span>
+            </span></a>, a language learning app based on comprehensible input! Currently, I'm also building
+          <a
+            href="https://sklonuj.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-site-preview
+            class="latest-log__site-link"
+          >Skloňuj<span class="latest-log__preview" aria-hidden="true">
+              <span class="site-preview__chrome">
+                <span class="site-preview__dots"><i></i><i></i><i></i></span>
+                <span class="site-preview__url">sklonuj.com</span>
+              </span>
+              <span
+                class="site-preview__thumb"
+                style="background-image: url(/images/projects/sklonuj.png);"></span>
+            </span></a>, a tool for Czech learners to practice noun declension.
+        </LatestLog>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          <div class="flex flex-col gap-8 md:pt-0">
+            <ProjectIndexCard
+              title="Lingofable"
+              number={1}
+              role="Co-Founder, Design, Dev, Marketing"
+              team="with Simon Ilincev"
+              shipped="Oct 2025 - present"
+              status="SHIPPED"
+              sideProject
+              description="A mobile app focused on language learning through stories with ~200 users. Featured on Cornell's Speaking of Language Podcast."
+              image="/images/projects/lingofable.gif"
+              imageHeight={240}
+              imagePosition="bottom"
+              href="/work/lingofable"
+              tilt={-0.6}
+            />
+            <ProjectIndexCard
+              title="GCal Wrapped"
+              number={3}
+              role="Co-Creator, Design, Dev"
+              team="with Simon Ilincev"
+              shipped="Apr - May 2025"
+              status="SHIPPED"
+              sideProject
+              description="Interactive and fun-filled lookback into college semesters built for college students. 10K+ users across 200 universities and 40 countries."
+              image="/images/projects/gcal-wrapped.gif"
+              imageHeight={280}
+              href="https://gcalwrapped.com"
+              external
+              tilt={0.5}
+            />
+            <ProjectIndexCard
+              title="Loop"
+              number={5}
+              role="Product Manager, Design Engineer"
+              team="1 PM, 2 designers, 3 developers"
+              shipped="Feb 2026 - present"
+              status="IN PROGRESS"
+              description="A Cornell tool for connecting students with campus opportunities and events amidst countless email newsletters."
+              image="/images/projects/loop.png"
+              imageHeight={280}
+              href="https://loop-waitlist.dtiincubator.workers.dev/"
+              external
+              tilt={0.3}
+            />
+          </div>
+          <div class="flex flex-col gap-8 md:pt-10">
+            <ProjectIndexCard
+              title="Splunk"
+              number={2}
+              role="Product Design Intern"
+              team="Data Management"
+              shipped="Summer 2025"
+              status={["INTERNSHIP", "SHIPPED"]}
+              description="Led design for AI-powered root cause analysis and self-healing pipeline for data ingestion issues. Showcased to 5,000+ Splunk users during .conf25."
+              image="/images/projects/splunk.gif"
+              imageHeight={200}
+              href="/work/splunk"
+              tilt={0.6}
+            />
+            <ProjectIndexCard
+              title="Skloňuj"
+              number={4}
+              role="Design, Dev"
+              team="Solo"
+              shipped="March 2026 - present"
+              status="SHIPPED"
+              sideProject
+              description="Noun declension practice for Czech learners, piloting at Harvard, Brown, and Columbia. Inspired by my experiences learning Czech."
+              image="/images/projects/sklonuj.png"
+              imageHeight={170}
+              href="https://sklonuj.com"
+              external
+              tilt={-0.5}
+            />
+            <ProjectIndexCard
+              title="Microsoft Copilot for Sales"
+              number={6}
+              role="Design Consultant"
+              team="2 PMs, 5 design consultants"
+              shipped="Jan - May 2025"
+              status="HANDED OVER"
+              description="Designed B2B2C discovery flow for buyers to match organizational requirements to desired products and vendors."
+              image="/images/projects/copilot.gif"
+              imageHeight={230}
+              href="https://www.behance.net/gallery/229681695/Microsoft-x-DCC-SP25"
+              external
+              tilt={0.4}
+            />
+            <ProjectIndexCard
+              title="CU Reviews"
+              number={7}
+              role="Product Manager, Designer"
+              team="1 PM, 2 designers, 3 developers, 1 PMM"
+              shipped="Feb 2024 - Jan 2025"
+              status="SHIPPED"
+              description="Enhanced inituitiveness and efficiency of Cornell course metrics display for 3,000+ students. Now live on website!"
+              image="/images/projects/cu-reviews.gif"
+              imageHeight={190}
+              tilt={-0.4}
+            />
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <Footer color={cursorColor} active="home" />
+
+  <CustomCursor color={cursorColor} />
+
+  <style is:global>
+    /*
+      Inline site-preview chips — hovering "Lingofable" / "Skloňuj" inside the
+      LatestLog surfaces a mini browser window with the site thumbnail.
+    */
+    .latest-log__site-link {
+      position: relative;
+      color: var(--color-ink-inverted);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      text-decoration-thickness: 1px;
+      text-decoration-color: color-mix(in oklab, var(--color-ink-inverted) 40%, transparent);
+      transition: text-decoration-color var(--duration-fast) var(--ease-out-soft);
+    }
+    .latest-log__site-link:hover {
+      text-decoration-color: var(--color-ink-inverted);
+    }
+    .latest-log__preview {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 240px;
+      padding: 8px;
+      border-radius: 10px;
+      background: var(--color-bg-light);
+      border: 1px solid color-mix(in oklab, var(--color-ink) 10%, transparent);
+      box-shadow:
+        0 18px 36px -16px rgba(36, 36, 36, 0.55),
+        0 4px 10px -4px rgba(36, 36, 36, 0.35);
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(var(--preview-x, 0px), calc(var(--preview-y, 0px) + 6px)) scale(0.97);
+      transform-origin: bottom center;
+      transition:
+        opacity 200ms var(--ease-out-soft),
+        transform 240ms var(--ease-out-soft);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .latest-log__site-link:hover .latest-log__preview,
+    .latest-log__site-link:focus-visible .latest-log__preview {
+      opacity: 1;
+      transform: translate(var(--preview-x, 0px), var(--preview-y, 0px)) scale(1);
+    }
+    .site-preview__chrome {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 2px;
+    }
+    .site-preview__dots {
+      display: inline-flex;
+      gap: 3px;
+    }
+    .site-preview__dots i {
+      display: block;
+      width: 5px;
+      height: 5px;
+      border-radius: 9999px;
+      background: color-mix(in oklab, var(--color-ink) 30%, transparent);
+    }
+    .site-preview__url {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.02em;
+      text-transform: none;
+      color: var(--color-ink-dim);
+    }
+    .site-preview__thumb {
+      display: block;
+      width: 100%;
+      height: 120px;
+      border-radius: 6px;
+      background-size: cover;
+      background-position: center top;
+      background-color: var(--color-bg-neutral);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .latest-log__preview {
+        transition: opacity 120ms var(--ease-out-soft);
+        transform: translate(var(--preview-x, 0px), var(--preview-y, 0px));
+      }
+      .latest-log__site-link:hover .latest-log__preview {
+        transform: translate(var(--preview-x, 0px), var(--preview-y, 0px));
+      }
+    }
+  </style>
+
+  <style>
+    /*
+      Finale reveal: when we arrive from the wallet transition, the cream veil
+      fades out while the sidebar slides in from the left and the main content
+      fades up, staggered. The `data-finale-arrival` attribute on <html> is
+      set by the script below when a `sessionStorage.wallet:arrival` flag is
+      present (set by the onboarding wallet on submit); a direct visit to
+      /home skips the finale and shows content immediately.
+    */
+    .home-veil {
+      opacity: 0;
+      transition: opacity 640ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    html[data-finale-arrival] .home-veil {
+      opacity: 1;
+      animation: home-veil-peel 1100ms cubic-bezier(0.22, 1, 0.36, 1) 180ms forwards;
+    }
+    @keyframes home-veil-peel {
+      0% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      60% {
+        opacity: 0.25;
+        transform: translateY(-6%);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-14%);
+      }
+    }
+
+    html[data-finale-arrival] [data-home-shell] > aside,
+    html[data-finale-arrival] [data-home-stack] > *,
+    html[data-finale-arrival] footer {
+      opacity: 0;
+    }
+    html[data-finale-arrival] [data-home-shell] > aside {
+      animation: home-sidebar-slide 620ms cubic-bezier(0.22, 1, 0.36, 1) 320ms forwards;
+    }
+    html[data-finale-arrival] [data-home-stack] > * {
+      animation: home-main-rise 680ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    html[data-finale-arrival] [data-home-stack] > *:nth-child(1) {
+      animation-delay: 480ms;
+    }
+    html[data-finale-arrival] [data-home-stack] > *:nth-child(2) {
+      animation-delay: 620ms;
+    }
+    html[data-finale-arrival] footer {
+      animation: home-footer-rise 720ms cubic-bezier(0.22, 1, 0.36, 1) 820ms forwards;
+    }
+
+    @keyframes home-sidebar-slide {
+      from {
+        opacity: 0;
+        transform: translateX(-18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    @keyframes home-main-rise {
+      from {
+        opacity: 0;
+        transform: translateY(22px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes home-footer-rise {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .home-veil,
+      html[data-finale-arrival] .home-veil,
+      html[data-finale-arrival] [data-home-shell] > aside,
+      html[data-finale-arrival] [data-home-stack] > *,
+      html[data-finale-arrival] footer {
+        animation: none !important;
+        transition: none !important;
+        opacity: 1;
+        transform: none;
+      }
+      html[data-finale-arrival] .home-veil {
+        opacity: 0;
+      }
+    }
+  </style>
+
+  <script>
+    /*
+      Position the Lingofable / Skloňuj preview cards via fixed coords clamped
+      to the viewport so long text doesn't push the popup off-screen.
+    */
+    function wireSitePreviews() {
+      const PREVIEW_W = 240;
+      const MARGIN = 12;
+      document
+        .querySelectorAll<HTMLElement>("[data-site-preview]:not([data-wired])")
+        .forEach((link) => {
+          link.dataset.wired = "1";
+          const preview = link.querySelector<HTMLElement>(".latest-log__preview");
+          if (!preview) return;
+          const place = () => {
+            const r = link.getBoundingClientRect();
+            const anchorX = r.left + r.width / 2;
+            // Clamp so the 240px popup stays 12px inside both viewport edges.
+            const x = Math.max(
+              MARGIN,
+              Math.min(window.innerWidth - PREVIEW_W - MARGIN, anchorX - PREVIEW_W / 2),
+            );
+            // Measure the popup height at its resting size; pad 12px from link top.
+            const ph = preview.offsetHeight || 176;
+            let y = r.top - ph - MARGIN;
+            // If not enough room above, flip below.
+            if (y < MARGIN) y = r.bottom + MARGIN;
+            preview.style.setProperty("--preview-x", `${x}px`);
+            preview.style.setProperty("--preview-y", `${y}px`);
+          };
+          link.addEventListener("pointerenter", place);
+          link.addEventListener("focus", place);
+          window.addEventListener("resize", place, { passive: true });
+          window.addEventListener("scroll", place, { passive: true });
+          place();
+        });
+    }
+    wireSitePreviews();
+    document.addEventListener("astro:page-load", wireSitePreviews);
+
+    /*
+      Detect arrival from the wallet transition. The onboarding submit handler
+      sets `wallet:arrival` in sessionStorage right before navigate(); we
+      consume it here on /home mount and arm the finale animations. If the
+      flag is missing (direct visit, reload), we hide the veil immediately.
+
+      Runs on every ClientRouter swap via `astro:page-load` so SPA-style
+      returns to /home also pick up the flag correctly.
+    */
+    function armFinale() {
+      let arrived = false;
+      try {
+        arrived = sessionStorage.getItem("wallet:arrival") === "1";
+        if (arrived) sessionStorage.removeItem("wallet:arrival");
+      } catch {
+        arrived = false;
+      }
+
+      (window as any).__walletArrived = arrived;
+      const root = document.documentElement;
+      if (arrived) {
+        root.setAttribute("data-finale-arrival", "");
+        // Clean up the attribute once the animation has finished so future
+        // CSS changes don't re-trigger anything on subsequent renders. The
+        // combined animation (veil peel + footer slide) lands around 1.55s.
+        window.setTimeout(() => {
+          root.removeAttribute("data-finale-arrival");
+          const veil = document.querySelector<HTMLElement>("[data-home-veil]");
+          if (veil) veil.style.display = "none";
+        }, 2000);
+      } else {
+        // Direct visit — hide the veil up-front so the page reads normally.
+        const veil = document.querySelector<HTMLElement>("[data-home-veil]");
+        if (veil) veil.style.display = "none";
+      }
+    }
+    armFinale();
+    document.addEventListener("astro:page-load", armFinale);
+  </script>
+</BaseLayout>

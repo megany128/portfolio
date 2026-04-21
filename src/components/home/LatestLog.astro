@@ -1,0 +1,128 @@
+---
+interface Props {
+  date: string;
+}
+
+const { date } = Astro.props;
+---
+
+<article
+  data-latest-log
+  data-collapsed="false"
+  class="latest-log group bg-[var(--color-ink)] text-[var(--color-ink-inverted)] rounded-[12px] p-4 flex flex-col gap-2 transition-all duration-[var(--duration-base)] ease-[var(--ease-out-soft)]"
+>
+  <header
+    data-toggle
+    role="button"
+    tabindex="0"
+    aria-label="Collapse log"
+    aria-expanded="true"
+    data-cursor="link"
+    class="flex items-center justify-between cursor-pointer select-none"
+  >
+    <div class="flex items-center gap-2">
+      <p class="font-[family-name:var(--font-mono)] text-base uppercase">
+        Latest Log
+      </p>
+      <p class="font-[family-name:var(--font-body)] text-xs text-[var(--color-ink-mute)]">
+        {date}
+      </p>
+    </div>
+    <span
+      aria-hidden="true"
+      class="latest-log__chevron text-[var(--color-ink-inverted)] opacity-70 hover:opacity-100 transition-all duration-[var(--duration-fast)] ease-[var(--ease-out-soft)]"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </span>
+  </header>
+
+  <div data-body class="latest-log__body grid transition-all duration-[var(--duration-base)] ease-[var(--ease-out-soft)] grid-rows-[1fr] opacity-100">
+    <div class="latest-log__clip">
+      <p class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-mute)]">
+        <slot />
+      </p>
+    </div>
+  </div>
+</article>
+
+<style>
+  /* Default: let hoverable preview popups inside the body escape the log
+     box. Only clip when the log is collapsed so the grid-rows animation
+     still hides the text cleanly. */
+  .latest-log__clip {
+    overflow: visible;
+  }
+  .latest-log[data-collapsed="true"] .latest-log__clip {
+    overflow: hidden;
+  }
+  .latest-log[data-collapsed="true"] .latest-log__body {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    margin-top: -8px;
+  }
+
+  /* Chevron rotates to indicate state. */
+  .latest-log[data-collapsed="true"] .latest-log__chevron {
+    transform: rotate(-90deg);
+  }
+  .latest-log__chevron {
+    transition: transform 0.32s var(--ease-out-soft), opacity 0.16s ease-out;
+  }
+
+  /* Subtle wiggle on hover — suggests "I'm pressable" without being loud. */
+  .latest-log__chevron:hover {
+    animation: log-chevron-wiggle 0.5s var(--ease-out-soft);
+  }
+  .latest-log[data-collapsed="true"] .latest-log__chevron:hover {
+    /* In collapsed state the chevron is already rotated -90°; we wiggle AROUND
+       that baseline instead of starting from 0 so it still reads as a nudge. */
+    animation: log-chevron-wiggle-collapsed 0.5s var(--ease-out-soft);
+  }
+  @keyframes log-chevron-wiggle {
+    0%, 100% { transform: rotate(0); }
+    35%      { transform: rotate(6deg); }
+    70%      { transform: rotate(-4deg); }
+  }
+  @keyframes log-chevron-wiggle-collapsed {
+    0%, 100% { transform: rotate(-90deg); }
+    35%      { transform: rotate(-84deg); }
+    70%      { transform: rotate(-94deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .latest-log__chevron:hover {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  function wireLatestLog() {
+    document.querySelectorAll<HTMLElement>("[data-latest-log]").forEach((article) => {
+      if (article.dataset.logWired === "1") return;
+      article.dataset.logWired = "1";
+
+      const toggle = article.querySelector<HTMLElement>("[data-toggle]");
+      if (!toggle) return;
+
+      function flip() {
+        const collapsed = article.dataset.collapsed === "true";
+        article.dataset.collapsed = String(!collapsed);
+        toggle!.setAttribute("aria-expanded", String(collapsed));
+        toggle!.setAttribute("aria-label", collapsed ? "Collapse log" : "Expand log");
+      }
+
+      toggle.addEventListener("click", flip);
+      toggle.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          flip();
+        }
+      });
+    });
+  }
+  wireLatestLog();
+  document.addEventListener("astro:page-load", wireLatestLog);
+</script>

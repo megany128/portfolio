@@ -1,0 +1,119 @@
+---
+import Tag from "../ui/Tag.astro";
+
+type Status = "SHIPPED" | "INTERNSHIP" | "HANDED OVER" | "IN PROGRESS";
+
+interface Props {
+  title: string;
+  /** Image URL — leave undefined to render the colored placeholder. */
+  image?: string;
+  imageHeight?: number;
+  /** Visual accent for the placeholder when no image is provided. */
+  accent?: "pink" | "teal" | "orange" | "green" | "neutral";
+  status: Status;
+  sideProject?: boolean;
+  /** If provided, the card becomes an <a> pointing to this URL. */
+  href?: string;
+}
+
+const {
+  title,
+  image,
+  imageHeight = 228,
+  accent = "neutral",
+  status,
+  sideProject = false,
+  href,
+} = Astro.props;
+
+const Wrapper = href ? "a" : "article";
+
+const accentBg: Record<NonNullable<Props["accent"]>, string> = {
+  pink: "linear-gradient(135deg, var(--color-pink) 0%, var(--color-pink-1) 100%)",
+  teal: "linear-gradient(135deg, var(--color-teal) 0%, var(--color-teal-1) 100%)",
+  orange: "linear-gradient(135deg, var(--color-orange) 0%, var(--color-orange-1) 100%)",
+  green: "linear-gradient(135deg, var(--color-green) 0%, var(--color-green-1) 100%)",
+  neutral: "linear-gradient(135deg, var(--color-bg-neutral-2) 0%, var(--color-bg-neutral) 100%)",
+};
+---
+
+<Wrapper
+  href={href}
+  data-cursor={href ? "case-study" : undefined}
+  class:list={[
+    "project-card group bg-[var(--color-bg-light)] rounded-[16px] p-4 flex flex-col gap-3 transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-soft)]",
+    href ? "cursor-none hover:-translate-y-1" : "cursor-default hover:-translate-y-0.5",
+  ]}
+>
+  <div
+    class="project-card__frame relative rounded-[12px] overflow-hidden w-full grid place-items-center text-[var(--color-ink-inverted)] font-[family-name:var(--font-display)] text-xl font-light"
+    style={`height: ${imageHeight}px;`}
+    aria-hidden={image ? undefined : "true"}
+  >
+    <div
+      class="project-card__media absolute inset-0"
+      style={`background: ${image ? `url(${image}) center/cover` : accentBg[accent]};`}
+    ></div>
+    <div class="project-card__sheen absolute inset-0 pointer-events-none" aria-hidden="true"></div>
+    {!image && <span class="relative opacity-70 normal-case">{title}</span>}
+  </div>
+  <div class="flex items-center justify-between gap-3 min-w-0">
+    <p class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink)] flex-1 min-w-0 truncate">
+      {title}
+    </p>
+    <div class="flex gap-2 items-center shrink min-w-0 max-w-[60%]">
+      {sideProject && <Tag class="shrink min-w-0">Side Project</Tag>}
+      <Tag class="shrink-0">{status}</Tag>
+    </div>
+  </div>
+</Wrapper>
+
+<style>
+  .project-card__media {
+    transform-origin: center;
+    transition:
+      transform var(--duration-slow) var(--ease-out-soft),
+      filter var(--duration-slow) var(--ease-out-soft);
+    will-change: transform;
+  }
+
+  .project-card:hover .project-card__media {
+    transform: scale(1.07);
+    filter: saturate(1.08) brightness(1.02);
+  }
+
+  /* A soft sheen that washes across the image on hover */
+  .project-card__sheen {
+    background: linear-gradient(
+      115deg,
+      transparent 38%,
+      rgba(255, 255, 255, 0.22) 50%,
+      transparent 62%
+    );
+    background-size: 220% 100%;
+    background-position: 130% 0;
+    opacity: 0;
+    transition:
+      opacity var(--duration-base) var(--ease-out-soft),
+      background-position var(--duration-slow) var(--ease-out-soft);
+  }
+
+  .project-card:hover .project-card__sheen {
+    opacity: 1;
+    background-position: -130% 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project-card__media,
+    .project-card__sheen {
+      transition: none;
+    }
+    .project-card:hover .project-card__media {
+      transform: none;
+      filter: none;
+    }
+    .project-card:hover .project-card__sheen {
+      opacity: 0;
+    }
+  }
+</style>

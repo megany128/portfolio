@@ -1,0 +1,162 @@
+---
+// Welcome composition — Figma node 1:42, with interactive layer:
+//   - Each word in the title and quote subscribes to the cursor and shoves
+//     gently away when it gets close, then springs back.
+//   - Title + sparkles also drift slightly with the mouse for parallax.
+
+interface Props {
+  returning?: boolean;
+}
+
+const { returning = false } = Astro.props;
+const titleWords = ["Megan\u2019s", "World"];
+
+// The Paul Graham quote, split into words. Words wrapped in [shoved] still
+// carry their styled spans (white emphasis on "discoveries" + "by you").
+type Word = { text: string; emphasis?: boolean };
+const quote: Word[] = [
+  { text: "discoveries", emphasis: true },
+  { text: "are" },
+  { text: "out" },
+  { text: "there," },
+  { text: "waiting" },
+  { text: "to" },
+  { text: "be" },
+  { text: "made." },
+  { text: "Why" },
+  { text: "not" },
+  { text: "by", emphasis: true },
+  { text: "you?", emphasis: true },
+];
+---
+
+<section class="min-h-dvh grid place-items-center px-6 relative">
+  <div class="flex flex-col items-center gap-10 w-[454px] max-w-full">
+    <div class="flex flex-col items-center gap-6 w-full">
+      <div class="flex flex-col items-center gap-1 leading-none">
+        <p
+          class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-mute)] text-center w-full"
+        >
+          {returning ? "Welcome back to" : "Welcome to"}
+        </p>
+        <p
+          class="font-[family-name:var(--font-display)] font-light text-[36px] leading-none text-[var(--color-ink-inverted)] w-full text-center flex justify-center gap-2 flex-wrap"
+        >
+          {titleWords.map((word) => (
+            <span data-shove class="inline-block will-change-transform">
+              {word}
+            </span>
+          ))}
+        </p>
+      </div>
+
+      <a
+        id="enter-cta"
+        href={returning ? "/home" : "/onboarding"}
+        data-returning={returning ? "" : undefined}
+        class="btn-springy font-[family-name:var(--font-mono)] inline-flex items-center justify-center px-3 py-2 rounded-[12px] bg-[var(--color-bg)] text-[var(--color-ink)] text-[14px] uppercase leading-none whitespace-nowrap"
+      >
+        explore →
+      </a>
+    </div>
+
+    <p
+      class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-mute)] text-center w-[346px] max-w-full leading-snug"
+    >
+      {
+        quote.map((w, i) => (
+          <>
+            <span
+              data-shove
+              class:list={[
+                "inline-block will-change-transform",
+                w.emphasis && "text-[var(--color-ink-inverted)]",
+              ]}
+            >
+              {w.text}
+            </span>
+            {i < quote.length - 1 ? " " : ""}
+          </>
+        ))
+      }
+      <br />
+      <span data-shove class="inline-block will-change-transform">-</span>{" "}
+      <span data-shove class="inline-block will-change-transform">paul</span>{" "}
+      <span data-shove class="inline-block will-change-transform">graham</span>
+    </p>
+  </div>
+</section>
+
+<script>
+  // Subscribes to the WelcomeCursor's `welcome:pointer` broadcast and:
+  //   - Pushes each [data-shove] word away from the cursor within ~95px.
+  //   - Drifts each [data-parallax] element by a small fraction of the mouse
+  //     offset from viewport center.
+  const shoves = Array.from(document.querySelectorAll<HTMLElement>("[data-shove]"));
+  const parallax = Array.from(document.querySelectorAll<HTMLElement>("[data-parallax]"));
+
+  if (shoves.length === 0 && parallax.length === 0) {
+    // Nothing to do.
+  } else {
+    type Vec = { x: number; y: number };
+    const targets = new WeakMap<HTMLElement, Vec>();
+    const currents = new WeakMap<HTMLElement, Vec>();
+
+    shoves.forEach((el) => {
+      targets.set(el, { x: 0, y: 0 });
+      currents.set(el, { x: 0, y: 0 });
+    });
+
+    let mx = -9999;
+    let my = -9999;
+
+    window.addEventListener("welcome:pointer", (e) => {
+      const detail = (e as CustomEvent<{ x: number; y: number }>).detail;
+      mx = detail.x;
+      my = detail.y;
+    });
+
+    const RADIUS = 95;
+    const STRENGTH = 26; // px max push at zero distance
+
+    function tick() {
+      // Compute target shove for each word.
+      for (const el of shoves) {
+        const r = el.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const dx = cx - mx;
+        const dy = cy - my;
+        const dist = Math.hypot(dx, dy) || 1;
+        const t = targets.get(el)!;
+        if (dist < RADIUS) {
+          const force = (1 - dist / RADIUS) ** 1.4;
+          t.x = (dx / dist) * force * STRENGTH;
+          t.y = (dy / dist) * force * STRENGTH;
+        } else {
+          t.x = 0;
+          t.y = 0;
+        }
+        const c = currents.get(el)!;
+        c.x += (t.x - c.x) * 0.18;
+        c.y += (t.y - c.y) * 0.18;
+        el.style.transform = `translate3d(${c.x.toFixed(2)}px, ${c.y.toFixed(2)}px, 0)`;
+      }
+
+      // Parallax: shift by a fraction of mouse offset from center.
+      const cx0 = window.innerWidth / 2;
+      const cy0 = window.innerHeight / 2;
+      const ox = (mx - cx0) / cx0; // -1 .. 1
+      const oy = (my - cy0) / cy0;
+      for (const el of parallax) {
+        const depth = Number(el.dataset.parallax ?? "1");
+        const px = ox * 18 * depth;
+        const py = oy * 18 * depth;
+        el.style.transform = `translate3d(${px.toFixed(2)}px, ${py.toFixed(2)}px, 0)`;
+      }
+
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+</script>

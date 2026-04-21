@@ -1,0 +1,488 @@
+---
+/*
+  Case study sidebar — replaces the site Sidebar on /work/* pages.
+  Shows:
+    - A "HOME" link back to /home with a small arrow icon.
+    - A "TABLE OF CONTENTS" list whose entries point to #section anchors.
+    - A "BACK TO TOP" link at the bottom.
+  The currently-visible section is auto-highlighted as the user scrolls
+  (scrollspy). A soft pill slides under the active entry, mirroring the
+  TableOfContents pattern.
+
+  Responsive: on <1024px the sidebar collapses into a slide-out drawer,
+  same UX as the home Sidebar. The tab button on the left edge opens it.
+*/
+
+interface SectionLink {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  sections: SectionLink[];
+  /** Initially-active section; scrollspy overrides this once mounted. */
+  active?: string;
+}
+
+const { sections, active } = Astro.props;
+const initialActive = active ?? sections[0]?.id;
+---
+
+<!-- Tab that sticks out on the left edge when the sidebar is collapsed -->
+<button
+  type="button"
+  data-cs-sidebar-toggle
+  aria-label="Open table of contents"
+  aria-controls="case-study-sidebar"
+  aria-expanded="false"
+  class="cs-sidebar-tab"
+>
+  <span class="cs-sidebar-tab-dots" aria-hidden="true">
+    <span></span><span></span><span></span>
+  </span>
+  <span class="cs-sidebar-tab-arrow" aria-hidden="true">›</span>
+</button>
+
+<!-- Backdrop closes the sidebar on small screens -->
+<div data-cs-sidebar-backdrop class="cs-sidebar-backdrop" aria-hidden="true"></div>
+
+<aside
+  id="case-study-sidebar"
+  data-cs-sidebar
+  class="cs-sidebar bg-[var(--color-bg-light)] flex flex-col gap-6 p-10 w-[303px] flex-shrink-0"
+>
+  <button
+    type="button"
+    data-cs-sidebar-close
+    aria-label="Close sidebar"
+    class="cs-sidebar-close"
+  >
+    <span aria-hidden="true">×</span>
+  </button>
+
+  <!-- Top: back to home -->
+  <a
+    href="/home"
+    class="cs-home-link group flex items-center gap-2 w-fit font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink)] transition-all duration-[var(--duration-base)] ease-[var(--ease-out-soft)]"
+  >
+    <span aria-hidden="true" class="cs-home-arrow inline-block transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-soft)]">←</span>
+    <span>Home</span>
+  </a>
+
+  <!-- TOC with scrollspy pill -->
+  <nav
+    data-cs-toc
+    data-active={initialActive}
+    class="bg-[var(--color-bg-neutral-2)] rounded-[12px] p-3"
+  >
+    <p class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink)] mb-2">
+      Table of Contents
+    </p>
+    <ul data-cs-toc-list class="relative flex flex-col gap-1">
+      <!-- Animated active pill -->
+      <span
+        data-cs-toc-pill
+        aria-hidden="true"
+        class="absolute left-0 right-0 rounded-[8px] bg-[#c7bfa7] transition-[transform,height,opacity] duration-[var(--duration-base)] ease-[var(--ease-out-soft)] pointer-events-none opacity-0"
+        style="height: 29px; transform: translateY(0)"
+      ></span>
+      {
+        sections.map((section: SectionLink, idx: number) => {
+          const label = `${String(idx + 1).padStart(2, "0")}. ${section.label}`;
+          return (
+            <li class="relative">
+              <a
+                href={`#${section.id}`}
+                data-cs-toc-item
+                data-section={section.id}
+                class="relative block px-1.5 py-1 rounded-[8px] text-base text-[var(--color-ink-dim)] transition-[color,padding] duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:text-[var(--color-ink)] hover:pl-2.5 data-[current]:text-[var(--color-ink)]"
+              >
+                {label}
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </nav>
+
+  <!-- Bottom: back to top -->
+  <a
+    href="#top"
+    data-cs-back-to-top
+    class="mt-auto cs-back-to-top flex items-center gap-2 font-[family-name:var(--font-mono)] text-[14px] uppercase text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] transition-colors duration-[var(--duration-base)] ease-[var(--ease-out-soft)] w-fit"
+  >
+    <span aria-hidden="true" class="cs-back-arrow inline-block transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-soft)]">↑</span>
+    <span>Back to top</span>
+  </a>
+</aside>
+
+<style>
+  /* Desktop: fixed rail so it stays visible as the user scrolls. */
+  .cs-sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .cs-sidebar-tab,
+  .cs-sidebar-backdrop,
+  .cs-sidebar-close {
+    display: none;
+  }
+
+  .cs-home-link:hover .cs-home-arrow {
+    transform: translateX(-3px);
+  }
+  .cs-back-to-top:hover .cs-back-arrow {
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 1023px) {
+    .cs-sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 50;
+      max-width: 85vw;
+      transform: translateX(-100%);
+      transition: transform var(--duration-base) var(--ease-out-soft);
+      box-shadow: 2px 0 28px -8px rgba(36, 36, 36, 0.15);
+      overflow-y: auto;
+      height: 100vh;
+    }
+    .cs-sidebar[data-open] {
+      transform: translateX(0);
+    }
+
+    .cs-sidebar-backdrop {
+      display: block;
+      position: fixed;
+      inset: 0;
+      z-index: 45;
+      background: rgba(36, 36, 36, 0.35);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--duration-base) var(--ease-out-soft);
+    }
+    .cs-sidebar-backdrop[data-open] {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .cs-sidebar-tab {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      position: fixed;
+      top: 50%;
+      left: 0;
+      z-index: 40;
+      padding: 14px 8px 14px 6px;
+      background: var(--color-bg-light);
+      color: var(--color-ink);
+      border: 0;
+      border-top-right-radius: 12px;
+      border-bottom-right-radius: 12px;
+      box-shadow: 2px 0 12px -4px rgba(36, 36, 36, 0.15);
+      cursor: pointer;
+      transform: translateY(-50%);
+      transition:
+        transform var(--duration-fast) var(--ease-out-soft),
+        background var(--duration-fast) var(--ease-out-soft);
+    }
+    .cs-sidebar-tab:hover {
+      transform: translate(3px, -50%);
+      background: var(--color-bg-neutral-2);
+    }
+    .cs-sidebar-tab:focus-visible {
+      outline: 2px solid var(--color-ink);
+      outline-offset: 2px;
+    }
+    .cs-sidebar-tab-dots {
+      display: inline-flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .cs-sidebar-tab-dots span {
+      display: block;
+      width: 3px;
+      height: 3px;
+      border-radius: 9999px;
+      background: var(--color-ink-dim);
+    }
+    .cs-sidebar-tab-arrow {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      line-height: 1;
+      color: var(--color-ink);
+    }
+
+    body:has(.cs-sidebar[data-open]) .cs-sidebar-tab {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .cs-sidebar-close {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 9999px;
+      background: transparent;
+      color: var(--color-ink-dim);
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      transition:
+        background var(--duration-fast) var(--ease-out-soft),
+        color var(--duration-fast) var(--ease-out-soft);
+    }
+    .cs-sidebar-close:hover {
+      background: var(--color-bg-neutral-2);
+      color: var(--color-ink);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cs-sidebar,
+    .cs-sidebar-backdrop,
+    .cs-sidebar-tab,
+    .cs-home-arrow,
+    .cs-back-arrow,
+    [data-cs-toc-pill],
+    [data-cs-toc-item] {
+      transition: none !important;
+    }
+  }
+</style>
+
+<script>
+  /*
+    Scrollspy — IntersectionObserver tracks each [data-cs-section] element.
+    We maintain an ordered list of "currently visible" sections, keyed by DOM
+    order. The active section is the one nearest the top of the visible list;
+    on ties, the most recently entered wins. This avoids the common bug where
+    a small section that briefly overlaps a big one flips the highlight.
+
+    The pill is sized and positioned to the active <li> in the TOC.
+  */
+  function initCaseStudySidebar() {
+    const toc = document.querySelector<HTMLElement>("[data-cs-toc]");
+    const list = toc?.querySelector<HTMLElement>("[data-cs-toc-list]");
+    const pill = toc?.querySelector<HTMLElement>("[data-cs-toc-pill]");
+    if (!toc || !list || !pill) return;
+
+    const items = Array.from(
+      list.querySelectorAll<HTMLAnchorElement>("[data-cs-toc-item]"),
+    );
+    const sectionIds = items
+      .map((i) => i.dataset.section)
+      .filter((v): v is string => typeof v === "string");
+    const sections = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => !!el);
+
+    if (sections.length === 0) return;
+
+    const reduced = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    function itemForId(id: string): HTMLAnchorElement | null {
+      return list!.querySelector<HTMLAnchorElement>(
+        `[data-cs-toc-item][data-section="${id}"]`,
+      );
+    }
+
+    function movePillTo(item: HTMLElement | null) {
+      if (!item) {
+        pill!.style.opacity = "0";
+        return;
+      }
+      const itemRect = item.getBoundingClientRect();
+      const listRect = list!.getBoundingClientRect();
+      const top = itemRect.top - listRect.top;
+      pill!.style.transform = `translateY(${top}px)`;
+      pill!.style.height = `${itemRect.height}px`;
+      pill!.style.opacity = "1";
+    }
+
+    function setActive(id: string | null) {
+      if (!id) return;
+      items.forEach((item) => {
+        if (item.dataset.section === id) {
+          item.setAttribute("data-current", "");
+        } else {
+          item.removeAttribute("data-current");
+        }
+      });
+      toc!.setAttribute("data-active", id);
+      movePillTo(itemForId(id));
+    }
+
+    /*
+      Scrollspy — driven by rAF-throttled scroll listener instead of raw IO.
+      Rationale: IntersectionObserver has subtle quirks in headless browsers
+      and with anchored #nav navigation. A direct measurement of each
+      section's top relative to the viewport is cheap (6 getBoundingClientRect
+      calls per scroll tick) and gives us deterministic behavior.
+
+      The active section is the last one whose top has crossed above a
+      "scroll line" at 28% of the viewport height. If the user is above the
+      very first section, we show the first as active (so the pill is never
+      empty). If they're near the bottom of the page, we snap to the last
+      section so the pill lines up with the entry the user can actually
+      see. This implements the "last-entered wins" rule.
+    */
+    let scheduled = false;
+    function updateActive() {
+      scheduled = false;
+      const line = window.innerHeight * 0.28;
+
+      // Special case: bottom of page — highlight the last section.
+      const nearBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 4;
+      if (nearBottom) {
+        const last = sections[sections.length - 1];
+        if (last) setActive(last.id);
+        return;
+      }
+
+      // Find the last section whose top has passed the scroll line.
+      let chosenId: string | null = null;
+      for (const sec of sections) {
+        const top = sec.getBoundingClientRect().top;
+        if (top <= line) {
+          chosenId = sec.id;
+        } else {
+          break;
+        }
+      }
+      // If nothing crossed yet, stick with the first.
+      if (!chosenId) chosenId = sections[0]?.id ?? null;
+      if (chosenId) setActive(chosenId);
+    }
+    function scheduleUpdate() {
+      if (scheduled) return;
+      scheduled = true;
+      // Use rAF when the page is visible (smoothest), fall back to a
+      // microtask-ish setTimeout otherwise so hidden tabs still update
+      // state on programmatic scroll (important for page restore).
+      if (document.visibilityState === "visible") {
+        requestAnimationFrame(updateActive);
+      } else {
+        setTimeout(updateActive, 16);
+      }
+    }
+
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+
+    // Reposition pill on resize so it keeps tracking layout changes.
+    function reposition() {
+      const active = toc!.dataset.active;
+      if (!active) return;
+      movePillTo(itemForId(active));
+      scheduleUpdate();
+    }
+    window.addEventListener("resize", reposition, { passive: true });
+
+    // Initial paint — measure once, then once more after layout settles.
+    updateActive();
+    setTimeout(updateActive, 60);
+
+    // Hover-follow: pill tracks hovered item, returns to active on leave.
+    items.forEach((item) => {
+      item.addEventListener("mouseenter", () => movePillTo(item));
+    });
+    list.addEventListener("mouseleave", () => {
+      const activeId = toc!.dataset.active;
+      if (activeId) movePillTo(itemForId(activeId));
+    });
+
+    // Smooth scroll on TOC click (respect reduced motion).
+    items.forEach((item) => {
+      item.addEventListener("click", (e) => {
+        const sectionId = item.dataset.section;
+        if (!sectionId) return;
+        const target = document.getElementById(sectionId);
+        if (!target) return;
+        e.preventDefault();
+        target.scrollIntoView({
+          behavior: reduced ? "auto" : "smooth",
+          block: "start",
+        });
+        history.replaceState(null, "", `#${sectionId}`);
+        // Close the drawer on mobile after a nav tap.
+        closeSidebar();
+      });
+    });
+
+    // Back-to-top link.
+    const backToTop =
+      document.querySelector<HTMLAnchorElement>("[data-cs-back-to-top]");
+    backToTop?.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+      history.replaceState(null, "", " ");
+      closeSidebar();
+    });
+  }
+
+  // --- Drawer toggle (mobile) ---------------------------------------------
+  function openSidebar() {
+    const sidebar = document.querySelector<HTMLElement>("[data-cs-sidebar]");
+    const backdrop = document.querySelector<HTMLElement>(
+      "[data-cs-sidebar-backdrop]",
+    );
+    const toggle = document.querySelector<HTMLElement>(
+      "[data-cs-sidebar-toggle]",
+    );
+    sidebar?.setAttribute("data-open", "");
+    backdrop?.setAttribute("data-open", "");
+    toggle?.setAttribute("aria-expanded", "true");
+  }
+  function closeSidebar() {
+    const sidebar = document.querySelector<HTMLElement>("[data-cs-sidebar]");
+    const backdrop = document.querySelector<HTMLElement>(
+      "[data-cs-sidebar-backdrop]",
+    );
+    const toggle = document.querySelector<HTMLElement>(
+      "[data-cs-sidebar-toggle]",
+    );
+    sidebar?.removeAttribute("data-open");
+    backdrop?.removeAttribute("data-open");
+    toggle?.setAttribute("aria-expanded", "false");
+  }
+  document
+    .querySelector<HTMLElement>("[data-cs-sidebar-toggle]")
+    ?.addEventListener("click", openSidebar);
+  document
+    .querySelector<HTMLElement>("[data-cs-sidebar-close]")
+    ?.addEventListener("click", closeSidebar);
+  document
+    .querySelector<HTMLElement>("[data-cs-sidebar-backdrop]")
+    ?.addEventListener("click", closeSidebar);
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    const sb = document.querySelector<HTMLElement>("[data-cs-sidebar]");
+    if (sb?.hasAttribute("data-open")) closeSidebar();
+  });
+
+  // Ensure drawer resets on desktop resize.
+  window
+    .matchMedia("(min-width: 1024px)")
+    .addEventListener("change", (e) => {
+      if (e.matches) closeSidebar();
+    });
+
+  initCaseStudySidebar();
+  // Re-run on Astro SPA navigation.
+  document.addEventListener("astro:page-load", initCaseStudySidebar);
+</script>

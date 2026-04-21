@@ -1,0 +1,632 @@
+---
+/*
+  Favorites — a scrapbook shelf of Megan's picks across four categories.
+  Each favorite is a mini-card: cover swatch + title + subtitle. Hover lifts
+  the card, tilts it a touch, and pops a star accent. Clicking flips the card
+  to show the back (a short blurb).
+
+  Cover art is placeholder — solid-color tiles with overlay text so the user
+  can drop real JPG/PNG covers into `public/images/favorites/<category>/...`
+  later. Swap the `cover` field from a color token to an image path and the
+  card will show the image instead.
+*/
+
+type Palette = "pink" | "teal" | "green" | "orange" | "neutral" | "ink";
+
+interface Fave {
+  title: string;
+  subtitle: string;
+  /** Short personal blurb shown on the card back. */
+  blurb: string;
+  /** Palette tint used for the placeholder cover. */
+  tint: Palette;
+  /** Optional real image override (drop into public/images/favorites/...). */
+  cover?: string;
+}
+
+interface Category {
+  key: string;
+  title: string;
+  favorites: Fave[];
+}
+
+const CATEGORIES: Category[] = [
+  {
+    key: "books",
+    title: "Books",
+    favorites: [
+      {
+        title: "Yumi and the Nightmare Painter",
+        subtitle: "Brandon Sanderson",
+        blurb: "I have to admit, I'm a massive Sanderson fan. This is such a beautiful story.",
+        tint: "pink",
+        cover: "/images/favorites/books/yumi.jpg",
+      },
+      {
+        title: "The Way of Kings",
+        subtitle: "Brandon Sanderson",
+        blurb: "Life before death.",
+        tint: "teal",
+        cover: "/images/favorites/books/way-of-kings.jpg",
+      },
+      {
+        title: "Babel",
+        subtitle: "R.F. Kuang",
+        blurb:
+          "I love linguistics and I love fantasy novels, and this is the perfect combination of the two.",
+        tint: "green",
+        cover: "/images/favorites/books/babel.jpg",
+      },
+      {
+        title: "Tomorrow, and Tomorrow, and Tomorrow",
+        subtitle: "Gabrielle Zevin",
+        blurb: "Honestly, what more could one ask for than a book about video game designers?",
+        tint: "orange",
+        cover: "/images/favorites/books/tomorrow.jpg",
+      },
+    ],
+  },
+  {
+    key: "movies",
+    title: "Movies & Shows",
+    favorites: [
+      {
+        title: "君の名は。",
+        subtitle: "Makoto Shinkai",
+        blurb: "I've loved this movie since the beginning of high school!",
+        tint: "teal",
+        cover: "/images/favorites/movies/your-name.jpg",
+      },
+      {
+        title: "Ponyo",
+        subtitle: "Studio Ghibli",
+        blurb: "This was my first ever Ghibli film, and it still brings back such happy memories.",
+        tint: "pink",
+        cover: "/images/favorites/movies/ponyo.png",
+      },
+      {
+        title: "开端",
+        subtitle: "正午阳光",
+        blurb: "I never previously was able to get into cdramas, but this was phenomenal.",
+        tint: "green",
+        cover: "/images/favorites/movies/kaiduan.jpg",
+      },
+      {
+        title: "Start-Up",
+        subtitle: "Studio Dragon and HighZium Studio",
+        blurb: "I liked this kdrama lot. Maybe because I like startups a lot.",
+        tint: "orange",
+        cover: "/images/favorites/movies/startup.jpg",
+      },
+    ],
+  },
+  {
+    key: "songs",
+    title: "Songs on repeat",
+    favorites: [
+      {
+        title: "LAJF",
+        subtitle: "Ben Cristovao, ANNABELLE",
+        blurb: "I've been listening to Czech songs recently, and this one is on repeat for me.",
+        tint: "pink",
+        cover: "/images/favorites/music/lajf.jpg",
+      },
+      {
+        title: "VVS",
+        subtitle: "Show Me the Money 9",
+        blurb: "This has been my favorite song since the pandemic. Always a booster to my day.",
+        tint: "orange",
+        cover: "/images/favorites/music/vvs.jpg",
+      },
+      {
+        title: "能遇見，就很不錯了",
+        subtitle: "Firdhaus",
+        blurb: "A beautiful, beautiful song. Malaysian pride!",
+        tint: "teal",
+        cover: "/images/favorites/music/firdhaus.jpeg",
+      },
+      {
+        title: "跳楼机",
+        subtitle: "LBI利比",
+        blurb: "LBI利比 also released another favorite song of mine, 小城夏天.",
+        tint: "green",
+        cover: "/images/favorites/music/tiaolouji.jpg",
+      },
+    ],
+  },
+  {
+    key: "games",
+    title: "Games",
+    favorites: [
+      {
+        title: "Omori",
+        subtitle: "Omocat",
+        blurb: "Omori is an absolute masterpiece. I love the art style of this game.",
+        tint: "orange",
+        cover: "/images/favorites/games/omori.jpg",
+      },
+      {
+        title: "Arcs",
+        subtitle: "Leder Games",
+        blurb:
+          "Somehow, I'm a super aggressive Arcs player. I'm literally always battling everywhere.",
+        tint: "ink",
+        cover: "/images/favorites/games/arcs.jpg",
+      },
+      {
+        title: "Terraforming Mars",
+        subtitle: "Jacob Fryxelius",
+        blurb: "I was introduced to this game not too long ago, but it's become a fast favorite.",
+        cover: "/images/favorites/games/terraforming-mars.png",
+        tint: "orange",
+      },
+      {
+        title: "Persona 5 Royal",
+        subtitle: "Atlus",
+        blurb:
+          "I'm still not entirely done with the last couple of palaces, but this was my first proper foray into video games.",
+        cover: "/images/favorites/games/p5r.jpeg",
+        tint: "teal",
+      },
+    ],
+  },
+];
+---
+
+<section
+  class="favorites-shelf about-section"
+  data-about-section
+  data-faves-carousel
+  data-faves-titles={JSON.stringify(CATEGORIES.map((c) => c.title))}
+>
+  <h2
+    class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)] text-center"
+  >
+    A few of my favorite things
+  </h2>
+
+  <h3
+    data-faves-caption
+    class="font-[family-name:var(--font-display)] font-light text-[22px] text-[var(--color-ink)] leading-none text-center mt-4"
+  >
+    {CATEGORIES[0].title}
+  </h3>
+
+  <div class="favorites-carousel mt-2">
+    <button type="button" data-faves-prev class="favorites-arrow" aria-label="Previous category">
+      <span aria-hidden="true">←</span>
+    </button>
+
+    <div class="favorites-lane-frame" data-faves-frame>
+      {
+        CATEGORIES.map((cat, catIdx) => (
+          <div
+            class:list={["favorites-lane", catIdx === 0 ? "" : "hidden"]}
+            data-lane={cat.key}
+            data-faves-slide={catIdx}
+          >
+            <ul class="favorites-row" role="list">
+              {cat.favorites.map((fave, i) => (
+                <li
+                  class="favorites-card-wrap"
+                  data-fave
+                  style={`--card-rot: ${((i % 2 === 0 ? -1 : 1) * (1 + i * 0.5)).toFixed(2)}deg;`}
+                >
+                  <button
+                    type="button"
+                    class="favorites-card"
+                    data-color={fave.tint}
+                    data-fave-btn
+                    aria-label={`${fave.title} by ${fave.subtitle}`}
+                  >
+                    <span class="favorites-card__inner">
+                      <span class="favorites-card__face favorites-card__face--front">
+                        <span class="favorites-card__cover">
+                          {fave.cover ? (
+                            <img src={fave.cover} alt="" class="favorites-card__cover-img" />
+                          ) : null}
+                          <span class="favorites-card__sheen" aria-hidden="true" />
+                          <span class="favorites-card__star" aria-hidden="true">
+                            ★
+                          </span>
+                        </span>
+                        <span class="favorites-card__meta">
+                          <span class="favorites-card__title">{fave.title}</span>
+                          <span class="favorites-card__sub">{fave.subtitle}</span>
+                        </span>
+                      </span>
+                      <span
+                        class="favorites-card__face favorites-card__face--back"
+                        aria-hidden="true"
+                      >
+                        <span class="favorites-card__blurb">{fave.blurb}</span>
+                        <span class="favorites-card__back-hint">flip back</span>
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+
+    <button type="button" data-faves-next class="favorites-arrow" aria-label="Next category">
+      <span aria-hidden="true">→</span>
+    </button>
+  </div>
+</section>
+
+<style is:global>
+  .favorites-shelf {
+    perspective: 1200px;
+    padding-top: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .favorites-carousel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+    /* Fixed height so switching categories doesn't shift layout.
+       Tallest category (5:8 cards) ≈ 237px cover + meta + row padding. */
+    min-height: 340px;
+  }
+
+  .favorites-arrow {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 28px;
+    border: 0;
+    border-radius: 4px;
+    background: var(--color-bg-neutral-2);
+    color: var(--color-ink-dim);
+    font-family: var(--font-mono);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition:
+      background var(--duration-fast) var(--ease-out-soft),
+      color var(--duration-fast) var(--ease-out-soft);
+  }
+  .favorites-arrow::before {
+    content: "";
+    position: absolute;
+    inset: -16px -20px;
+  }
+  .favorites-arrow:hover {
+    background: var(--color-bg-neutral);
+    color: var(--color-ink);
+  }
+
+  .favorites-lane {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .favorites-lane.faves-hidden {
+    display: none;
+  }
+  .favorites-lane-frame {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .favorites-row {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+    padding: 32px 4px 24px;
+    margin: -16px 0;
+  }
+
+  .favorites-card-wrap {
+    scroll-snap-align: start;
+    flex: 0 0 auto;
+    transform: rotate(var(--card-rot, 0deg));
+    transform-origin: center 90%;
+    transition: transform var(--duration-base) var(--ease-out-soft);
+    will-change: transform;
+  }
+  .favorites-card-wrap:hover {
+    transform: rotate(calc(var(--card-rot, 0deg) * 0.3)) translateY(-6px);
+    z-index: 2;
+  }
+
+  .favorites-card {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    width: 148px;
+    display: block;
+    text-align: left;
+    color: inherit;
+    font: inherit;
+  }
+  .favorites-card__inner {
+    position: relative;
+    display: block;
+    transform-style: preserve-3d;
+    transition: transform 520ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .favorites-card[data-flipped] .favorites-card__inner {
+    transform: rotateY(180deg);
+  }
+
+  .favorites-card__face {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .favorites-card__face--front {
+    position: relative;
+  }
+  .favorites-card__face--back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    aspect-ratio: 5 / 8;
+    transform: rotateY(180deg);
+    justify-content: space-between;
+    padding: 14px;
+    border-radius: 10px;
+    background: var(--color-bg-white);
+    box-shadow: 0 8px 18px -6px rgba(36, 36, 36, 0.18);
+    color: var(--color-ink);
+  }
+
+  /* Cover swatch — polaroid-ish. Border, inner gloss, star corner. */
+  .favorites-card__cover {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 5 / 8;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--color-bg-neutral);
+    box-shadow:
+      0 4px 10px -4px rgba(36, 36, 36, 0.22),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+    display: grid;
+    place-items: center;
+    transition:
+      box-shadow var(--duration-base) var(--ease-out-soft),
+      transform var(--duration-base) var(--ease-out-soft);
+  }
+  [data-lane="songs"] .favorites-card__cover {
+    aspect-ratio: 1 / 1;
+  }
+  [data-lane="songs"] .favorites-card__face--back {
+    aspect-ratio: 1 / 1;
+  }
+
+  .favorites-card-wrap:hover .favorites-card__cover {
+    box-shadow:
+      0 16px 28px -10px rgba(36, 36, 36, 0.35),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  }
+
+  .favorites-card[data-color="pink"] .favorites-card__cover {
+    background: linear-gradient(
+      145deg,
+      var(--color-pink) 0%,
+      var(--color-pink-0) 70%,
+      var(--color-pink-1) 100%
+    );
+  }
+  .favorites-card[data-color="teal"] .favorites-card__cover {
+    background: linear-gradient(
+      145deg,
+      var(--color-teal) 0%,
+      var(--color-teal-0) 70%,
+      var(--color-teal-3) 100%
+    );
+  }
+  .favorites-card[data-color="green"] .favorites-card__cover {
+    background: linear-gradient(
+      145deg,
+      var(--color-green) 0%,
+      var(--color-green-0) 70%,
+      var(--color-green-1) 100%
+    );
+  }
+  .favorites-card[data-color="orange"] .favorites-card__cover {
+    background: linear-gradient(
+      145deg,
+      var(--color-orange) 0%,
+      var(--color-orange-0) 70%,
+      var(--color-orange-1) 100%
+    );
+  }
+  .favorites-card[data-color="neutral"] .favorites-card__cover {
+    background: linear-gradient(145deg, var(--color-bg-neutral-2) 0%, var(--color-bg-neutral) 100%);
+    color: var(--color-ink);
+  }
+  .favorites-card[data-color="ink"] .favorites-card__cover {
+    background: linear-gradient(145deg, #1a1a1a 0%, #242424 70%, #3a3a3a 100%);
+  }
+
+  .favorites-card__cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Sheen — an angled light pass that moves on hover. */
+  .favorites-card__sheen {
+    position: absolute;
+    inset: -20% -40%;
+    pointer-events: none;
+    background: linear-gradient(
+      115deg,
+      transparent 45%,
+      rgba(255, 255, 255, 0.45) 50%,
+      transparent 55%
+    );
+    transform: translateX(-60%);
+    transition: transform 620ms var(--ease-out-soft);
+    mix-blend-mode: soft-light;
+  }
+  .favorites-card-wrap:hover .favorites-card__sheen {
+    transform: translateX(60%);
+  }
+
+  /* Star corner badge — whimsy accent, pops on hover. */
+  .favorites-card__star {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 14px;
+    color: var(--color-ink-inverted);
+    text-shadow: 0 1px 3px rgba(36, 36, 36, 0.35);
+    opacity: 0;
+    transform: scale(0.6) rotate(-18deg);
+    transition:
+      opacity var(--duration-base) var(--ease-out-soft),
+      transform var(--duration-base) var(--ease-out-soft);
+  }
+  .favorites-card[data-color="neutral"] .favorites-card__star {
+    color: var(--color-ink);
+    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.6);
+  }
+  .favorites-card-wrap:hover .favorites-card__star {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  .favorites-card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 0 2px;
+  }
+  .favorites-card__title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 1.15;
+    color: var(--color-ink);
+  }
+  .favorites-card__sub {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-ink-dim);
+  }
+
+  .favorites-card__blurb {
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: var(--color-ink);
+  }
+  .favorites-card__back-hint {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--color-ink-mute);
+    align-self: flex-end;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .favorites-card-wrap,
+    .favorites-card__inner,
+    .favorites-card__cover,
+    .favorites-card__sheen,
+    .favorites-card__star {
+      transition: none !important;
+    }
+    .favorites-card[data-flipped] .favorites-card__inner {
+      transform: none;
+    }
+    .favorites-card[data-flipped] .favorites-card__face--front {
+      display: none;
+    }
+    .favorites-card[data-flipped] .favorites-card__face--back {
+      transform: none;
+      position: relative;
+    }
+  }
+</style>
+
+<script>
+  function wireFaves() {
+    // Flip toggle
+    document
+      .querySelectorAll<HTMLButtonElement>("[data-fave-btn]:not([data-wired])")
+      .forEach((btn) => {
+        btn.dataset.wired = "1";
+        btn.addEventListener("click", () => {
+          if (btn.hasAttribute("data-flipped")) btn.removeAttribute("data-flipped");
+          else btn.setAttribute("data-flipped", "");
+        });
+      });
+
+    // Carousel navigation
+    const carousel = document.querySelector<HTMLElement>("[data-faves-carousel]");
+    if (!carousel || carousel.dataset.carouselWired === "1") return;
+    carousel.dataset.carouselWired = "1";
+
+    const slides = Array.from(carousel.querySelectorAll<HTMLElement>("[data-faves-slide]"));
+    const caption = carousel.querySelector<HTMLElement>("[data-faves-caption]");
+    const prevBtn = carousel.querySelector<HTMLElement>("[data-faves-prev]");
+    const nextBtn = carousel.querySelector<HTMLElement>("[data-faves-next]");
+    const frame = carousel.querySelector<HTMLElement>("[data-faves-frame]");
+    if (slides.length < 2 || !caption || !frame) return;
+
+    let titles: string[] = [];
+    try {
+      titles = JSON.parse(carousel.dataset.favesTitles || "[]");
+    } catch {}
+
+    let current = 0;
+
+    // Initial state: hide all but first
+    slides.forEach((s, i) => {
+      if (i !== 0) s.classList.add("faves-hidden");
+      else s.classList.remove("hidden");
+    });
+
+    function show(idx: number) {
+      slides[current]
+        ?.querySelectorAll("[data-flipped]")
+        .forEach((el) => el.removeAttribute("data-flipped"));
+      slides.forEach((s, i) => {
+        s.classList.toggle("faves-hidden", i !== idx);
+      });
+      if (caption) caption.textContent = titles[idx] ?? "";
+      current = idx;
+    }
+
+    prevBtn?.addEventListener("click", () => {
+      show((current - 1 + slides.length) % slides.length);
+    });
+    nextBtn?.addEventListener("click", () => {
+      show((current + 1) % slides.length);
+    });
+  }
+  wireFaves();
+  document.addEventListener("astro:page-load", wireFaves);
+</script>

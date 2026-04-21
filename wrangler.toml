@@ -1,0 +1,11 @@
+name = "portfolio"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+main = "./dist/_worker.js/index.js"
+assets = { directory = "./dist", binding = "ASSETS" }
+
+[[d1_databases]]
+binding = "DB"
+database_name = "portfolio"
+database_id = "094909fb-d7ab-42a1-8459-aefdf118f45d"
+migrations_dir = "migrations"

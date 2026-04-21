@@ -1,0 +1,105 @@
+---
+// White glowing cursor for the welcome scene. Lives independently from the
+// portfolio's themed CustomCursor — that one is colored to the visitor's
+// chosen card, this one is always white because the welcome scene exists
+// before any choice has been made.
+//
+// The cursor element doubles as a global mouse-position broadcaster — every
+// frame it dispatches `welcome:pointer` with the current pointer coords so
+// the parallax + text-shove scripts can read a single source of truth.
+---
+
+<div
+  data-welcome-cursor
+  aria-hidden="true"
+  class="welcome-cursor pointer-events-none fixed top-0 left-0 z-[100] hidden"
+>
+  <div class="welcome-cursor__shape"></div>
+</div>
+
+<style is:global>
+  .welcome-cursor {
+    will-change: transform;
+  }
+
+  .welcome-cursor__shape {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 18px;
+    height: 18px;
+    margin-left: -9px;
+    margin-top: -9px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow:
+      0 0 16px rgba(255, 255, 255, 0.6),
+      0 0 32px rgba(255, 255, 255, 0.35),
+      0 0 64px rgba(255, 255, 255, 0.18);
+    transition: width 0.28s var(--ease-out-soft), height 0.28s var(--ease-out-soft), margin 0.28s var(--ease-out-soft);
+  }
+
+  .welcome-cursor[data-mode="link"] .welcome-cursor__shape {
+    width: 32px;
+    height: 32px;
+    margin-left: -16px;
+    margin-top: -16px;
+  }
+
+  html[data-welcome-cursor-active] *,
+  html[data-welcome-cursor-active] {
+    cursor: none !important;
+  }
+</style>
+
+<script>
+  const cursor = document.querySelector<HTMLElement>("[data-welcome-cursor]");
+  const fine = window.matchMedia("(pointer: fine)").matches;
+
+  if (cursor && fine) {
+    cursor.classList.remove("hidden");
+    document.documentElement.setAttribute("data-welcome-cursor-active", "");
+
+    let targetX = 0;
+    let targetY = 0;
+    let currX = 0;
+    let currY = 0;
+    let initialized = false;
+
+    cursor!.style.opacity = "0";
+
+    function tick() {
+      currX += (targetX - currX) * 0.35;
+      currY += (targetY - currY) * 0.35;
+      cursor!.style.transform = `translate3d(${currX}px, ${currY}px, 0)`;
+      // Broadcast smoothed coords for parallax/shove subscribers.
+      window.dispatchEvent(
+        new CustomEvent("welcome:pointer", { detail: { x: currX, y: currY } })
+      );
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    window.addEventListener("pointermove", (e) => {
+      targetX = e.clientX;
+      targetY = e.clientY;
+      if (!initialized) {
+        currX = targetX;
+        currY = targetY;
+        cursor!.style.opacity = "1";
+        initialized = true;
+      }
+    });
+
+    document.addEventListener("mouseleave", () => (cursor!.style.opacity = "0"));
+    document.addEventListener("mouseenter", () => {
+      cursor!.style.opacity = initialized ? "1" : "0";
+    });
+
+    document.addEventListener("mouseover", (e) => {
+      const t = e.target as HTMLElement | null;
+      const interactive = t?.closest?.("a, button, [role='button']");
+      cursor!.dataset.mode = interactive ? "link" : "dot";
+    });
+  }
+</script>

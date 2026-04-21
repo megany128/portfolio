@@ -1,0 +1,391 @@
+---
+import Logo from "../ui/Logo.astro";
+import TableOfContents from "./TableOfContents.astro";
+
+interface Props {
+  active?: "work" | "about" | "playground" | "gallery";
+}
+
+const { active = "work" } = Astro.props;
+---
+
+<!-- Tab that sticks out on the left edge when the sidebar is collapsed -->
+<button
+  type="button"
+  data-sidebar-toggle
+  aria-label="Open sidebar"
+  aria-controls="site-sidebar"
+  aria-expanded="false"
+  class="sidebar-tab"
+>
+  <span class="sidebar-tab-dots" aria-hidden="true">
+    <span></span><span></span><span></span>
+  </span>
+  <span class="sidebar-tab-arrow" aria-hidden="true">›</span>
+</button>
+
+<!-- Backdrop closes the sidebar on small screens -->
+<div data-sidebar-backdrop class="sidebar-backdrop" aria-hidden="true"></div>
+
+<aside
+  id="site-sidebar"
+  data-sidebar
+  transition:name="sidebar"
+  transition:animate="none"
+  class="site-sidebar bg-[var(--color-bg-light)] flex flex-col gap-6 p-10 w-[303px] flex-shrink-0"
+>
+  <button
+    type="button"
+    data-sidebar-close
+    aria-label="Close sidebar"
+    class="sidebar-close"
+  >
+    <span aria-hidden="true">×</span>
+  </button>
+
+  <div class="flex flex-col gap-2">
+    <a
+      href="/home"
+      aria-label="Home"
+      data-logo-link
+      class="sidebar-logo-link inline-block w-fit transition-transform hover:scale-[1.08] active:scale-[1.18] relative"
+    >
+      <span data-logo-spin class="sidebar-logo-spin inline-block">
+        <Logo class="mb-1" />
+      </span>
+      <span data-logo-sparks aria-hidden="true" class="sidebar-logo-sparks pointer-events-none absolute inset-0"></span>
+    </a>
+    <h1 class="font-[family-name:var(--font-display)] font-light text-[36px] leading-none text-[var(--color-ink)]">
+      Megan Yap
+    </h1>
+    <p class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)] leading-snug">
+      CS &amp; Linguistics @ Cornell
+    </p>
+    <p class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-snug">
+      I am a dreamer who loves building delightful software that solves real problems.
+    </p>
+    <p class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-snug">
+      Incoming <span class="text-[var(--color-ink)]">@Google</span>, previously at <span class="text-[var(--color-ink)]">@Splunk</span>, <span class="text-[var(--color-ink)]">@RxPost</span>, and <span class="text-[var(--color-ink)]">@Clear</span> (YC W21).
+    </p>
+  </div>
+
+  <TableOfContents active={active} />
+
+  <div class="flex flex-col gap-0.5">
+    <p class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink)]">
+      Find me at
+    </p>
+    <p class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)]">
+      <a href="mailto:may52@cornell.edu" class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline">Email</a>,
+      <a href="https://www.linkedin.com/in/megan-qz-yap/" class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline">LinkedIn</a>,
+      <a href="https://github.com/megany128" class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline">GitHub</a>,
+      <a href="https://x.com/maqzyap" class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline">X</a>
+    </p>
+  </div>
+
+  <div class="sidebar-status mt-auto font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)] leading-snug">
+    <p data-sidebar-clock>--:--:-- --</p>
+    <p>
+      <span class="sidebar-status-dot" aria-hidden="true"></span>all systems operational
+    </p>
+  </div>
+</aside>
+
+<style>
+  /* Desktop: static rail, tab and backdrop hidden.
+     Sidebar gets a stacking context so ToC hover previews
+     float above main content (which uses transforms/opacity). */
+  .site-sidebar {
+    position: relative;
+    z-index: 10;
+  }
+
+  .sidebar-tab,
+  .sidebar-backdrop,
+  .sidebar-close {
+    display: none;
+  }
+
+  @media (max-width: 1023px) {
+    .site-sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 50;
+      max-width: 85vw;
+      transform: translateX(-100%);
+      transition: transform var(--duration-base) var(--ease-out-soft);
+      box-shadow: 2px 0 28px -8px rgba(36, 36, 36, 0.15);
+      overflow-y: auto;
+    }
+    .site-sidebar[data-open] {
+      transform: translateX(0);
+    }
+
+    .sidebar-backdrop {
+      display: block;
+      position: fixed;
+      inset: 0;
+      z-index: 45;
+      background: rgba(36, 36, 36, 0.35);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--duration-base) var(--ease-out-soft);
+    }
+    .sidebar-backdrop[data-open] {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sidebar-tab {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      position: fixed;
+      top: 50%;
+      left: 0;
+      z-index: 40;
+      padding: 14px 8px 14px 6px;
+      background: var(--color-bg-light);
+      color: var(--color-ink);
+      border: 0;
+      border-top-right-radius: 12px;
+      border-bottom-right-radius: 12px;
+      box-shadow: 2px 0 12px -4px rgba(36, 36, 36, 0.15);
+      cursor: pointer;
+      transform: translateY(-50%);
+      transition: transform var(--duration-fast) var(--ease-out-soft), background var(--duration-fast) var(--ease-out-soft);
+    }
+    .sidebar-tab:hover {
+      transform: translate(3px, -50%);
+      background: var(--color-bg-neutral-2);
+    }
+    .sidebar-tab:focus-visible {
+      outline: 2px solid var(--color-ink);
+      outline-offset: 2px;
+    }
+    .sidebar-tab-dots {
+      display: inline-flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .sidebar-tab-dots span {
+      display: block;
+      width: 3px;
+      height: 3px;
+      border-radius: 9999px;
+      background: var(--color-ink-dim);
+    }
+    .sidebar-tab-arrow {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      line-height: 1;
+      color: var(--color-ink);
+    }
+
+    /* Hide the tab while the sidebar is open so it doesn't peek through */
+    body:has(.site-sidebar[data-open]) .sidebar-tab {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .sidebar-close {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 9999px;
+      background: transparent;
+      color: var(--color-ink-dim);
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      transition: background var(--duration-fast) var(--ease-out-soft), color var(--duration-fast) var(--ease-out-soft);
+    }
+    .sidebar-close:hover {
+      background: var(--color-bg-neutral-2);
+      color: var(--color-ink);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-sidebar,
+    .sidebar-backdrop,
+    .sidebar-tab {
+      transition: none;
+    }
+  }
+
+  /* Logo spin + sparks on tap. */
+  .sidebar-logo-link {
+    overflow: visible;
+  }
+  .sidebar-logo-spin {
+    display: inline-block;
+  }
+  .sidebar-logo-sparks .spark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 9999px;
+    background: var(--spark-color, var(--color-pink));
+    box-shadow: 0 0 6px var(--spark-color, var(--color-pink));
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    animation: sidebar-logo-spark 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes sidebar-logo-spark {
+    0%   { opacity: 1; transform: translate(-50%, -50%) translate(0, 0) scale(0.6); }
+    100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--spark-dx, 0px), var(--spark-dy, 0px)) scale(0.9); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sidebar-logo-sparks .spark { animation: none; opacity: 0; }
+  }
+
+  /* Status pulse — matching the welcome/onboarding scene's green dot.
+     Inlined with the text so it sits on the first line's cap-height even
+     when "ALL SYSTEMS OPERATIONAL" wraps to two lines. Margin-right gives
+     the old gap-1.5 spacing without relying on flex. Translate nudges the
+     dot up a touch to sit at the optical center of the uppercase glyphs. */
+  .sidebar-status-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: var(--color-green-1);
+    margin-right: 6px;
+    transform: translateY(-2px);
+    animation: sidebar-status-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes sidebar-status-pulse {
+    0%, 100% {
+      opacity: 0.9;
+      box-shadow: 0 0 0 0 rgba(125, 181, 146, 0.55);
+    }
+    50% {
+      opacity: 0.5;
+      box-shadow: 0 0 0 4px rgba(125, 181, 146, 0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sidebar-status-dot { animation: none; }
+  }
+</style>
+
+<script>
+  /*
+    Wire the sidebar on every ClientRouter swap. We re-query the elements each
+    time so references stay valid, and guard each wiring with `data-wired` so
+    we don't stack listeners.
+  */
+  function wireSidebar() {
+    const sidebar = document.querySelector<HTMLElement>("[data-sidebar]");
+    const toggle = document.querySelector<HTMLElement>("[data-sidebar-toggle]");
+    const backdrop = document.querySelector<HTMLElement>("[data-sidebar-backdrop]");
+    const closeBtn = document.querySelector<HTMLElement>("[data-sidebar-close]");
+
+    function openSidebar() {
+      sidebar?.setAttribute("data-open", "");
+      backdrop?.setAttribute("data-open", "");
+      toggle?.setAttribute("aria-expanded", "true");
+    }
+    function closeSidebar() {
+      sidebar?.removeAttribute("data-open");
+      backdrop?.removeAttribute("data-open");
+      toggle?.setAttribute("aria-expanded", "false");
+    }
+
+    if (toggle && toggle.dataset.wired !== "1") {
+      toggle.dataset.wired = "1";
+      toggle.addEventListener("click", openSidebar);
+    }
+    if (closeBtn && closeBtn.dataset.wired !== "1") {
+      closeBtn.dataset.wired = "1";
+      closeBtn.addEventListener("click", closeSidebar);
+    }
+    if (backdrop && backdrop.dataset.wired !== "1") {
+      backdrop.dataset.wired = "1";
+      backdrop.addEventListener("click", closeSidebar);
+    }
+  }
+
+  // Document-level listeners are stable across ClientRouter swaps, so attach
+  // them exactly once per document.
+  if (!(window as any).__sidebarGlobalsWired) {
+    (window as any).__sidebarGlobalsWired = true;
+    document.addEventListener("keydown", (event) => {
+      const sidebar = document.querySelector<HTMLElement>("[data-sidebar]");
+      if (event.key === "Escape" && sidebar?.hasAttribute("data-open")) {
+        sidebar.removeAttribute("data-open");
+        document.querySelector("[data-sidebar-backdrop]")?.removeAttribute("data-open");
+        document.querySelector("[data-sidebar-toggle]")?.setAttribute("aria-expanded", "false");
+      }
+    });
+    const desktopQuery = window.matchMedia("(min-width: 1024px)");
+    desktopQuery.addEventListener("change", (event) => {
+      if (event.matches) {
+        document.querySelector("[data-sidebar]")?.removeAttribute("data-open");
+        document.querySelector("[data-sidebar-backdrop]")?.removeAttribute("data-open");
+      }
+    });
+
+    // Live clock — queries the current node each tick so SPA swaps keep it ticking.
+    function tickSidebarClock() {
+      const el = document.querySelector<HTMLElement>("[data-sidebar-clock]");
+      if (!el) return;
+      const now = new Date();
+      const h12 = ((now.getHours() + 11) % 12) + 1;
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      const ss = String(now.getSeconds()).padStart(2, "0");
+      const ampm = now.getHours() >= 12 ? "PM" : "AM";
+      el.textContent = `${h12}:${mm}:${ss} ${ampm}`;
+    }
+    tickSidebarClock();
+    setInterval(tickSidebarClock, 1000);
+  }
+
+  /*
+    Logo tap — spin the mark + emit a small burst of colored sparks. The
+    click stays a link navigation; we just layer the animation on top.
+  */
+  const SPARK_COLORS = ["var(--color-pink)", "var(--color-teal)", "var(--color-orange)", "var(--color-green-1)"];
+  function wireLogo() {
+    document
+      .querySelectorAll<HTMLElement>("[data-logo-link]:not([data-wired])")
+      .forEach((link) => {
+        link.dataset.wired = "1";
+        const sparks = link.querySelector<HTMLElement>("[data-logo-sparks]");
+        link.addEventListener("click", () => {
+          if (sparks) {
+            const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+            if (reduced) return;
+            const count = 10;
+            for (let i = 0; i < count; i++) {
+              const angle = (i / count) * Math.PI * 2 + Math.random() * 0.4;
+              const dist = 24 + Math.random() * 16;
+              const el = document.createElement("span");
+              el.className = "spark";
+              el.style.setProperty("--spark-dx", `${Math.cos(angle) * dist}px`);
+              el.style.setProperty("--spark-dy", `${Math.sin(angle) * dist}px`);
+              el.style.setProperty("--spark-color", SPARK_COLORS[i % SPARK_COLORS.length]);
+              sparks.appendChild(el);
+              window.setTimeout(() => el.remove(), 720);
+            }
+          }
+        });
+      });
+  }
+
+  function init() {
+    wireSidebar();
+    wireLogo();
+  }
+  init();
+  document.addEventListener("astro:page-load", init);
+</script>

@@ -1,1 +1,84 @@
 @import "tailwindcss";
+@import "./fonts.css";
+@import "./tokens.css";
+
+@layer base {
+  html {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  ::selection {
+    background: var(--color-ink);
+    color: var(--color-bg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-pink);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+}
+
+/*
+ * Primary CTA press-feel.
+ *
+ * A physical-feeling button: on press the button squashes (scale down + a tiny
+ * y-nudge), and on release it rebounds past 1.0 before settling thanks to an
+ * overshooting ease-out curve. Hover gets a subtle lift. Pure CSS — no JS
+ * needed. Falls back to a flat transform for prefers-reduced-motion.
+ */
+.btn-springy {
+  transform: translateZ(0);
+  transition:
+    transform 420ms cubic-bezier(0.34, 1.8, 0.55, 1),
+    font-size 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    letter-spacing 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color var(--duration-fast) var(--ease-out-soft),
+    color var(--duration-fast) var(--ease-out-soft);
+  will-change: transform;
+}
+.btn-springy:hover {
+  transform: translate3d(0, -2px, 0) scale(1.09);
+}
+.btn-springy:active {
+  transform: translate3d(0, 2px, 0) scale(0.9);
+  transition:
+    transform 95ms cubic-bezier(0.4, 0, 1, 1),
+    font-size 120ms ease-out,
+    letter-spacing 120ms ease-out,
+    background-color var(--duration-fast) var(--ease-out-soft),
+    color var(--duration-fast) var(--ease-out-soft);
+}
+
+/* The primary enter CTA also grows its type on hover so the bounce reads
+   as "leaning in" rather than a flat scale. */
+.enter-btn:hover {
+  font-size: 17px;
+  letter-spacing: 0.02em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-springy,
+  .btn-springy:hover,
+  .btn-springy:active,
+  .enter-btn:hover {
+    transition:
+      transform var(--duration-fast) var(--ease-out-soft),
+      background-color var(--duration-fast) var(--ease-out-soft),
+      color var(--duration-fast) var(--ease-out-soft);
+    transform: none;
+    font-size: 15px;
+    letter-spacing: normal;
+  }
+}

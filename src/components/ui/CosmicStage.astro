@@ -1,0 +1,50 @@
+---
+/*
+  Cosmic stage — the page-body pattern for content pages.
+
+    [deep-ink sky panel]
+      └─ [solid cream paper panel]
+           └─ page content (slot)
+
+  Kept deliberately plain: solid colors, no ornaments. The sky is a flat
+  dark ink surface and the paper is a flat cream card. The rest of the
+  site's design language is solid-color too — this matches it.
+*/
+
+interface Props {
+  tight?: boolean;
+  class?: string;
+  panelClass?: string;
+}
+
+const {
+  tight = false,
+  class: shellClass = "",
+  panelClass = "",
+} = Astro.props;
+---
+
+<div class:list={["cosmic-stage relative flex-1 min-w-0 overflow-hidden", shellClass]}>
+  <div
+    class:list={[
+      "cosmic-stage__paper relative z-[1]",
+      tight ? "m-4 md:m-6 p-6 md:p-8" : "m-6 md:m-10 p-8 md:p-12",
+      panelClass,
+    ]}
+  >
+    <slot />
+  </div>
+</div>
+
+<style>
+  .cosmic-stage {
+    background: var(--color-cosmos, #0a0d16);
+  }
+
+  .cosmic-stage__paper {
+    background: var(--color-bg);
+    border-radius: 16px;
+    color: var(--color-ink);
+    min-height: calc(100dvh - 5rem);
+  }
+</style>

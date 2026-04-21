@@ -1,0 +1,115 @@
+/*
+ * Design tokens — sourced from Figma (Portfolio Jan 2026) variables.
+ * Variable names mirror Figma where possible. Tailwind v4 reads variables under
+ * @theme to generate utility classes.
+ */
+
+@theme {
+  /* === Surfaces (paper-like cream palette) === */
+  --color-bg: #f3f1eb;             /* page background */
+  --color-bg-light: #EAE6DB;
+  --color-bg-neutral: #eee8d8;
+  --color-bg-neutral-2: #dbd4bf;
+  --color-bg-white: #ffffff;
+  --color-fg-neutral: #8a8576;
+
+  /* === Ink === */
+  --color-ink: #242424;            /* dark-emphasis */
+  --color-ink-dim: #666666;        /* text-dark-grey */
+  --color-ink-mute: #a2a2a2;       /* text-grey */
+  --color-ink-inverted: #ffffff;
+
+  /* === Brand: Pink === */
+  --color-pink: #bf5a7a;
+  --color-pink-0: #e599b1;
+  --color-pink-1: #eabaca;
+  --color-pink-2: #eec9d5;
+
+  /* === Brand: Teal === */
+  --color-teal: #168b9d;
+  --color-teal-0: #76aab2;
+  --color-teal-1: #65b6c3;
+  --color-teal-3: #b3d0d5;
+
+  /* === Brand: Orange === */
+  --color-orange: #cb7836;
+  --color-orange-0: #e3a06b;
+  --color-orange-1: #eebc94;
+  --color-orange-2: #f7c9a5;
+
+  /* === Brand: Green === */
+  --color-green: #1a7b3f;
+  --color-green-0: #3c9b60;
+  --color-green-1: #7db592;
+  --color-green-2: #6dbd8b;
+
+  /* === Theme: Starlight (cool silver-cream for cosmic surfaces) ===
+     A neutral, silvery-cream accent used across the cosmos theme — think
+     moonlight, not gold. Used for outlines, nav text, porthole chips, and
+     anywhere we want a "quiet starlight" vs the warm cream paper palette.
+     Not part of the visitor-selectable card palette — theme-level only. */
+  --color-starlight: #d8dde8;
+  --color-starlight-0: #eef1f8;
+  --color-starlight-1: #7b849e;
+  --color-starlight-2: rgba(216, 221, 232, 0.22);
+
+  /* === Theme: Cosmos (deep space surfaces) === */
+  --color-cosmos: #0a0d16;
+  --color-cosmos-1: #1b1f30;
+  --color-cosmos-2: #05060d;
+
+  /* === Typography === */
+  --font-display: "Gelica", "Cormorant Garamond", "Times New Roman", serif;
+  --font-mono: "Source Code Pro", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-body: "Segoe UI", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+
+  /* H1 — Gelica Light 36 / 100% line-height */
+  --text-h1: 2.25rem;
+  --text-h1--line-height: 1;
+  --text-h1--font-weight: 300;
+
+  /* H2 — Gelica Light 24 / 100% */
+  --text-h2: 1.5rem;
+  --text-h2--line-height: 1;
+  --text-h2--font-weight: 300;
+
+  /* Subtitle — Source Code Pro Regular 16 / 100% */
+  --text-subtitle: 1rem;
+  --text-subtitle--line-height: 1;
+  --text-subtitle--font-weight: 400;
+
+  /* Subtitle 2 — 14 / 100% */
+  --text-subtitle-2: 0.875rem;
+  --text-subtitle-2--line-height: 1;
+
+  /* Body Mono — 18 / 100% */
+  --text-body-mono: 1.125rem;
+  --text-body-mono--line-height: 1;
+
+  /* Display — extrapolated for hero moments */
+  --text-display: 4.5rem;
+  --text-display--line-height: 0.95;
+  --text-display--letter-spacing: -0.01em;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.55;
+  --text-small: 0.8125rem;
+
+  /* === Radii === */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+
+  /* === Motion === */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 160ms;
+  --duration-base: 240ms;
+  --duration-slow: 480ms;
+
+  /* === Layout === */
+  --container-narrow: 36rem;
+  --container-base: 64rem;
+  --container-wide: 80rem;
+}

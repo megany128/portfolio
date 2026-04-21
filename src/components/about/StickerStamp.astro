@@ -1,0 +1,477 @@
+---
+// StickerStamp — a "scrapbook stamp" interaction.
+//
+// How it works:
+// - Wraps an invisible full-document-height layer ([data-stamp-layer]) that
+//   acts as the coordinate space for placed sticker nodes. Scrolls with the
+//   page because it's absolutely positioned relative to <body>.
+// - A fixed-position canvas ([data-stamp-canvas]) renders short-lived sparkle
+//   bursts on top of content, but under the cursor.
+// - A fixed-position stamp cursor ([data-stamp-cursor]) replaces the default
+//   cursor while hovering the "stampable" zone — i.e. anywhere in <main> on
+//   the about page that is NOT inside [data-sidebar] or [data-footer-root].
+//   When the cursor is outside the stampable zone, we hide our stamp cursor
+//   and let the existing <CustomCursor /> take over.
+// - On click inside the stampable zone (not on an <a> — anchors still
+//   navigate), we pick a random sticker and pop it in with a spring bounce.
+//
+// Stickers are `pointer-events: none` and placed absolutely in document
+// coordinates (pageX/pageY) so they scroll naturally with the page and never
+// intercept clicks on content beneath them.
+//
+// Respects prefers-reduced-motion: stickers appear instantly, sparkles render
+// as a single static fading ring (same pattern as SparkBurst/Footer).
+
+const stickers = [
+  "heart",
+  "star",
+  "flower",
+  "butterfly",
+  "sparkle",
+  "checkmark",
+  "bolt",
+  "rainbow",
+  "smiley",
+];
+---
+
+<div data-stamp-root>
+  <!-- Per-sticker DOM layer: sits absolutely in the page flow, spans full
+       document height via JS sizing + sticks to body top-left. -->
+  <div
+    data-stamp-layer
+    aria-hidden="true"
+    class="stamp-layer pointer-events-none"
+  ></div>
+
+  <!-- Fixed canvas for sparkle bursts. Pointer-events none. -->
+  <canvas
+    data-stamp-canvas
+    aria-hidden="true"
+    class="stamp-canvas pointer-events-none"
+  ></canvas>
+
+  <!-- Stamp cursor. Hidden by default until we know we're in the zone. -->
+  <div
+    data-stamp-cursor
+    aria-hidden="true"
+    class="stamp-cursor pointer-events-none"
+  >
+    <svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true">
+      <!-- blocky stamp matching site-pet ink aesthetic -->
+      <!-- contact shadow -->
+      <ellipse cx="16" cy="30" rx="8" ry="1.4" fill="#242424" opacity="0.12"/>
+      <!-- handle -->
+      <rect x="13" y="2" width="6" height="8" rx="1.5" fill="#242424"/>
+      <!-- body -->
+      <rect x="7" y="9" width="18" height="14" rx="2" fill="#242424"/>
+      <!-- ink face — cream slit eyes like the pet -->
+      <rect x="11" y="14" width="3" height="4" rx="0.8" fill="#f3e9d6"/>
+      <rect x="18" y="14" width="3" height="4" rx="0.8" fill="#f3e9d6"/>
+      <!-- base pad -->
+      <rect x="5" y="22" width="22" height="4" rx="1.5" fill="#242424"/>
+      <!-- subtle top highlight -->
+      <rect x="9" y="10" width="8" height="1.5" rx="0.75" fill="#f3e9d6" opacity="0.15"/>
+    </svg>
+  </div>
+</div>
+
+<style is:global>
+  [data-stamp-layer] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* height is set by JS to match document scrollHeight. */
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  [data-stamp-canvas] {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 90;
+    pointer-events: none;
+  }
+
+  [data-stamp-cursor] {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 32px;
+    height: 32px;
+    margin-left: -16px;
+    margin-top: -16px;
+    z-index: 95;         /* below custom cursor (z-100) so photo labels show */
+    opacity: 0;
+    transform: translate3d(-100px, -100px, 0) rotate(-8deg);
+    transition: opacity 140ms var(--ease-out-soft);
+    will-change: transform, opacity;
+    filter: drop-shadow(0 2px 4px rgba(36, 36, 36, 0.22));
+  }
+  [data-stamp-cursor][data-active] {
+    opacity: 1;
+  }
+  [data-stamp-cursor][data-pressed] svg {
+    transform: translateY(3px) scale(0.94);
+    transition: transform 120ms var(--ease-out-soft);
+  }
+  [data-stamp-cursor] svg {
+    display: block;
+    transition: transform 160ms var(--ease-out-soft);
+  }
+
+  /*
+    When the stamp cursor is active, hide the default CustomCursor dot
+    so the blocky stamp reads as the sole cursor. When hovering photo
+    targets the stamp hides itself and the custom cursor takes over.
+  */
+  html[data-stamp-active] [data-custom-cursor][data-mode="dot"] .custom-cursor__shape,
+  html[data-stamp-active] [data-custom-cursor][data-mode="link"] .custom-cursor__shape {
+    opacity: 0;
+  }
+
+  /* Placed stickers */
+  .stamp-sticker {
+    position: absolute;
+    width: 72px;
+    height: 72px;
+    margin-left: -36px;
+    margin-top: -36px;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    transform-origin: center center;
+    /* Pop in then fade out after a delay. */
+    animation:
+      stamp-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+      stamp-fade 1.2s ease-out 3s forwards;
+    will-change: transform, opacity;
+  }
+
+  @keyframes stamp-pop {
+    0%   { transform: scale(0)    rotate(var(--stamp-rot-from, 0deg)); opacity: 0; }
+    40%  { opacity: 1; }
+    100% { transform: scale(1)    rotate(var(--stamp-rot-to,   0deg)); opacity: 1; }
+  }
+
+  @keyframes stamp-fade {
+    0%   { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stamp-sticker {
+      animation: stamp-fade 1.2s ease-out 3s forwards !important;
+      transform: scale(1) rotate(var(--stamp-rot-to, 0deg));
+      opacity: 1;
+    }
+    [data-stamp-cursor],
+    [data-stamp-cursor] svg {
+      transition: opacity 140ms linear !important;
+    }
+  }
+</style>
+
+<script is:inline define:vars={{ stickers }}>
+  (function () {
+    const root = document.querySelector("[data-stamp-root]");
+    if (!root) return;
+
+    const layer = root.querySelector("[data-stamp-layer]");
+    const canvas = root.querySelector("[data-stamp-canvas]");
+    const stampCursor = root.querySelector("[data-stamp-cursor]");
+    if (!layer || !canvas || !stampCursor) return;
+
+    const main = document.querySelector("main");
+    if (!main) return;
+
+    const ctx = canvas.getContext("2d");
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isFinePointer = window.matchMedia("(pointer: fine)").matches;
+
+    // Attach the layer to <body> so its absolute positioning is relative to
+    // the document, not the main column. Keeps coords aligned with pageX/Y.
+    document.body.appendChild(layer);
+    document.body.appendChild(canvas);
+    document.body.appendChild(stampCursor);
+
+    // --- Layer sizing -----------------------------------------------------
+    function sizeLayer() {
+      layer.style.height = document.documentElement.scrollHeight + "px";
+    }
+    sizeLayer();
+    window.addEventListener("resize", sizeLayer, { passive: true });
+    if (typeof ResizeObserver !== "undefined") {
+      new ResizeObserver(sizeLayer).observe(document.body);
+    }
+
+    // --- Canvas sizing ----------------------------------------------------
+    let dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    function resizeCanvas() {
+      if (!ctx) return;
+      dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      canvas.width = Math.floor(window.innerWidth * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+      canvas.style.width = window.innerWidth + "px";
+      canvas.style.height = window.innerHeight + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas, { passive: true });
+
+    // --- Stampable zone detection -----------------------------------------
+    // True if this element (or an ancestor) should accept stamping.
+    function isStampableTarget(el) {
+      if (!(el instanceof Element)) return false;
+      // Excluded zones:
+      if (el.closest("[data-sidebar]")) return false;
+      if (el.closest("[data-footer-root]")) return false;
+      if (el.closest("footer")) return false;
+      if (el.closest("[data-stamp-cursor]")) return false;
+      if (el.closest("[data-custom-cursor]")) return false;
+      // Let photo labels show through — hide stamp over photo targets.
+      if (el.closest("[data-cursor]")) return false;
+      // Stickers themselves shouldn't block but just in case:
+      if (el.closest(".stamp-sticker")) return false;
+      // Interactive elements get circle cursor, not stamp.
+      if (el.closest("a, button, [role='button'], input, textarea, select, label")) return false;
+      // Must be inside <main>.
+      if (!el.closest("main")) return false;
+      return true;
+    }
+
+    // Anchors still navigate: don't stamp if target is inside an <a>.
+    function isInteractiveThatShouldNotStamp(el) {
+      if (!(el instanceof Element)) return false;
+      return !!el.closest("a, button, [role='button'], input, textarea, select, label");
+    }
+
+    // --- Stamp cursor follow ----------------------------------------------
+    let active = false;
+    function setActive(next) {
+      if (next === active) return;
+      active = next;
+      if (active) {
+        stampCursor.setAttribute("data-active", "");
+        document.documentElement.setAttribute("data-stamp-active", "");
+      } else {
+        // Remove data-stamp-active immediately so CustomCursor's shape
+        // becomes visible right away — no blank gap during stamp fade-out.
+        document.documentElement.removeAttribute("data-stamp-active");
+        stampCursor.removeAttribute("data-active");
+      }
+    }
+
+    function updateCursor(e) {
+      // Always move the cursor icon to follow the pointer.
+      stampCursor.style.transform =
+        "translate3d(" + e.clientX + "px, " + e.clientY + "px, 0) rotate(-8deg)";
+      if (!isFinePointer) {
+        setActive(false);
+        return;
+      }
+      const under = document.elementFromPoint(e.clientX, e.clientY);
+      const stampable = isStampableTarget(under);
+      setActive(stampable);
+      // When stamp is inactive (over photos/buttons/sidebar), ensure
+      // CustomCursor is visible so there's no blank-cursor gap.
+      if (!stampable) {
+        const cc = document.querySelector("[data-custom-cursor]");
+        if (cc) cc.style.opacity = "1";
+      }
+    }
+
+    window.addEventListener("pointermove", updateCursor, { passive: true });
+    document.addEventListener("mouseleave", () => setActive(false));
+
+    // Press state on cursor for feedback.
+    window.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      stampCursor.setAttribute("data-pressed", "");
+    });
+    const clearPressed = () => stampCursor.removeAttribute("data-pressed");
+    window.addEventListener("pointerup", clearPressed);
+    window.addEventListener("pointercancel", clearPressed);
+
+    // --- Sticker placement ------------------------------------------------
+    let lastIndex = -1;
+    function pickSticker() {
+      // Random but avoid immediate repeats.
+      let i = Math.floor(Math.random() * stickers.length);
+      if (stickers.length > 1 && i === lastIndex) {
+        i = (i + 1) % stickers.length;
+      }
+      lastIndex = i;
+      return stickers[i];
+    }
+
+    function placeSticker(pageX, pageY) {
+      const name = pickSticker();
+      const img = document.createElement("img");
+      img.src = "/images/stickers/" + name + ".svg";
+      img.alt = "";
+      img.setAttribute("aria-hidden", "true");
+      img.className = "stamp-sticker";
+      img.draggable = false;
+
+      // Hand-stuck feel: ± ~15deg rotation, settles a hair less than start.
+      const rot = (Math.random() * 30 - 15).toFixed(2);
+      img.style.left = pageX + "px";
+      img.style.top = pageY + "px";
+      img.style.setProperty("--stamp-rot-from", (Number(rot) * 0.35).toFixed(2) + "deg");
+      img.style.setProperty("--stamp-rot-to", rot + "deg");
+
+      layer.appendChild(img);
+      // Remove from DOM after fade completes (3s delay + 1.2s fade).
+      window.setTimeout(() => img.remove(), 4400);
+    }
+
+    // --- Sparkle burst ----------------------------------------------------
+    const particles = [];
+    // Neutral-ish palette: mostly white, with pastel accents that don't fight
+    // the sticker colors.
+    const SPARK_COLORS = [
+      "255, 255, 255",
+      "255, 255, 255",
+      "255, 255, 255",
+      "234, 186, 202", // pink-1
+      "179, 208, 213", // teal-3
+      "247, 201, 165", // orange-2
+    ];
+
+    function spawnBurst(clientX, clientY) {
+      if (reduced) {
+        particles.push({
+          x: clientX,
+          y: clientY,
+          vx: 0,
+          vy: 0,
+          life: 0,
+          ttl: 500,
+          size: 20,
+          color: "255, 255, 255",
+        });
+        return;
+      }
+      const count = 5 + Math.floor(Math.random() * 6); // 5..10
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 70 + Math.pow(Math.random(), 0.6) * 160;
+        particles.push({
+          x: clientX,
+          y: clientY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 0,
+          ttl: 520 + Math.random() * 260,
+          size: 1 + Math.random() * 1.6,
+          color: SPARK_COLORS[Math.floor(Math.random() * SPARK_COLORS.length)],
+        });
+      }
+    }
+
+    // --- Click → stamp + burst -------------------------------------------
+    document.addEventListener(
+      "click",
+      (e) => {
+        // Only react to left mouse / primary.
+        const target = e.target;
+        if (!isStampableTarget(target)) return;
+        if (isInteractiveThatShouldNotStamp(target)) return;
+
+        // Place sticker at document coords so it scrolls with the page.
+        placeSticker(e.pageX, e.pageY);
+        spawnBurst(e.clientX, e.clientY);
+      },
+      // Use bubble phase so actual links get to handle their click first.
+      false
+    );
+
+    // --- Animation loop ---------------------------------------------------
+    let lastFrame = performance.now();
+    function tick(now) {
+      const dt = Math.min(48, now - lastFrame);
+      lastFrame = now;
+      const dtSec = dt / 1000;
+
+      if (ctx) {
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+        if (particles.length > 0) {
+          ctx.globalCompositeOperation = "lighter";
+          for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.life += dt;
+            if (p.life >= p.ttl) {
+              particles.splice(i, 1);
+              continue;
+            }
+            if (!reduced) {
+              p.vy -= 28 * dtSec;
+              p.vx *= 0.94;
+              p.vy *= 0.94;
+              p.x += p.vx * dtSec;
+              p.y += p.vy * dtSec;
+            }
+            const t = p.life / p.ttl;
+            const fade = 1 - t;
+
+            if (reduced) {
+              const r = p.size + t * 36;
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+              ctx.strokeStyle = "rgba(" + p.color + ", " + (fade * 0.6).toFixed(3) + ")";
+              ctx.lineWidth = 1.5;
+              ctx.stroke();
+              continue;
+            }
+
+            const radius = p.size * (1 + 0.3 * Math.sin(p.life * 0.02));
+            const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius * 5);
+            halo.addColorStop(0, "rgba(" + p.color + ", " + (fade * 0.55).toFixed(3) + ")");
+            halo.addColorStop(1, "rgba(" + p.color + ", 0)");
+            ctx.fillStyle = halo;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, radius * 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "rgba(" + p.color + ", " + fade.toFixed(3) + ")";
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.globalCompositeOperation = "source-over";
+        }
+      }
+
+      rafId = requestAnimationFrame(tick);
+    }
+    let rafId = requestAnimationFrame(tick);
+
+    window.addEventListener(
+      "pagehide",
+      () => {
+        cancelAnimationFrame(rafId);
+        particles.length = 0;
+      },
+      { once: true }
+    );
+
+    // Clean up when ClientRouter swaps away from this page.
+    document.addEventListener(
+      "astro:before-swap",
+      () => {
+        cancelAnimationFrame(rafId);
+        setActive(false);
+        layer.remove();
+        canvas.remove();
+        stampCursor.remove();
+      },
+      { once: true }
+    );
+  })();
+</script>

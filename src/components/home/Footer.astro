@@ -1,0 +1,556 @@
+---
+// Pink footer (Figma 120:2202). Color follows the visitor's chosen card color
+// so the whole site echoes their library card palette.
+//
+// Interactive layer:
+//   - FlowerArt scales up (~1.85×) and sits behind the content as a watercolor
+//     silhouette (right-of-center so the quote drifts across it).
+//   - Glimmer dots near the cursor get a brighter halo via --cursor-boost.
+//   - Clicking anywhere in the footer spawns a small sparkle burst (canvas).
+//   - Nav links shove gently away from the cursor (same pattern as WelcomeHero).
+//   - Paul Graham quote's emphasized words ("Discoveries" / "by you?") bloom on
+//     hover with an underline draw + color shift.
+
+import type { CardColor } from "../../lib/visitor";
+import FlowerArt from "../ui/FlowerArt.astro";
+
+type ActiveKey = "home" | "about" | "playground" | "gallery";
+
+interface Props {
+  color?: CardColor;
+  active?: ActiveKey;
+}
+
+const { color = "pink", active = "home" } = Astro.props;
+
+const navItems: { key: ActiveKey; label: string; href: string }[] = [
+  { key: "home", label: "Home", href: "/home" },
+  { key: "about", label: "About me", href: "/about" },
+  { key: "playground", label: "Playground", href: "/playground" },
+  { key: "gallery", label: "Visitor Gallery", href: "/visitor-gallery" },
+];
+
+const spaceLink = { label: "✦ Back to space", href: "/" };
+---
+
+<footer
+  data-footer-color={color}
+  data-cursor-bg={color}
+  data-footer-root
+  transition:name="footer"
+  transition:animate="none"
+  class="footer-themed relative w-full overflow-hidden text-[var(--color-ink-inverted)] h-[288px]"
+>
+  <!-- Big centered ASCII silhouette: acts as a watercolor wash behind the
+       quote + nav. Right-of-center so the quote reads across it. -->
+  <div class="footer-flower-wrap" aria-hidden="true">
+    <FlowerArt color={color} scale={1.85} />
+  </div>
+
+  <!-- Click-burst canvas, scoped to the footer (not fullscreen). -->
+  <canvas data-footer-burst aria-hidden="true" class="pointer-events-none absolute inset-0 z-10 h-full w-full"></canvas>
+
+  <div class="relative z-20 h-full flex justify-between items-stretch p-10">
+    <!-- Left: quote -->
+    <div class="flex flex-col justify-between pr-10 max-w-[460px]">
+      <p
+        data-footer-quote
+        class="font-[family-name:var(--font-display)] font-light text-[24px] leading-tight"
+      >
+        <span class="footer-word footer-word--bloom"><span>Discoveries</span></span>
+        <span class="footer-word"><span>are</span></span>
+        <span class="footer-word"><span>out</span></span>
+        <span class="footer-word"><span>there,</span></span>
+        <span class="footer-word"><span>waiting</span></span>
+        <span class="footer-word"><span>to</span></span>
+        <span class="footer-word"><span>be</span></span>
+        <span class="footer-word"><span>made.</span></span><br />
+        <span class="footer-word"><span>Why</span></span>
+        <span class="footer-word"><span>not</span></span>
+        <span class="footer-word footer-word--bloom"><span>by</span></span>
+        <span class="footer-word footer-word--bloom"><span>you?</span></span>
+      </p>
+    </div>
+
+    <!-- Right: nav columns -->
+    <div class="flex gap-20 font-[family-name:var(--font-mono)] text-[18px] uppercase">
+      <ul class="flex flex-col gap-1 w-[162px]" style="color: var(--footer-tint);">
+        <li><a data-footer-link href="mailto:may52@cornell.edu" class="footer-link">Email</a></li>
+        <li><a data-footer-link href="https://www.linkedin.com/in/megan-qz-yap/" class="footer-link">LinkedIn</a></li>
+        <li><a data-footer-link href="https://github.com/megany128" class="footer-link">GitHub</a></li>
+        <li><a data-footer-link href="https://x.com/maqzyap" class="footer-link">X</a></li>
+      </ul>
+      <ul class="flex flex-col gap-1" style="color: var(--footer-tint);">
+        {
+          navItems.map((item) => (
+            <li>
+              <a
+                data-footer-link
+                href={item.href}
+                class:list={[
+                  "footer-link",
+                  item.key === active && "footer-link--active",
+                ]}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+        <li class="mt-2">
+          <a
+            data-footer-link
+            href={spaceLink.href}
+            class="footer-link text-[12px]"
+          >
+            {spaceLink.label}
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<style is:global>
+  .footer-themed[data-footer-color="pink"] {
+    background: var(--color-pink);
+    --footer-tint: var(--color-pink-1);
+    --footer-tint-soft: var(--color-pink-2);
+    --footer-spark: 255, 255, 255;
+    --footer-spark-alt: 238, 201, 213;
+  }
+  .footer-themed[data-footer-color="teal"] {
+    background: var(--color-teal);
+    --footer-tint: var(--color-teal-1);
+    --footer-tint-soft: var(--color-teal-3);
+    --footer-spark: 217, 235, 238;
+    --footer-spark-alt: 179, 208, 213;
+  }
+  .footer-themed[data-footer-color="green"] {
+    background: var(--color-green);
+    --footer-tint: var(--color-green-1);
+    --footer-tint-soft: var(--color-green-2);
+    --footer-spark: 255, 255, 255;
+    --footer-spark-alt: 125, 181, 146;
+  }
+  .footer-themed[data-footer-color="orange"] {
+    background: var(--color-orange);
+    --footer-tint: var(--color-orange-1);
+    --footer-tint-soft: var(--color-orange-2);
+    --footer-spark: 255, 255, 255;
+    --footer-spark-alt: 247, 201, 165;
+  }
+  .footer-themed[data-footer-color="neutral"] {
+    background: var(--color-bg-neutral-2);
+    color: var(--color-ink);
+    --footer-tint: var(--color-fg-neutral);
+    --footer-tint-soft: var(--color-bg-neutral);
+    --footer-spark: 36, 36, 36;
+    --footer-spark-alt: 138, 133, 118;
+  }
+
+  /* Flower art sits right-of-center, scaled up, translucent enough to feel
+     like a watercolor wash behind the content. It overflows intentionally
+     and its pointer-events are already disabled via the component itself. */
+  .footer-themed .footer-flower-wrap {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .footer-themed .footer-flower-wrap .flower-art {
+    position: absolute;
+    top: 50%;
+    left: 35%;
+    transform-origin: center center !important;
+    /* Scale is applied by the FlowerArt component; we re-center with a
+       translate and multiply by the component scale via CSS custom approach.
+       The component emits transform: scale(1.85) on the element, so we
+       layer an extra wrapper-style translate via negative margins. */
+    margin-top: -10.5em;
+    margin-left: -14em;
+    opacity: 0.55;
+    filter: blur(0.2px);
+    transition: opacity var(--duration-base) var(--ease-out-soft);
+  }
+  .footer-themed[data-footer-color="neutral"] .footer-flower-wrap .flower-art {
+    opacity: 0.4;
+  }
+
+  /* When the cursor is inside the footer, glimmer dots near it flare. The JS
+     sets --cursor-x/--cursor-y/--cursor-on on the footer root; each glimmer
+     samples distance via a radial-gradient mask painted on a pseudo-element
+     — but cheaper: we just toggle a boost on the whole art, and let the
+     existing glimmer animation do the sparkling. For a spatial effect we
+     override per-dot duration via --glimmer-duration-boost when near. */
+  .footer-themed[data-footer-hover="true"] .footer-flower-wrap .flower-art {
+    opacity: 0.7;
+  }
+  .footer-themed[data-footer-hover="true"] .footer-flower-wrap .flower-art .glimmer {
+    animation-duration: calc(var(--glimmer-duration, 2.8s) * 0.55);
+  }
+
+  /* Nav links */
+  .footer-themed .footer-link {
+    display: inline-block;
+    position: relative;
+    color: inherit;
+    transition:
+      color var(--duration-base) var(--ease-out-soft),
+      transform var(--duration-base) var(--ease-out-soft);
+    will-change: transform;
+  }
+  .footer-themed .footer-link:hover {
+    color: var(--color-ink-inverted);
+  }
+  .footer-themed[data-footer-color="neutral"] .footer-link:hover {
+    color: var(--color-ink);
+  }
+  .footer-themed .footer-link--active {
+    color: var(--color-ink-inverted);
+  }
+  .footer-themed[data-footer-color="neutral"] .footer-link--active {
+    color: var(--color-ink);
+  }
+
+  /* Tiny sparkle orbiter emitted next to a hovered nav link. */
+  .footer-themed .footer-link::after {
+    content: "✦";
+    position: absolute;
+    top: 50%;
+    right: -0.9em;
+    font-size: 0.6em;
+    color: var(--color-ink-inverted);
+    opacity: 0;
+    transform: translateY(-50%) scale(0.6);
+    transition:
+      opacity var(--duration-base) var(--ease-out-soft),
+      transform var(--duration-base) var(--ease-out-soft);
+    pointer-events: none;
+  }
+  .footer-themed[data-footer-color="neutral"] .footer-link::after {
+    color: var(--color-ink);
+  }
+  .footer-themed .footer-link:hover::after {
+    opacity: 1;
+    transform: translateY(-50%) scale(1) rotate(12deg);
+    animation: footer-link-orbit 2.4s linear infinite;
+  }
+
+  @keyframes footer-link-orbit {
+    0%   { transform: translate(0, -50%) rotate(0deg) scale(1); }
+    50%  { transform: translate(2px, calc(-50% - 2px)) rotate(180deg) scale(1.1); }
+    100% { transform: translate(0, -50%) rotate(360deg) scale(1); }
+  }
+
+  /* Quote reveal: each word is wrapped; emphasized words get a soft underline
+     draw + color bloom when the quote is hovered. */
+  .footer-themed .footer-word {
+    display: inline-block;
+    position: relative;
+  }
+  .footer-themed .footer-word > span {
+    display: inline-block;
+    position: relative;
+    transition: color var(--duration-base) var(--ease-out-soft);
+  }
+  .footer-themed .footer-word--bloom > span {
+    color: color-mix(in oklch, var(--color-ink-inverted) 82%, transparent);
+  }
+  .footer-themed[data-footer-color="neutral"] .footer-word--bloom > span {
+    color: color-mix(in oklch, var(--color-ink) 82%, transparent);
+  }
+  .footer-themed .footer-word--bloom > span::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--duration-slow, 480ms) var(--ease-out-soft);
+  }
+  .footer-themed [data-footer-quote]:hover .footer-word--bloom > span {
+    color: var(--color-ink-inverted);
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.45);
+  }
+  .footer-themed[data-footer-color="neutral"] [data-footer-quote]:hover .footer-word--bloom > span {
+    color: var(--color-ink);
+    text-shadow: none;
+  }
+  .footer-themed [data-footer-quote]:hover .footer-word--bloom > span::after {
+    transform: scaleX(1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .footer-themed .footer-link {
+      transition: color var(--duration-base) var(--ease-out-soft);
+    }
+    .footer-themed .footer-link::after {
+      display: none;
+    }
+    .footer-themed[data-footer-hover="true"] .footer-flower-wrap .flower-art .glimmer {
+      animation-duration: var(--glimmer-duration, 2.8s);
+    }
+    .footer-themed .footer-word--bloom > span::after {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  // Footer interaction layer. The module script runs once per document; to
+  // keep the footer interactive after ClientRouter body-swaps we wrap the
+  // full setup in `initFooter` and call it on every `astro:page-load`. The
+  // guard on `data-footer-wired` prevents double-binding on first load.
+  type Particle = {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    life: number;
+    ttl: number;
+    size: number;
+    alt: boolean;
+  };
+
+  function initFooter() {
+    const footer = document.querySelector<HTMLElement>("[data-footer-root]");
+    if (!footer) return;
+    if (footer.dataset.footerWired === "1") return;
+    footer.dataset.footerWired = "1";
+    {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const canvas = footer.querySelector<HTMLCanvasElement>("[data-footer-burst]");
+    const ctx = canvas?.getContext("2d") ?? null;
+    const links = Array.from(footer.querySelectorAll<HTMLAnchorElement>("[data-footer-link]"));
+
+    // --- Shove targets (cursor-repel) -------------------------------------
+    type Vec = { x: number; y: number };
+    const targets = new WeakMap<HTMLElement, Vec>();
+    const currents = new WeakMap<HTMLElement, Vec>();
+    links.forEach((el) => {
+      targets.set(el, { x: 0, y: 0 });
+      currents.set(el, { x: 0, y: 0 });
+    });
+
+    // Mouse tracked in viewport coordinates.
+    let mx = -9999;
+    let my = -9999;
+    let hovering = false;
+
+    footer.addEventListener(
+      "pointermove",
+      (e) => {
+        mx = e.clientX;
+        my = e.clientY;
+        if (!hovering) {
+          hovering = true;
+          footer.setAttribute("data-footer-hover", "true");
+        }
+      },
+      { passive: true }
+    );
+    footer.addEventListener(
+      "pointerleave",
+      () => {
+        hovering = false;
+        mx = -9999;
+        my = -9999;
+        footer.removeAttribute("data-footer-hover");
+      },
+      { passive: true }
+    );
+
+    // --- Click burst ------------------------------------------------------
+    const particles: Particle[] = [];
+    let dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+
+    function resize() {
+      if (!canvas || !ctx) return;
+      const rect = footer!.getBoundingClientRect();
+      dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      canvas.width = Math.floor(rect.width * dpr);
+      canvas.height = Math.floor(rect.height * dpr);
+      canvas.style.width = rect.width + "px";
+      canvas.style.height = rect.height + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    if (canvas && ctx) {
+      resize();
+      window.addEventListener("resize", resize, { passive: true });
+      // Use ResizeObserver for footer-specific layout changes.
+      if (typeof ResizeObserver !== "undefined") {
+        new ResizeObserver(resize).observe(footer);
+      }
+    }
+
+    function spawnBurst(clientX: number, clientY: number) {
+      if (!canvas || !ctx) return;
+      const rect = footer!.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      if (reduced) {
+        particles.push({
+          x,
+          y,
+          vx: 0,
+          vy: 0,
+          life: 0,
+          ttl: 500,
+          size: 18,
+          alt: false,
+        });
+        return;
+      }
+      const count = 14 + Math.floor(Math.random() * 8); // 14..21
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 80 + Math.pow(Math.random(), 0.6) * 220;
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 0,
+          ttl: 520 + Math.random() * 280,
+          size: 1 + Math.random() * 1.8,
+          alt: Math.random() < 0.35,
+        });
+      }
+    }
+
+    footer.addEventListener(
+      "pointerdown",
+      (e) => {
+        if (e.pointerType === "mouse" && e.button !== 0) return;
+        spawnBurst(e.clientX, e.clientY);
+      },
+      { passive: true }
+    );
+
+    // --- Animation loop ---------------------------------------------------
+    let lastFrame = performance.now();
+    let rafId = 0;
+
+    const SHOVE_RADIUS = 70;
+    const SHOVE_STRENGTH = 10; // small, playful
+
+    function tick(now: number) {
+      const dt = Math.min(48, now - lastFrame);
+      lastFrame = now;
+      const dtSec = dt / 1000;
+
+      // Shove nav links away from cursor.
+      if (!reduced) {
+        for (const el of links) {
+          const r = el.getBoundingClientRect();
+          const cx = r.left + r.width / 2;
+          const cy = r.top + r.height / 2;
+          const dx = cx - mx;
+          const dy = cy - my;
+          const dist = Math.hypot(dx, dy) || 1;
+          const t = targets.get(el)!;
+          if (dist < SHOVE_RADIUS && hovering) {
+            const force = (1 - dist / SHOVE_RADIUS) ** 1.4;
+            t.x = (dx / dist) * force * SHOVE_STRENGTH;
+            t.y = (dy / dist) * force * SHOVE_STRENGTH;
+          } else {
+            t.x = 0;
+            t.y = 0;
+          }
+          const c = currents.get(el)!;
+          c.x += (t.x - c.x) * 0.18;
+          c.y += (t.y - c.y) * 0.18;
+          el.style.transform = `translate3d(${c.x.toFixed(2)}px, ${c.y.toFixed(2)}px, 0)`;
+        }
+      }
+
+      // Particle render.
+      if (canvas && ctx) {
+        ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+
+        if (particles.length > 0) {
+          ctx.globalCompositeOperation = "lighter";
+          // Read spark color from the footer root (set per color variant).
+          const style = getComputedStyle(footer!);
+          const rgbMain = style.getPropertyValue("--footer-spark").trim() || "255, 255, 255";
+          const rgbAlt = style.getPropertyValue("--footer-spark-alt").trim() || rgbMain;
+
+          for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.life += dt;
+            if (p.life >= p.ttl) {
+              particles.splice(i, 1);
+              continue;
+            }
+            if (!reduced) {
+              p.vy -= 30 * dtSec; // slight anti-gravity
+              p.vx *= 0.95;
+              p.vy *= 0.95;
+              p.x += p.vx * dtSec;
+              p.y += p.vy * dtSec;
+            }
+
+            const t = p.life / p.ttl;
+            const fade = 1 - t;
+
+            if (reduced) {
+              const r = p.size + t * 36;
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+              ctx.strokeStyle = `rgba(${rgbMain}, ${fade * 0.6})`;
+              ctx.lineWidth = 1.5;
+              ctx.stroke();
+              continue;
+            }
+
+            const rgb = p.alt ? rgbAlt : rgbMain;
+            const radius = p.size * (1 + 0.3 * Math.sin(p.life * 0.02));
+
+            const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius * 5);
+            halo.addColorStop(0, `rgba(${rgb}, ${fade * 0.55})`);
+            halo.addColorStop(1, `rgba(${rgb}, 0)`);
+            ctx.fillStyle = halo;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, radius * 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = `rgba(${rgb}, ${fade})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.globalCompositeOperation = "source-over";
+        }
+      }
+
+      rafId = requestAnimationFrame(tick);
+    }
+    rafId = requestAnimationFrame(tick);
+
+    function cleanup() {
+      cancelAnimationFrame(rafId);
+      particles.length = 0;
+      window.removeEventListener("resize", resize);
+    }
+    window.addEventListener("pagehide", cleanup, { once: true });
+    // If ClientRouter tears this footer out of the DOM, stop its RAF loop so
+    // it doesn't keep writing to a detached canvas.
+    document.addEventListener(
+      "astro:before-swap",
+      () => {
+        if (!footer.isConnected) return;
+        cleanup();
+      },
+      { once: true }
+    );
+    }
+  }
+  initFooter();
+  document.addEventListener("astro:page-load", initFooter);
+</script>

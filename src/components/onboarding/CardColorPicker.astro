@@ -1,0 +1,46 @@
+---
+import type { CardColor } from "../../lib/visitor";
+
+interface Props {
+  selected?: CardColor;
+  name?: string;
+}
+
+const { selected = "pink", name = "card-color" } = Astro.props;
+
+// Cream/neutral was removed as a user-selectable color.
+// Existing visitors with `neutral` still render correctly elsewhere.
+const swatches: { color: CardColor; bg: string }[] = [
+  { color: "teal", bg: "var(--color-teal)" },
+  { color: "green", bg: "var(--color-green)" },
+  { color: "pink", bg: "var(--color-pink)" },
+  { color: "orange", bg: "var(--color-orange)" },
+];
+---
+
+<fieldset
+  class="card-color-picker flex items-center gap-4"
+  data-color-picker
+  data-name={name}
+>
+  <legend class="sr-only">Card color</legend>
+  {
+    swatches.map(({ color, bg }) => (
+      <label class="cursor-pointer">
+        <input
+          type="radio"
+          name={name}
+          value={color}
+          checked={color === selected}
+          class="sr-only peer"
+        />
+        <span
+          aria-hidden="true"
+          class="block size-[26px] rounded-full transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:scale-110 active:scale-95 peer-checked:scale-110 peer-checked:ring-2 peer-checked:ring-[var(--color-ink)] peer-checked:ring-offset-2 peer-checked:ring-offset-[var(--color-bg)]"
+          style={`background:${bg};`}
+        />
+        <span class="sr-only">{color}</span>
+      </label>
+    ))
+  }
+</fieldset>
