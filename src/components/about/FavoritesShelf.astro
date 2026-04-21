@@ -265,17 +265,34 @@ const CATEGORIES: Category[] = [
     display: flex;
     flex-direction: column;
     align-items: center;
+    max-width: 100%;
+    min-width: 0;
+  }
+  @media (max-width: 767px) {
+    /* Defensive overflow guard — on mobile the inner carousel scrolls
+       horizontally; anything that escapes (subpixel rounding, decorative
+       transforms, hover overlays) must not add to the page scroll width. */
+    .favorites-shelf {
+      overflow-x: clip;
+      width: 100%;
+    }
   }
 
   .favorites-carousel {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 16px;
+    gap: 8px;
     width: 100%;
+    max-width: 100%;
     /* Fixed height so switching categories doesn't shift layout.
        Tallest category (5:8 cards) ≈ 237px cover + meta + row padding. */
     min-height: 340px;
+  }
+  @media (min-width: 640px) {
+    .favorites-carousel {
+      gap: 16px;
+    }
   }
 
   .favorites-arrow {
@@ -333,6 +350,34 @@ const CATEGORIES: Category[] = [
     align-items: center;
     padding: 32px 4px 24px;
     margin: -16px 0;
+  }
+
+  /* On narrow screens the 4-card row won't fit (4 × 148 + gaps ≈ 600px).
+     Fall back to a horizontal scroll so visitors can swipe through the
+     picks. Hide the native scrollbar since this is decorative. */
+  @media (max-width: 767px) {
+    .favorites-lane-frame {
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .favorites-lane-frame::-webkit-scrollbar {
+      display: none;
+    }
+    .favorites-lane {
+      justify-content: flex-start;
+      width: max-content;
+    }
+    .favorites-row {
+      justify-content: flex-start;
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+    .favorites-card-wrap {
+      scroll-snap-align: center;
+    }
   }
 
   .favorites-card-wrap {

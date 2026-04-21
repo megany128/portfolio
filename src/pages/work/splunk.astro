@@ -148,7 +148,7 @@ const reflections = [
   <div class="flex items-stretch min-h-screen" id="top">
     <CaseStudySidebar sections={tocSections} active="context" />
 
-    <main class="flex-1 min-w-0 p-10 flex flex-col gap-10">
+    <main class="flex-1 min-w-0 p-4 sm:p-6 md:p-10 flex flex-col gap-8 sm:gap-10">
       <!-- Hero banner -->
       <section class="cs-hero-wrap">
         <div class="cs-hero rounded-[24px] overflow-hidden h-[360px]">
@@ -168,7 +168,7 @@ const reflections = [
           <Tag>Shipped</Tag>
         </div>
         <h1
-          class="font-[family-name:var(--font-display)] font-light text-[40px] leading-[1.1] text-[var(--color-ink)] flex items-start gap-3"
+          class="font-[family-name:var(--font-display)] font-light text-[28px] sm:text-[34px] md:text-[40px] leading-[1.1] text-[var(--color-ink)] flex items-start gap-3"
         >
           <img
             src="/images/work/splunk/hero-star.svg"
@@ -805,9 +805,20 @@ const reflections = [
   .cs-section-heading {
     font-family: var(--font-display);
     font-weight: 300;
-    font-size: 28px;
+    font-size: 22px;
     color: var(--color-ink);
-    line-height: 1.15;
+    line-height: 1.2;
+  }
+  @media (min-width: 640px) {
+    .cs-section-heading {
+      font-size: 26px;
+    }
+  }
+  @media (min-width: 768px) {
+    .cs-section-heading {
+      font-size: 28px;
+      line-height: 1.15;
+    }
   }
   .cs-section-body {
     font-family: var(--font-body);

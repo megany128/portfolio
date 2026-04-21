@@ -39,7 +39,7 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
   data-footer-root
   transition:name="footer"
   transition:animate="none"
-  class="footer-themed relative w-full overflow-hidden text-[var(--color-ink-inverted)] h-[288px]"
+  class="footer-themed relative w-full overflow-hidden text-[var(--color-ink-inverted)] min-h-[288px] md:h-[288px]"
 >
   <!-- Big centered ASCII silhouette: acts as a watercolor wash behind the
        quote + nav. Right-of-center so the quote reads across it. -->
@@ -50,12 +50,12 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
   <!-- Click-burst canvas, scoped to the footer (not fullscreen). -->
   <canvas data-footer-burst aria-hidden="true" class="pointer-events-none absolute inset-0 z-10 h-full w-full"></canvas>
 
-  <div class="relative z-20 h-full flex justify-between items-stretch p-10">
+  <div class="relative z-20 h-full flex flex-col md:flex-row justify-between items-stretch gap-8 md:gap-0 p-6 sm:p-8 md:p-10">
     <!-- Left: quote -->
-    <div class="flex flex-col justify-between pr-10 max-w-[460px]">
+    <div class="flex flex-col justify-between md:pr-10 max-w-full md:max-w-[460px]">
       <p
         data-footer-quote
-        class="font-[family-name:var(--font-display)] font-light text-[24px] leading-tight"
+        class="font-[family-name:var(--font-display)] font-light text-[20px] sm:text-[22px] md:text-[24px] leading-tight"
       >
         <span class="footer-word footer-word--bloom"><span>Discoveries</span></span>
         <span class="footer-word"><span>are</span></span>
@@ -73,8 +73,8 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
     </div>
 
     <!-- Right: nav columns -->
-    <div class="flex gap-20 font-[family-name:var(--font-mono)] text-[18px] uppercase">
-      <ul class="flex flex-col gap-1 w-[162px]" style="color: var(--footer-tint);">
+    <div class="flex gap-10 sm:gap-14 md:gap-20 font-[family-name:var(--font-mono)] text-[15px] sm:text-[16px] md:text-[18px] uppercase">
+      <ul class="flex flex-col gap-1 w-auto md:w-[162px]" style="color: var(--footer-tint);">
         <li><a data-footer-link href="mailto:may52@cornell.edu" class="footer-link">Email</a></li>
         <li><a data-footer-link href="https://www.linkedin.com/in/megan-qz-yap/" class="footer-link">LinkedIn</a></li>
         <li><a data-footer-link href="https://github.com/megany128" class="footer-link">GitHub</a></li>

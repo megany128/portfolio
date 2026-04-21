@@ -30,17 +30,17 @@ const quote: Word[] = [
 ];
 ---
 
-<section class="min-h-dvh grid place-items-center px-6 relative">
-  <div class="flex flex-col items-center gap-10 w-[454px] max-w-full">
-    <div class="flex flex-col items-center gap-6 w-full">
+<section class="min-h-dvh grid place-items-center px-4 sm:px-6 relative">
+  <div class="flex flex-col items-center gap-8 sm:gap-10 w-[454px] max-w-full">
+    <div class="flex flex-col items-center gap-5 sm:gap-6 w-full">
       <div class="flex flex-col items-center gap-1 leading-none">
         <p
-          class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-mute)] text-center w-full"
+          class="font-[family-name:var(--font-mono)] text-sm sm:text-base uppercase text-[var(--color-ink-mute)] text-center w-full"
         >
           {returning ? "Welcome back to" : "Welcome to"}
         </p>
         <p
-          class="font-[family-name:var(--font-display)] font-light text-[36px] leading-none text-[var(--color-ink-inverted)] w-full text-center flex justify-center gap-2 flex-wrap"
+          class="font-[family-name:var(--font-display)] font-light text-[28px] sm:text-[36px] leading-none text-[var(--color-ink-inverted)] w-full text-center flex justify-center gap-2 flex-wrap"
         >
           {titleWords.map((word) => (
             <span data-shove class="inline-block will-change-transform">
@@ -61,7 +61,7 @@ const quote: Word[] = [
     </div>
 
     <p
-      class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-mute)] text-center w-[346px] max-w-full leading-snug"
+      class="font-[family-name:var(--font-mono)] text-sm sm:text-base uppercase text-[var(--color-ink-mute)] text-center w-[346px] max-w-full leading-snug"
     >
       {
         quote.map((w, i) => (

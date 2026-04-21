@@ -36,22 +36,22 @@ const subtitle = visitor
   <div class="flex items-stretch min-h-screen">
     <Sidebar active="gallery" />
 
-    <main class="flex flex-col gap-6 p-10 flex-1 min-w-0">
-      <header class="flex items-end justify-between gap-6">
-        <div class="flex items-end gap-4 flex-wrap">
+    <main class="flex flex-col gap-6 p-4 sm:p-6 md:p-10 flex-1 min-w-0">
+      <header class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6">
+        <div class="flex items-end gap-3 sm:gap-4 flex-wrap">
           <h1
-            class="font-[family-name:var(--font-display)] font-light text-[36px] leading-none text-[var(--color-ink)]"
+            class="font-[family-name:var(--font-display)] font-light text-[28px] sm:text-[32px] md:text-[36px] leading-none text-[var(--color-ink)]"
           >
             Visitor Gallery
           </h1>
           <p
-            class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)] mb-1"
+            class="font-[family-name:var(--font-mono)] text-sm sm:text-base uppercase text-[var(--color-ink-dim)] mb-1"
           >
             {subtitle}
           </p>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
           {
             visitor && (
               <a

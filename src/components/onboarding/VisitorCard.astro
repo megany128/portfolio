@@ -51,7 +51,7 @@ const startColor: CardColor =
   } catch (e) {}
 </script>
 
-<section class="relative min-h-dvh grid place-items-center px-6 overflow-hidden">
+<section class="relative min-h-dvh flex flex-col items-center justify-center px-4 sm:px-6 py-6 overflow-hidden">
   <!-- Sunrise: renders at full cover by default. The welcome page grows its
        own cream disc out of the explore button before navigating here, and
        this element simply continues the cream fill so the first paint of
@@ -69,7 +69,7 @@ const startColor: CardColor =
     data-back-link
     data-back-edit={edit ? "" : undefined}
     aria-label={edit ? "Back to gallery" : "Back to welcome"}
-    class="group absolute top-5 left-5 z-10 flex items-center gap-2 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.18em] text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] opacity-0 [animation:fade-in_0.4s_var(--ease-out-soft)_0.2s_forwards] transition-colors"
+    class="group absolute top-3 left-3 sm:top-5 sm:left-5 z-10 flex items-center gap-2 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.18em] text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] opacity-0 [animation:fade-in_0.4s_var(--ease-out-soft)_0.2s_forwards] transition-colors"
   >
     <svg
       width="14"
@@ -93,7 +93,7 @@ const startColor: CardColor =
     class="group absolute top-3 right-3 z-10 flex items-center gap-1.5 p-2 opacity-0 [animation:fade-in_0.4s_var(--ease-out-soft)_0.2s_forwards]"
   >
     <span
-      class="overflow-hidden max-w-0 group-hover:max-w-[480px] transition-all duration-300 ease-[var(--ease-out-soft)] whitespace-nowrap font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-[0.14em] text-[var(--color-ink-dim)] leading-none"
+      class="hidden sm:inline overflow-hidden max-w-0 group-hover:max-w-[480px] transition-all duration-300 ease-[var(--ease-out-soft)] whitespace-nowrap font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-[0.14em] text-[var(--color-ink-dim)] leading-none"
     >
       INSPIRED BY <a href="https://x.com/joshpuckett" target="_blank" rel="noopener noreferrer" class="underline hover:text-[var(--color-ink)] transition-colors">@JOSHPUCKETT</a>'S ONBOARDING FOR <a href="https://interfacecraft.dev" target="_blank" rel="noopener noreferrer" class="underline hover:text-[var(--color-ink)] transition-colors">INTERFACECRAFT.DEV</a>&nbsp;
     </span>
@@ -119,9 +119,9 @@ const startColor: CardColor =
     novalidate
     data-edit={edit ? "" : undefined}
     data-existing-name={existingName ?? undefined}
-    class="relative w-[512px] max-w-full flex flex-col items-center gap-10 text-[var(--color-ink)]"
+    class="relative w-full max-w-[512px] flex flex-col items-center gap-8 sm:gap-10 text-[var(--color-ink)]"
   >
-    <header class="font-[family-name:var(--font-mono)] text-base uppercase text-center w-full leading-none">
+    <header class="font-[family-name:var(--font-mono)] text-sm sm:text-base uppercase text-center w-full leading-none">
       {edit ? (
         <p class="text-[var(--color-ink)]">Edit your card.</p>
         <p class="text-[var(--color-ink-dim)] mt-2">change anything you like.</p>
@@ -131,14 +131,14 @@ const startColor: CardColor =
       )}
     </header>
 
-    <div class="flex items-center gap-6 w-full">
+    <div class="flex items-center gap-3 sm:gap-6 w-full">
       <label
         for="visitor-name"
-        class="font-[family-name:var(--font-mono)] text-base uppercase whitespace-nowrap"
+        class="font-[family-name:var(--font-mono)] text-sm sm:text-base uppercase whitespace-nowrap"
       >
         Name:
       </label>
-      <div class="flex-1 flex items-center gap-3">
+      <div class="flex-1 min-w-0 flex items-center gap-2 sm:gap-3">
         <input
           id="visitor-name"
           name="name"
@@ -147,7 +147,7 @@ const startColor: CardColor =
           autocomplete="off"
           spellcheck="false"
           maxlength="40"
-          class="flex-1 min-w-0 bg-[var(--color-bg-white)] rounded-[12px] px-3 py-2.5 font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)] focus:text-[var(--color-ink)] outline-none border border-transparent focus:border-[var(--color-bg-neutral-2)] transition-colors"
+          class="flex-1 min-w-0 bg-[var(--color-bg-white)] rounded-[12px] px-3 py-2.5 font-[family-name:var(--font-mono)] text-sm sm:text-base uppercase text-[var(--color-ink-dim)] focus:text-[var(--color-ink)] outline-none border border-transparent focus:border-[var(--color-bg-neutral-2)] transition-colors"
         />
         <button
           type="button"
@@ -165,7 +165,11 @@ const startColor: CardColor =
       </div>
     </div>
 
-    <div transition:name={edit ? "edit-card" : undefined} transition:animate={edit ? "initial" : undefined}>
+    <div
+      class="onboarding-card-scale"
+      transition:name={edit ? "edit-card" : undefined}
+      transition:animate={edit ? "initial" : undefined}
+    >
       <LibraryCard
         name={existingName ?? "flower dreamer"}
         color={startColor}
@@ -175,7 +179,7 @@ const startColor: CardColor =
       />
     </div>
 
-    <div class="flex items-center gap-6">
+    <div class="flex items-center gap-4 sm:gap-6 flex-wrap justify-center">
       <CardColorPicker selected={startColor} />
 
       <!-- Pen / eraser toggle (Figma 7:678/7:679) -->
@@ -230,6 +234,42 @@ const startColor: CardColor =
   @keyframes fade-in {
     to {
       opacity: 1;
+    }
+  }
+
+  /*
+    The LibraryCard inside is a fixed 388×252 so the signature canvas and
+    flower art land in known positions. On narrow screens we scale the
+    whole card down in a wrapper — the inner layout keeps its pixel
+    coordinates, and flex siblings see the scaled wrapper box.
+    SignaturePad uses getBoundingClientRect() for sizing + pointer coords,
+    so the canvas auto-adjusts to the scaled visible size.
+  */
+  .onboarding-card-scale {
+    --card-w: 388px;
+    --card-h: 252px;
+    --card-scale: 1;
+    position: relative;
+    width: calc(var(--card-w) * var(--card-scale));
+    height: calc(var(--card-h) * var(--card-scale));
+  }
+  .onboarding-card-scale > :global(:first-child) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: scale(var(--card-scale));
+    transform-origin: top left;
+  }
+  /* Below ~420px of card + padding, shrink so the card + its 24px radius
+     always have room to breathe inside a 100vw viewport. */
+  @media (max-width: 419px) {
+    .onboarding-card-scale {
+      --card-scale: 0.78;
+    }
+  }
+  @media (max-width: 360px) {
+    .onboarding-card-scale {
+      --card-scale: 0.68;
     }
   }
 
