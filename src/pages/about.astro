@@ -15,10 +15,10 @@ const cursorColor = visitor?.color ?? "pink";
 ---
 
 <BaseLayout title="About — Megan Yap">
-  <div class="flex items-stretch min-h-screen">
+  <div class="flex items-stretch flex-1">
     <Sidebar active="about" />
 
-    <main class="flex flex-col gap-10 p-10 flex-1 min-w-0">
+    <main class="flex flex-col gap-10 p-10 min-w-0">
       <section class="flex flex-col gap-4 about-section" data-about-section>
         <h1
           class="font-[family-name:var(--font-display)] font-light text-[36px] leading-tight text-[var(--color-ink)]"
@@ -29,7 +29,9 @@ const cursorColor = visitor?.color ?? "pink";
           class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed flex flex-col gap-4 max-w-[897px]"
         >
           <p>
-            I grew up in sunny Malaysia and am now exploring the magical world of tech and design as a junior at Cornell. I started off with designing stickers and stationery products, but now I spend most of my spare time in the digital world flibbertigibetting away (iykyk).
+            I grew up in sunny Malaysia and am now exploring the magical world of tech and design as
+            a junior at Cornell. I started off with designing stickers and stationery products, but
+            now I spend most of my spare time in the digital world flibbertigibetting away (iykyk).
           </p>
           <p>When I&rsquo;m not dreaming up product ideas, you can find me:</p>
           <ul class="about-list list-none pl-0 flex flex-col gap-1">
@@ -38,7 +40,9 @@ const cursorColor = visitor?.color ?? "pink";
                 <span class="about-list__dot">•</span>
                 <span class="about-list__emoji">🌱</span>
               </span>
-              <span class="about-list__text">Terraforming worlds and building zoos in my favorite board games</span>
+              <span class="about-list__text"
+                >Terraforming worlds and building zoos in my favorite board games</span
+              >
             </li>
             <li data-about-li style="--li-emoji: '⚔️';">
               <span class="about-list__marker" aria-hidden="true">
@@ -55,7 +59,10 @@ const cursorColor = visitor?.color ?? "pink";
               <span class="about-list__text">Lost in a Brandon Sanderson novel</span>
             </li>
           </ul>
-          <p>Always happy to chat! I&rsquo;m on the lookout for freelance work and good conversations :)</p>
+          <p>
+            Always happy to chat! I&rsquo;m on the lookout for a full-time job and good conversations
+            :)
+          </p>
         </div>
 
         <div
@@ -101,7 +108,6 @@ const cursorColor = visitor?.color ?? "pink";
               class="portrait rounded-[12px] object-cover w-[240px] h-[320px]"
             />
           </div>
-
         </div>
       </section>
 
@@ -135,7 +141,7 @@ const cursorColor = visitor?.color ?? "pink";
             iconHeight={19}
             iconRounded={false}
             title="Armada"
-            description="I just joined Armada as a builder — it's an awesome club that funneled 70% of Cornell's YC Summer 2025 admits. Everyone in Armada is insanely cracked and I'm looking forward to getting to know the people here and building cool things with them!"
+            description="I just joined Armada as a builder — it's an awesome club that is sponsored by Jared Friedman (YC) and Anthropic. Everyone in Armada is insanely cracked and I'm looking forward to getting to know the people here!"
             photo="/images/communities/armada-photo.png"
           />
         </div>
@@ -269,7 +275,7 @@ const cursorColor = visitor?.color ?? "pink";
 
   function initAboutSections() {
     const sections = document.querySelectorAll<HTMLElement>(
-      "[data-about-section]:not([data-about-io])"
+      "[data-about-section]:not([data-about-io])",
     );
     if (sections.length === 0) return;
 

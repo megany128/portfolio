@@ -23,74 +23,114 @@
   sidebar's "Explore" nav — positioned in JS so it tracks the nav's
   bounding rect. Clicking it opens a floating menu of hat options.
 -->
-<div
-  data-hat-rack
-  transition:persist="site-pet-rack"
-  class="hat-rack"
-  aria-label="Hat rack"
->
-  <button type="button" data-rack-toggle data-cursor="link" class="hat-rack__toggle" aria-label="Choose a hat">
-    <svg class="hat-rack__icon hat-rack__icon--default" width="26" height="22" viewBox="0 0 40 34" aria-hidden="true">
+<div data-hat-rack transition:persist="site-pet-rack" class="hat-rack" aria-label="Hat rack">
+  <button
+    type="button"
+    data-rack-toggle
+    data-cursor="link"
+    class="hat-rack__toggle"
+    aria-label="Choose a hat"
+  >
+    <svg
+      class="hat-rack__icon hat-rack__icon--default"
+      width="26"
+      height="22"
+      viewBox="0 0 40 34"
+      aria-hidden="true"
+    >
       <!-- Sprout perched on a hat-stand shelf. Stem base sits on the
            shelf top; shelf brackets meet the SVG bottom edge (= Explore
            nav top edge). -->
       <!-- shelf -->
-      <rect x="2" y="26" width="36" height="2.2" rx="1" fill="#6b6553" />
+      <rect x="2" y="26" width="36" height="2.2" rx="1" fill="#6b6553"></rect>
       <!-- shelf brackets -->
-      <rect x="5" y="28" width="2" height="6" rx="0.7" fill="#6b6553" />
-      <rect x="33" y="28" width="2" height="6" rx="0.7" fill="#6b6553" />
+      <rect x="5" y="28" width="2" height="6" rx="0.7" fill="#6b6553"></rect>
+      <rect x="33" y="28" width="2" height="6" rx="0.7" fill="#6b6553"></rect>
       <!-- sprout sitting on the shelf — leaves tilt upward like ^ -->
-      <rect x="19" y="12" width="2" height="14" fill="#2a8f50" />
-      <ellipse cx="13" cy="7" rx="9" ry="4.8" fill="#3ca564" transform="rotate(28 13 7)" />
-      <ellipse cx="28" cy="7" rx="9" ry="4.8" fill="#3ca564" transform="rotate(-28 28 7)" />
+      <rect x="19" y="12" width="2" height="14" fill="#2a8f50"></rect>
+      <ellipse cx="13" cy="7" rx="9" ry="4.8" fill="#3ca564" transform="rotate(28 13 7)"></ellipse>
+      <ellipse cx="28" cy="7" rx="9" ry="4.8" fill="#3ca564" transform="rotate(-28 28 7)"></ellipse>
     </svg>
     <span data-rack-preview-slot class="hat-rack__preview-slot" aria-hidden="true"></span>
   </button>
   <div class="hat-rack__menu" data-rack-options aria-hidden="true">
-    <button type="button" class="hat-rack__opt" data-hat-choice="none" data-cursor="link" aria-label="No hat">
+    <button
+      type="button"
+      class="hat-rack__opt"
+      data-hat-choice="none"
+      data-cursor="link"
+      aria-label="No hat"
+    >
       <span class="hat-rack__none">∅</span>
     </button>
-    <button type="button" class="hat-rack__opt" data-hat-choice="bucket" data-cursor="link" aria-label="Bucket hat">
+    <button
+      type="button"
+      class="hat-rack__opt"
+      data-hat-choice="bucket"
+      data-cursor="link"
+      aria-label="Bucket hat"
+    >
       <svg width="28" height="15" viewBox="-4 -9 48 17" aria-hidden="true">
-        <rect x="10" y="-5" width="24" height="10" rx="3" fill="#e8c84a" />
-        <rect x="-1" y="2" width="46" height="6" rx="3" fill="#e8c84a" />
+        <rect x="10" y="-5" width="24" height="10" rx="3" fill="#e8c84a"></rect>
+        <rect x="-1" y="2" width="46" height="6" rx="3" fill="#e8c84a"></rect>
       </svg>
     </button>
-    <button type="button" class="hat-rack__opt" data-hat-choice="top" data-cursor="link" aria-label="Top hat">
+    <button
+      type="button"
+      class="hat-rack__opt"
+      data-hat-choice="top"
+      data-cursor="link"
+      aria-label="Top hat"
+    >
       <svg width="26" height="18" viewBox="0 -14 44 19" aria-hidden="true">
-        <rect x="13" y="-12" width="18" height="14" rx="2.5" fill="#1a1a1a" />
-        <rect x="4" y="0" width="36" height="5" rx="2.5" fill="#1a1a1a" />
+        <rect x="13" y="-12" width="18" height="14" rx="2.5" fill="#1a1a1a"></rect>
+        <rect x="4" y="0" width="36" height="5" rx="2.5" fill="#1a1a1a"></rect>
       </svg>
     </button>
-    <button type="button" class="hat-rack__opt" data-hat-choice="cap" data-cursor="link" aria-label="Baseball cap">
+    <button
+      type="button"
+      class="hat-rack__opt"
+      data-hat-choice="cap"
+      data-cursor="link"
+      aria-label="Baseball cap"
+    >
       <svg width="28" height="15" viewBox="0 -6 44 15" aria-hidden="true">
-        <rect x="8" y="-4" width="28" height="10" rx="4" fill="#168b9d" />
-        <rect x="22" y="4" width="20" height="5" rx="2.5" fill="#168b9d" />
+        <rect x="8" y="-4" width="28" height="10" rx="4" fill="#168b9d"></rect>
+        <rect x="22" y="4" width="20" height="5" rx="2.5" fill="#168b9d"></rect>
       </svg>
     </button>
-    <button type="button" class="hat-rack__opt" data-hat-choice="sprout" data-cursor="link" aria-label="Sprout">
+    <button
+      type="button"
+      class="hat-rack__opt"
+      data-hat-choice="sprout"
+      data-cursor="link"
+      aria-label="Sprout"
+    >
       <svg width="30" height="22" viewBox="8 -14 26 20" aria-hidden="true">
-        <rect x="21.2" y="-6" width="1.6" height="12" fill="#2a8f50" />
-        <ellipse cx="17" cy="-7" rx="5" ry="2.8" fill="#3ca564" transform="rotate(28 17 -7)" />
-        <ellipse cx="27" cy="-7" rx="5" ry="2.8" fill="#3ca564" transform="rotate(-28 27 -7)" />
+        <rect x="21.2" y="-6" width="1.6" height="12" fill="#2a8f50"></rect>
+        <ellipse cx="17" cy="-7" rx="5" ry="2.8" fill="#3ca564" transform="rotate(28 17 -7)"
+        ></ellipse>
+        <ellipse cx="27" cy="-7" rx="5" ry="2.8" fill="#3ca564" transform="rotate(-28 27 -7)"
+        ></ellipse>
       </svg>
     </button>
-    <button type="button" class="hat-rack__opt" data-hat-choice="party" data-cursor="link" aria-label="Party hat">
+    <button
+      type="button"
+      class="hat-rack__opt"
+      data-hat-choice="party"
+      data-cursor="link"
+      aria-label="Party hat"
+    >
       <svg width="26" height="18" viewBox="10 -14 26 16" aria-hidden="true">
-        <polygon points="22.5,-12 14,0 31,0" fill="#bf5a7a" />
-        <rect x="14" y="0" width="17" height="2" rx="1" fill="#bf5a7a" />
-        <circle cx="22.5" cy="-12" r="2" fill="#168b9d" />
+        <polygon points="22.5,-12 14,0 31,0" fill="#bf5a7a"></polygon>
+        <rect x="14" y="0" width="17" height="2" rx="1" fill="#bf5a7a"></rect>
+        <circle cx="22.5" cy="-12" r="2" fill="#168b9d"></circle>
       </svg>
     </button>
   </div>
 </div>
 
-<div
-  data-site-pet
-  transition:persist="site-pet"
-  aria-hidden="true"
-  class="site-pet"
->
+<div data-site-pet transition:persist="site-pet" aria-hidden="true" class="site-pet">
   <div class="site-pet__bubble" data-pet-bubble aria-hidden="true"></div>
   <div class="site-pet__emotes" data-pet-emotes aria-hidden="true"></div>
   <button
@@ -101,45 +141,47 @@
     aria-label="Pet the pet"
   >
     <span class="site-pet__bob">
-      <svg
-        width="44"
-        height="56"
-        viewBox="0 0 44 56"
-        class="site-pet__svg"
-        fill="none"
-      >
+      <svg width="44" height="56" viewBox="0 0 44 56" class="site-pet__svg" fill="none">
         <!-- soft contact shadow so the pet reads as grounded -->
-        <ellipse class="site-pet__shadow" cx="22" cy="53.5" rx="14" ry="1.8" fill="#242424" opacity="0.16" />
+        <ellipse
+          class="site-pet__shadow"
+          cx="22"
+          cy="53.5"
+          rx="14"
+          ry="1.8"
+          fill="#242424"
+          opacity="0.16"></ellipse>
 
         <!-- single slab body — a lean geometric monolith, ink-on-ink -->
-        <rect
-          x="4"
-          y="6"
-          width="36"
-          height="38"
-          rx="5"
-          fill="#242424"
-        />
+        <rect x="4" y="6" width="36" height="38" rx="5" fill="#242424"></rect>
         <!-- subtle top highlight for depth -->
-        <rect
-          x="4"
-          y="6"
-          width="36"
-          height="2"
-          rx="1"
-          fill="#f3e9d6"
-          opacity="0.1"
-        />
+        <rect x="4" y="6" width="36" height="2" rx="1" fill="#f3e9d6" opacity="0.1"></rect>
 
         <!-- slit eyes — thin, evenly spaced. Group transforms for glance + blink. -->
         <g class="site-pet__eyes" style="--eye-x: 0; --eye-y: 0;">
-          <rect class="site-pet__eye" x="14" y="22" width="4" height="5" rx="1" fill="#f3e9d6" />
-          <rect class="site-pet__eye" x="26" y="22" width="4" height="5" rx="1" fill="#f3e9d6" />
+          <rect class="site-pet__eye" x="14" y="22" width="4" height="5" rx="1" fill="#f3e9d6"
+          ></rect>
+          <rect class="site-pet__eye" x="26" y="22" width="4" height="5" rx="1" fill="#f3e9d6"
+          ></rect>
         </g>
 
         <!-- legs — short blocky extrusions flush with the body -->
-        <rect class="site-pet__leg site-pet__leg--left" x="10" y="42" width="8" height="10" rx="1.5" fill="#242424" />
-        <rect class="site-pet__leg site-pet__leg--right" x="26" y="42" width="8" height="10" rx="1.5" fill="#242424" />
+        <rect
+          class="site-pet__leg site-pet__leg--left"
+          x="10"
+          y="42"
+          width="8"
+          height="10"
+          rx="1.5"
+          fill="#242424"></rect>
+        <rect
+          class="site-pet__leg site-pet__leg--right"
+          x="26"
+          y="42"
+          width="8"
+          height="10"
+          rx="1.5"
+          fill="#242424"></rect>
 
         <!--
           Hats — every variant is drawn but only the one matching
@@ -147,29 +189,31 @@
           and 1–2 color max to match the mascot's quiet ink aesthetic.
         -->
         <g class="pet-hat" data-hat-variant="bucket">
-          <rect x="10" y="-7" width="24" height="10" rx="3" fill="#e8c84a" />
-          <rect x="-1" y="0" width="46" height="6" rx="3" fill="#e8c84a" />
+          <rect x="10" y="-7" width="24" height="10" rx="3" fill="#e8c84a"></rect>
+          <rect x="-1" y="0" width="46" height="6" rx="3" fill="#e8c84a"></rect>
         </g>
         <g class="pet-hat" data-hat-variant="top">
-          <rect x="13" y="-11" width="18" height="14" rx="2.5" fill="#1a1a1a" />
-          <rect x="4" y="1" width="36" height="5" rx="2.5" fill="#1a1a1a" />
+          <rect x="13" y="-11" width="18" height="14" rx="2.5" fill="#1a1a1a"></rect>
+          <rect x="4" y="1" width="36" height="5" rx="2.5" fill="#1a1a1a"></rect>
         </g>
         <g class="pet-hat" data-hat-variant="cap">
-          <rect x="8" y="-4" width="28" height="10" rx="4" fill="#168b9d" />
-          <rect x="22" y="4" width="20" height="5" rx="2.5" fill="#168b9d" />
+          <rect x="8" y="-4" width="28" height="10" rx="4" fill="#168b9d"></rect>
+          <rect x="22" y="4" width="20" height="5" rx="2.5" fill="#168b9d"></rect>
         </g>
         <g class="pet-hat" data-hat-variant="sprout">
           <!-- thin darker stem + two ellipse leaves pivoted so their
                outer tips point upward like ^ -->
-          <rect x="21.2" y="-6" width="1.6" height="12" fill="#2a8f50" />
-          <ellipse cx="17" cy="-7" rx="5" ry="2.8" fill="#3ca564" transform="rotate(28 17 -7)" />
-          <ellipse cx="27" cy="-7" rx="5" ry="2.8" fill="#3ca564" transform="rotate(-28 27 -7)" />
+          <rect x="21.2" y="-6" width="1.6" height="12" fill="#2a8f50"></rect>
+          <ellipse cx="17" cy="-7" rx="5" ry="2.8" fill="#3ca564" transform="rotate(28 17 -7)"
+          ></ellipse>
+          <ellipse cx="27" cy="-7" rx="5" ry="2.8" fill="#3ca564" transform="rotate(-28 27 -7)"
+          ></ellipse>
         </g>
         <g class="pet-hat" data-hat-variant="party">
           <!-- party cone + pom-pom — brim sits flush on the head top -->
-          <polygon points="22.5,-8 14,4 31,4" fill="#bf5a7a" />
-          <rect x="14" y="4" width="17" height="2" rx="1" fill="#bf5a7a" />
-          <circle cx="22.5" cy="-8" r="2" fill="#168b9d" />
+          <polygon points="22.5,-8 14,4 31,4" fill="#bf5a7a"></polygon>
+          <rect x="14" y="4" width="17" height="2" rx="1" fill="#bf5a7a"></rect>
+          <circle cx="22.5" cy="-8" r="2" fill="#168b9d"></circle>
         </g>
       </svg>
     </span>
@@ -187,11 +231,7 @@
     --pet-y: 0px;
     --pet-ground: 0px;
     --pet-flip: 1;
-    transform: translate3d(
-      var(--pet-x),
-      calc((var(--pet-y) + var(--pet-ground)) * -1),
-      0
-    );
+    transform: translate3d(var(--pet-x), calc((var(--pet-y) + var(--pet-ground)) * -1), 0);
     will-change: transform;
   }
   .site-pet__hit {
@@ -227,10 +267,10 @@
     display: none;
   }
   .site-pet[data-hat="bucket"] .pet-hat[data-hat-variant="bucket"],
-  .site-pet[data-hat="top"]    .pet-hat[data-hat-variant="top"],
-  .site-pet[data-hat="cap"]    .pet-hat[data-hat-variant="cap"],
+  .site-pet[data-hat="top"] .pet-hat[data-hat-variant="top"],
+  .site-pet[data-hat="cap"] .pet-hat[data-hat-variant="cap"],
   .site-pet[data-hat="sprout"] .pet-hat[data-hat-variant="sprout"],
-  .site-pet[data-hat="party"]  .pet-hat[data-hat-variant="party"] {
+  .site-pet[data-hat="party"] .pet-hat[data-hat-variant="party"] {
     display: block;
   }
 
@@ -240,8 +280,13 @@
     animation: site-pet-bob 0.5s ease-in-out infinite;
   }
   @keyframes site-pet-bob {
-    0%, 100% { transform: translateY(0); }
-    50%      { transform: translateY(-1.5px); }
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-1.5px);
+    }
   }
 
   /* Walk cycle — legs alternate in a crisp 2-step cadence. */
@@ -253,8 +298,13 @@
     animation-delay: 0.23s;
   }
   @keyframes site-pet-leg {
-    0%, 100% { transform: translateY(0); }
-    50%      { transform: translateY(-3px); }
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-3px);
+    }
   }
 
   /* Blink. */
@@ -284,15 +334,23 @@
     animation-delay: 0.13s;
   }
   @keyframes site-pet-leg-kick {
-    0%   { transform: translateY(1px) rotate(-16deg); }
-    50%  { transform: translateY(-1px) rotate(14deg); }
-    100% { transform: translateY(1px) rotate(-16deg); }
+    0% {
+      transform: translateY(1px) rotate(-16deg);
+    }
+    50% {
+      transform: translateY(-1px) rotate(14deg);
+    }
+    100% {
+      transform: translateY(1px) rotate(-16deg);
+    }
   }
 
   /* Shadow shrinks while airborne (dragged or hopping) so the pet reads as
      lifted off the ground. */
   .site-pet__shadow {
-    transition: opacity 180ms ease-out, transform 180ms ease-out;
+    transition:
+      opacity 180ms ease-out,
+      transform 180ms ease-out;
     transform-origin: 22px 53.5px;
   }
   .site-pet[data-dragging] .site-pet__shadow {
@@ -305,9 +363,16 @@
     animation: site-pet-bump 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   @keyframes site-pet-bump {
-    0%   { transform: translateX(0) rotate(0deg); }
-    30%  { transform: translateX(calc(var(--pet-bump-dir, 1) * 3px)) rotate(calc(var(--pet-bump-dir, 1) * -6deg)); }
-    100% { transform: translateX(0) rotate(0deg); }
+    0% {
+      transform: translateX(0) rotate(0deg);
+    }
+    30% {
+      transform: translateX(calc(var(--pet-bump-dir, 1) * 3px))
+        rotate(calc(var(--pet-bump-dir, 1) * -6deg));
+    }
+    100% {
+      transform: translateX(0) rotate(0deg);
+    }
   }
 
   /* Hop on click. */
@@ -315,9 +380,15 @@
     animation: site-pet-hop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   @keyframes site-pet-hop {
-    0%   { transform: translateY(0); }
-    40%  { transform: translateY(-18px) rotate(-6deg); }
-    100% { transform: translateY(0); }
+    0% {
+      transform: translateY(0);
+    }
+    40% {
+      transform: translateY(-18px) rotate(-6deg);
+    }
+    100% {
+      transform: translateY(0);
+    }
   }
 
   /* Dizzy — shaken hard while being dragged. Pet holds still, eyes swirl,
@@ -333,12 +404,21 @@
     animation-play-state: paused;
   }
   @keyframes site-pet-dizzy-sway {
-    0%, 100% { transform: rotate(-4deg); }
-    50%      { transform: rotate(4deg); }
+    0%,
+    100% {
+      transform: rotate(-4deg);
+    }
+    50% {
+      transform: rotate(4deg);
+    }
   }
   @keyframes site-pet-dizzy-eyes {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   /* Orbiting dizzy stars layered above the pet. */
@@ -355,8 +435,12 @@
     animation: site-pet-spin-star 0.9s linear infinite;
   }
   @keyframes site-pet-spin-star {
-    from { transform: translate(-50%, -50%) rotate(0deg) translateX(18px) rotate(0deg); }
-    to   { transform: translate(-50%, -50%) rotate(360deg) translateX(18px) rotate(-360deg); }
+    from {
+      transform: translate(-50%, -50%) rotate(0deg) translateX(18px) rotate(0deg);
+    }
+    to {
+      transform: translate(-50%, -50%) rotate(360deg) translateX(18px) rotate(-360deg);
+    }
   }
 
   /*
@@ -376,16 +460,21 @@
     color: #f3e9d6;
     animation: site-pet-swirl 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
-  .site-pet-swirl svg { display: block; }
+  .site-pet-swirl svg {
+    display: block;
+  }
   @keyframes site-pet-swirl {
-    0%   { opacity: 0; transform: translate(-50%, -50%) rotate(0deg) scale(0.5); }
-    30%  { opacity: 0.95; }
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) rotate(0deg) scale(0.5);
+    }
+    30% {
+      opacity: 0.95;
+    }
     100% {
       opacity: 0;
-      transform: translate(
-        calc(-50% + var(--swirl-dx, 0px)),
-        calc(-50% - 34px)
-      ) rotate(540deg) scale(1.15);
+      transform: translate(calc(-50% + var(--swirl-dx, 0px)), calc(-50% - 34px)) rotate(540deg)
+        scale(1.15);
     }
   }
 
@@ -411,9 +500,18 @@
     animation: site-pet-emote 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
   @keyframes site-pet-emote {
-    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
-    25%  { opacity: 0.75; transform: translate(calc(-50% + var(--emote-dx, 0px)), calc(-50% - 10px)) scale(1); }
-    100% { opacity: 0; transform: translate(calc(-50% + var(--emote-dx, 0px) * 1.4), calc(-50% - 28px)) scale(0.7); }
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.4);
+    }
+    25% {
+      opacity: 0.75;
+      transform: translate(calc(-50% + var(--emote-dx, 0px)), calc(-50% - 10px)) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(calc(-50% + var(--emote-dx, 0px) * 1.4), calc(-50% - 28px)) scale(0.7);
+    }
   }
 
   /* Speech bubble — anchored well above the sprite so it never overlaps
@@ -604,7 +702,9 @@
     padding: 0 3px;
     border-radius: 6px;
     cursor: pointer;
-    transition: background 160ms ease-out, transform 180ms var(--ease-out-soft);
+    transition:
+      background 160ms ease-out,
+      transform 180ms var(--ease-out-soft);
     color: #f3e9d6;
   }
   .hat-rack__opt:hover {
@@ -663,20 +763,8 @@
     // Click quips escalate as the user pokes the pet repeatedly. The
     // `clickCount` decays (resets) after ~5s of no clicks so the pet
     // returns to being friendly once left alone.
-    const CLICK_PHRASES_MILD = [
-      "heya!",
-      "hi there",
-      "sup",
-      "yo",
-      "oh hi",
-    ];
-    const CLICK_PHRASES_MEH = [
-      "still here",
-      "again?",
-      "hi again",
-      "yes?",
-      "pspsps",
-    ];
+    const CLICK_PHRASES_MILD = ["heya!", "hi there", "sup", "yo", "oh hi"];
+    const CLICK_PHRASES_MEH = ["still here", "again?", "hi again", "yes?", "pspsps"];
     const CLICK_PHRASES_ANNOYED = [
       "why do you keep\npoking me?",
       "stop that",
@@ -684,27 +772,14 @@
       "quit it",
       "enough.",
     ];
-    const CLICK_PHRASES_DONE = [
-      "rude.",
-      "really?",
-      "ow.",
-      "i'm not a button",
-      "stop!",
-    ];
+    const CLICK_PHRASES_DONE = ["rude.", "really?", "ow.", "i'm not a button", "stop!"];
     function clickPool(count: number): string[] {
       if (count <= 2) return CLICK_PHRASES_MILD;
       if (count <= 4) return CLICK_PHRASES_MEH;
       if (count <= 7) return CLICK_PHRASES_ANNOYED;
       return CLICK_PHRASES_DONE;
     }
-    const HOVER_PHRASES = [
-      "what's up?",
-      "hi!",
-      "oh hey",
-      "howdy",
-      "sup?",
-      "hello",
-    ];
+    const HOVER_PHRASES = ["what's up?", "hi!", "oh hey", "howdy", "sup?", "hello"];
     const DRAG_PHRASES = [
       "where are you\ntaking me?",
       "put me down!",
@@ -758,9 +833,7 @@
       "ooh arcane",
       "malaysia sounds cool",
       "so many communities",
-      "laufey! good song",
-      "wingspan is my fave too",
-      "cornell huh. fancy",
+      "arcs is my fave too",
     ];
     const GALLERY_PHRASES = [
       "so many visitors!",
@@ -794,79 +867,90 @@
     ];
     // Context-specific perch phrases keyed by selector match
     const PERCH_CONTEXT: { match: string; phrases: string[] }[] = [
-      { match: "[data-toc]", phrases: [
-        "i'm the explore guide now",
-        "which page next?",
-        "navigation assistant\nreporting for duty",
-        "pick a page, any page",
-      ]},
-      { match: "[data-latest-log]", phrases: [
-        "ooh fresh updates",
-        "breaking news!",
-        "i'm on top of\nthe news",
-        "latest scoop right here",
-      ]},
-      { match: ".index-card", phrases: [
-        "this project looks cool",
-        "i'm guarding this one",
-        "click it! click it!",
-        "megan worked hard\non this",
-        "i helped (i didn't)",
-      ]},
-      { match: "[data-portrait]", phrases: [
-        "nice photo!",
-        "she's so photogenic",
-        "sitting on her head hehe",
-        "portrait guardian",
-      ]},
-      { match: "[data-community-card]", phrases: [
-        "ooh a club!",
-        "megan's so involved",
-        "community vibes",
-        "she's busy huh",
-      ]},
-      { match: "[data-fave]", phrases: [
-        "good taste confirmed",
-        "i approve of this pick",
-        "ooh what's this one?",
-        "megan's favorites\nare elite",
-      ]},
-      { match: "[data-mini-card-wrap]", phrases: [
-        "hi visitor!",
-        "whose card is this?",
-        "nice color choice",
-        "welcome welcome",
-      ]},
-      { match: ".cs-solution-card", phrases: [
-        "smart solution",
-        "design brain activated",
-        "this is clever",
-        "i see what she did here",
-      ]},
-      { match: ".cs-hero", phrases: [
-        "hero shot! dramatic",
-        "big picture energy",
-        "the main event",
-        "sitting on the banner",
-      ]},
-      { match: ".cs-phone", phrases: [
-        "tiny phone! cute",
-        "can i download this?",
-        "app looks nice",
-        "mobile vibes",
-      ]},
-      { match: ".cs-feature-tile", phrases: [
-        "feature spotted",
-        "ooh what's this do?",
-        "fancy feature",
-        "reading the specs",
-      ]},
-      { match: ".cs-reflection-tile", phrases: [
-        "reflective moment",
-        "deep thoughts",
-        "she learned things!",
-        "growth mindset",
-      ]},
+      {
+        match: "[data-toc]",
+        phrases: [
+          "i'm the explore guide now",
+          "which page next?",
+          "navigation assistant\nreporting for duty",
+          "pick a page, any page",
+        ],
+      },
+      {
+        match: "[data-latest-log]",
+        phrases: [
+          "ooh fresh updates",
+          "breaking news!",
+          "i'm on top of\nthe news",
+          "latest scoop right here",
+        ],
+      },
+      {
+        match: ".index-card",
+        phrases: [
+          "this project looks cool",
+          "i'm guarding this one",
+          "click it! click it!",
+          "megan worked hard\non this",
+          "i helped (i didn't)",
+        ],
+      },
+      {
+        match: "[data-portrait]",
+        phrases: [
+          "nice photo!",
+          "she's so photogenic",
+          "sitting on her head hehe",
+          "portrait guardian",
+        ],
+      },
+      {
+        match: "[data-community-card]",
+        phrases: ["ooh a club!", "megan's so involved", "community vibes", "she's busy huh"],
+      },
+      {
+        match: "[data-fave]",
+        phrases: [
+          "good taste confirmed",
+          "i approve of this pick",
+          "ooh what's this one?",
+          "megan's favorites\nare elite",
+        ],
+      },
+      {
+        match: "[data-mini-card-wrap]",
+        phrases: ["hi visitor!", "whose card is this?", "nice color choice", "welcome welcome"],
+      },
+      {
+        match: ".cs-solution-card",
+        phrases: [
+          "smart solution",
+          "design brain activated",
+          "this is clever",
+          "i see what she did here",
+        ],
+      },
+      {
+        match: ".cs-hero",
+        phrases: [
+          "hero shot! dramatic",
+          "big picture energy",
+          "the main event",
+          "sitting on the banner",
+        ],
+      },
+      {
+        match: ".cs-phone",
+        phrases: ["tiny phone! cute", "can i download this?", "app looks nice", "mobile vibes"],
+      },
+      {
+        match: ".cs-feature-tile",
+        phrases: ["feature spotted", "ooh what's this do?", "fancy feature", "reading the specs"],
+      },
+      {
+        match: ".cs-reflection-tile",
+        phrases: ["reflective moment", "deep thoughts", "she learned things!", "growth mindset"],
+      },
     ];
     const LEDGE_FALL_PHRASES = [
       "AHHH",
@@ -905,10 +989,9 @@
     let clickCount = 0;
     let lastClickAt = 0;
     let freeRoam = false; // unlocked after the user first drags the pet into
-                          // the main content area
+    // the main content area
     let shakeSamples: number[] = []; // timestamps of direction flips
     let lastShakeDx = 0;
-    let flingFromLedge = false; // skip mid-air ledge catch after flinging off a perch
     // Pointer velocity tracking — feeds the launch velocity on drop so a
     // quick flick actually throws the pet instead of dropping it.
     let ptrHistory: { t: number; x: number; y: number }[] = [];
@@ -946,6 +1029,109 @@
       "ahhh shaky!",
       "too wobbly!!",
     ];
+
+    const JUMP_GAP_MAX = 120; // max horizontal gap (px) between ledges to attempt a jump
+    const JUMP_HEIGHT_MAX = 80; // max vertical difference to jump up/down
+    let lastJumpAt = 0; // cooldown so pet doesn't chain-jump instantly
+    const JUMP_COOLDOWN = 2000; // ms to walk on a ledge before jumping again
+
+    /**
+     * Find the nearest ledge adjacent to the current one in the given
+     * direction (1 = right, -1 = left). Returns null if nothing is close
+     * enough to jump to.
+     */
+    function findAdjacentLedge(direction: 1 | -1): HTMLElement | null {
+      if (!currentLedge) return null;
+      if (performance.now() - lastJumpAt < JUMP_COOLDOWN) return null;
+      const cur = currentLedge.getBoundingClientRect();
+      const candidates = document.querySelectorAll<HTMLElement>(LEDGE_SELECTORS);
+      let best: HTMLElement | null = null;
+      let bestDist = Infinity;
+      for (const el of candidates) {
+        if (el === currentLedge) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) continue;
+        // Vertical difference between ledge tops — must be reachable
+        const vDiff = Math.abs(r.top - cur.top);
+        if (vDiff > JUMP_HEIGHT_MAX) continue;
+        // Horizontal gap in the walk direction
+        let gap: number;
+        if (direction === 1) {
+          // Walking right — gap from current right edge to next left edge
+          gap = r.left - cur.right;
+        } else {
+          // Walking left — gap from next right edge to current left edge
+          gap = cur.left - r.right;
+        }
+        // Must be ahead (positive gap) and within range
+        if (gap < -10 || gap > JUMP_GAP_MAX) continue;
+        if (gap < bestDist) {
+          best = el;
+          bestDist = gap;
+        }
+      }
+      return best;
+    }
+
+    const JUMP_PHRASES = [
+      "wheee!",
+      "parkour!",
+      "boing!",
+      "hop hop",
+      "watch this!",
+      "nailed it",
+      "comin through!",
+    ];
+
+    /**
+     * Launch the pet in an arc toward an adjacent ledge. The mid-flight
+     * catch system handles the actual landing.
+     */
+    function jumpToLedge(target: HTMLElement, direction: 1 | -1) {
+      const cur = currentLedge!.getBoundingClientRect();
+      const dest = target.getBoundingClientRect();
+      // Horizontal distance to cover (center-to-center of the gap)
+      const hDist =
+        direction === 1
+          ? dest.left + dest.width / 2 - (cur.right - PET_W / 2)
+          : cur.left + PET_W / 2 - (dest.right - dest.width / 2);
+      // Vertical difference (positive = target is higher)
+      const vDiff = cur.top - dest.top;
+      // Dismount current ledge — preserve absolute position.
+      // Pet is at y=0 on ledge whose surface is ledgeGroundY from viewport bottom.
+      // Convert to floor-relative y so pet stays at same screen position.
+      const ledgeAltitude = groundOffset; // ledgeGroundY was already in groundOffset
+      currentLedge = null;
+      ledgeGroundY = 0;
+      // Compute new ground (footer)
+      const footer = document.querySelector<HTMLElement>("footer[data-footer-root]");
+      let newGround = 0;
+      if (footer) {
+        const fr = footer.getBoundingClientRect();
+        if (fr.top < window.innerHeight && fr.bottom > 0) {
+          newGround = Math.max(0, window.innerHeight - fr.top);
+        }
+      }
+      groundOffset = newGround;
+      // Pet's absolute altitude = ledgeAltitude (was y=0 on ledge surface)
+      // New y = absolute altitude - new ground
+      y = Math.max(0, ledgeAltitude - newGround);
+      // Calculate arc velocity — time-of-flight ~0.45s
+      const tFlight = 0.45;
+      xVel = (hDist / tFlight) * direction;
+      // Need enough upward velocity to clear the height difference + arc peak
+      const peakExtra = 40 + Math.max(0, vDiff); // extra height for nice arc
+      // v = sqrt(2 * g * peakHeight), using g=3200 (rising gravity)
+      yVel = Math.sqrt(2 * 3200 * peakExtra);
+      fallSuspended = false;
+      lastJumpAt = performance.now();
+      measureWalls();
+      const pet = el();
+      if (pet) {
+        pet.removeAttribute("data-on-clickable");
+        saySomething(pet, JUMP_PHRASES, 1400);
+      }
+    }
 
     function findLedgeAtPosition(px: number, py: number): HTMLElement | null {
       // Find all ledge elements and check if the pet's feet overlap any.
@@ -1158,8 +1344,8 @@
         // Only dismount after scroll settles — prevents glitchy mid-scroll drops.
         // While scrolling, just track the ledge position silently.
         const petTopVP = r.top - PET_H;
-        const offScreen = petTopVP < -20 || r.top > window.innerHeight + 10 ||
-            r.width === 0 || r.height === 0;
+        const offScreen =
+          petTopVP < -20 || r.top > window.innerHeight + 10 || r.width === 0 || r.height === 0;
         if (!dragging && offScreen && !isScrolling) {
           const pet = el();
           if (pet) saySomething(pet, dizzyOr(LEDGE_FALL_PHRASES), 1800);
@@ -1220,10 +1406,15 @@
           if (x <= wL) {
             x = wL;
             if (dir === -1) {
-              // Chance to slip off ledge on wall bump
-              if (currentLedge && Math.random() < LEDGE_FALL_CHANCE) {
-                saySomething(pet, dizzyOr(LEDGE_FALL_PHRASES), 1800);
-                dismountLedge();
+              if (currentLedge) {
+                // Try jumping to adjacent ledge first
+                const neighbor = findAdjacentLedge(-1);
+                if (neighbor) {
+                  jumpToLedge(neighbor, -1);
+                } else if (Math.random() < LEDGE_FALL_CHANCE) {
+                  saySomething(pet, dizzyOr(LEDGE_FALL_PHRASES), 1800);
+                  dismountLedge();
+                }
               } else {
                 bump(pet, 1);
               }
@@ -1232,9 +1423,14 @@
           } else if (x >= wR) {
             x = wR;
             if (dir === 1) {
-              if (currentLedge && Math.random() < LEDGE_FALL_CHANCE) {
-                saySomething(pet, dizzyOr(LEDGE_FALL_PHRASES), 1800);
-                dismountLedge();
+              if (currentLedge) {
+                const neighbor = findAdjacentLedge(1);
+                if (neighbor) {
+                  jumpToLedge(neighbor, 1);
+                } else if (Math.random() < LEDGE_FALL_CHANCE) {
+                  saySomething(pet, dizzyOr(LEDGE_FALL_PHRASES), 1800);
+                  dismountLedge();
+                }
               } else {
                 bump(pet, -1);
               }
@@ -1259,50 +1455,52 @@
           }
           // While suspended: no gravity, no movement — cartoon hang.
         } else {
-        const dtSec = dt / 1000;
-        // Use much heavier gravity after a ledge fall so it reads as
-        // genuine freefall (accelerates dramatically) not a push.
-        const isFallingFromLedge = !currentLedge && yVel <= 0 && y > 40;
-        const g = yVel > 0 ? 2000 : (isFallingFromLedge ? 9000 : 3200);
-        yVel -= g * dtSec;
-        y += yVel * dtSec;
+          const dtSec = dt / 1000;
+          // Use much heavier gravity after a ledge fall so it reads as
+          // genuine freefall (accelerates dramatically) not a push.
+          const isFallingFromLedge = !currentLedge && yVel <= 0 && y > 40;
+          const g = yVel > 0 ? 2000 : isFallingFromLedge ? 9000 : 3200;
+          yVel -= g * dtSec;
+          y += yVel * dtSec;
 
-        // Mid-flight ledge catch — while falling (not on a ledge already),
-        // check if the pet's feet cross through a ledge surface this frame.
-        if (!currentLedge && yVel < 0 && !dizzy && !flingFromLedge) {
-          const petFeetVP = window.innerHeight - groundOffset - y;
-          const ledge = findLedgeAtPosition(x, petFeetVP);
-          if (ledge) {
-            const r = ledge.getBoundingClientRect();
-            // Only catch if pet is descending past the top edge (not rising through it)
-            const ledgeTopFromBottom = window.innerHeight - r.top;
-            const petAltitude = groundOffset + y;
-            // Pet should be within ~20px of ledge surface to "land"
-            if (Math.abs(petAltitude - ledgeTopFromBottom) < 20) {
-              mountLedge(ledge);
-              y = 0;
-              xVel *= 0.3; // dampen horizontal on ledge catch
-              yVel = 0;
-              if (!freeRoam) {
-                freeRoam = true;
-                try { localStorage.setItem("sitepet:freeRoam", "1"); } catch {}
+          // Mid-flight ledge catch — while falling (not on a ledge already),
+          // check if the pet's feet cross through a ledge surface this frame.
+          if (!currentLedge && yVel < 0 && !dizzy) {
+            const petFeetVP = window.innerHeight - groundOffset - y;
+            const ledge = findLedgeAtPosition(x, petFeetVP);
+            if (ledge) {
+              const r = ledge.getBoundingClientRect();
+              // Only catch if pet is descending past the top edge (not rising through it)
+              const ledgeTopFromBottom = window.innerHeight - r.top;
+              const petAltitude = groundOffset + y;
+              // Pet should be within ~20px of ledge surface to "land"
+              if (Math.abs(petAltitude - ledgeTopFromBottom) < 20) {
+                mountLedge(ledge);
+                y = 0;
+                xVel *= 0.3; // dampen horizontal on ledge catch
+                yVel = 0;
+                lastJumpAt = performance.now(); // cooldown before next jump
+                if (!freeRoam) {
+                  freeRoam = true;
+                  try {
+                    localStorage.setItem("sitepet:freeRoam", "1");
+                  } catch {}
+                }
+                saySomething(pet, dizzyOr(LEDGE_LAND_PHRASES), 2200);
               }
-              saySomething(pet, dizzyOr(LEDGE_LAND_PHRASES), 2200);
             }
           }
-        }
 
-        if (y <= 0) {
-          flingFromLedge = false;
-          // Reset dizzy timer on first landing so full effect plays on ground
-          if (dizzy && yVel < -100) dizzyUntil = performance.now() + 2200;
-          y = 0;
-          if (yVel < -160) {
-            yVel = -yVel * 0.1; // tiny bounce on hard landings
-          } else {
-            yVel = 0;
+          if (y <= 0) {
+            // Reset dizzy timer on first landing so full effect plays on ground
+            if (dizzy && yVel < -100) dizzyUntil = performance.now() + 2200;
+            y = 0;
+            if (yVel < -160) {
+              yVel = -yVel * 0.1; // tiny bounce on hard landings
+            } else {
+              yVel = 0;
+            }
           }
-        }
         } // end else (not fallSuspended)
       }
 
@@ -1334,7 +1532,7 @@
         lastPointerX = e.clientX;
         lastPointerY = e.clientY;
       },
-      { passive: true }
+      { passive: true },
     );
 
     /*
@@ -1367,7 +1565,7 @@
         const impulse = Math.min(520, Math.sqrt(mag) * 26);
         yVel = Math.min(560, Math.max(yVel, impulse));
       },
-      { passive: true }
+      { passive: true },
     );
 
     function wire(pet: HTMLElement) {
@@ -1468,7 +1666,6 @@
             // Dismount ledge on drag start — preserve absolute position
             // so there's no visual jump before drag positioning takes over.
             if (currentLedge) {
-              flingFromLedge = true;
               const oldGround = groundOffset;
               currentLedge = null;
               ledgeGroundY = 0;
@@ -1493,11 +1690,7 @@
         const newTop = e.clientY - dragOffsetY;
         x = clamp(newLeft, 4, window.innerWidth - PET_W - 4);
         const yFromGround = window.innerHeight - newTop - PET_H - groundOffset;
-        y = clamp(
-          yFromGround,
-          0,
-          Math.max(0, window.innerHeight - PET_H - groundOffset - 4),
-        );
+        y = clamp(yFromGround, 0, Math.max(0, window.innerHeight - PET_H - groundOffset - 4));
 
         // Shake detection — count rapid horizontal direction flips.
         const rawDx = e.movementX ?? 0;
@@ -1563,7 +1756,9 @@
             // Ensure free roam is on (must be to walk on ledges in main area)
             if (!freeRoam) {
               freeRoam = true;
-              try { localStorage.setItem("sitepet:freeRoam", "1"); } catch {}
+              try {
+                localStorage.setItem("sitepet:freeRoam", "1");
+              } catch {}
             }
             saySomething(pet, dizzyOr(LEDGE_LAND_PHRASES), 2200);
           } else {
@@ -1601,7 +1796,11 @@
                   localStorage.setItem("sitepet:freeRoam", "0");
                 } catch {}
                 measureWalls();
-                saySomething(pet, dizzyOr(["back home", "cozy in here", "okay okay i'll stay"]), 1400);
+                saySomething(
+                  pet,
+                  dizzyOr(["back home", "cozy in here", "okay okay i'll stay"]),
+                  1400,
+                );
               } else {
                 saySomething(pet, dizzyOr(DROP_PHRASES), 1400);
               }
@@ -1641,7 +1840,9 @@
             y = 0;
             if (!freeRoam) {
               freeRoam = true;
-              try { localStorage.setItem("sitepet:freeRoam", "1"); } catch {}
+              try {
+                localStorage.setItem("sitepet:freeRoam", "1");
+              } catch {}
             }
             saySomething(pet, dizzyOr(LEDGE_LAND_PHRASES), 2200);
           } else {
@@ -1740,12 +1941,10 @@
         if (hat === "none") rack.removeAttribute("data-has-hat");
         else rack.setAttribute("data-has-hat", "");
         // Mark selected option.
-        rack
-          .querySelectorAll<HTMLElement>("[data-hat-choice]")
-          .forEach((btn) => {
-            if (btn.dataset.hatChoice === hat) btn.setAttribute("data-selected", "");
-            else btn.removeAttribute("data-selected");
-          });
+        rack.querySelectorAll<HTMLElement>("[data-hat-choice]").forEach((btn) => {
+          if (btn.dataset.hatChoice === hat) btn.setAttribute("data-selected", "");
+          else btn.removeAttribute("data-selected");
+        });
         // Render the current hat as the toggle preview. Clone the
         // menu option's full SVG so the hat's own viewBox + sizing
         // travel with it — the slot CSS bottom-aligns the SVG to the
@@ -1754,9 +1953,7 @@
         if (slot) {
           slot.innerHTML = "";
           if (hat !== "none") {
-            const source = rack.querySelector<SVGElement>(
-              `[data-hat-choice="${hat}"] svg`
-            );
+            const source = rack.querySelector<SVGElement>(`[data-hat-choice="${hat}"] svg`);
             if (source) {
               const clone = source.cloneNode(true) as SVGElement;
               slot.appendChild(clone);

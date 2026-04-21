@@ -237,6 +237,8 @@ const stickers = [
       if (el.closest("[data-cursor]")) return false;
       // Stickers themselves shouldn't block but just in case:
       if (el.closest(".stamp-sticker")) return false;
+      // Interactive elements get circle cursor, not stamp.
+      if (el.closest("a, button, [role='button'], input, textarea, select, label")) return false;
       // Must be inside <main>.
       if (!el.closest("main")) return false;
       return true;
