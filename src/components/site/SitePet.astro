@@ -446,6 +446,14 @@
     opacity: 1;
     transform: translate(-50%, 0);
   }
+  /* Raise bubble when wearing a hat so it clears the headwear */
+  .site-pet[data-hat="bucket"] .site-pet__bubble,
+  .site-pet[data-hat="top"] .site-pet__bubble,
+  .site-pet[data-hat="cap"] .site-pet__bubble,
+  .site-pet[data-hat="sprout"] .site-pet__bubble,
+  .site-pet[data-hat="party"] .site-pet__bubble {
+    bottom: calc(100% + 26px);
+  }
   /*
     Bubble tail — a downward CSS triangle sitting flush below the bubble.
     Using borders instead of a rotated square means the tail never
@@ -726,8 +734,12 @@
       "tell me more",
       "fascinating",
       "i love this project",
-      "wait how'd she do that",
     ];
+    // Page-specific case study extras (merged with generic pool)
+    const CASE_STUDY_PAGE_PHRASES: Record<string, string[]> = {
+      "/work/lingofable": ["i want to learn a\nnew language now"],
+      "/work/sklonuj": ["i want to learn a\nnew language now"],
+    };
     const PLAYGROUND_PHRASES = [
       "whooaaa",
       "what's gonna be here?",
@@ -1117,14 +1129,15 @@
       pet.setAttribute("data-bump", "");
       window.setTimeout(() => pet.removeAttribute("data-bump"), 420);
 
-      // First time hitting this side: always speak. After that: 15% chance.
+      // First time hitting this side: always speak. After that: 5% chance
+      // (reduced now that context quips provide most personality).
       const side = direction === 1 ? "left" : "right";
       const firstTime = side === "left" ? !bumpedLeft : !bumpedRight;
       if (firstTime) {
         if (side === "left") bumpedLeft = true;
         else bumpedRight = true;
       }
-      if (firstTime || Math.random() < 0.15) {
+      if (firstTime || Math.random() < 0.05) {
         saySomething(pet, BUMP_PHRASES, 1400);
       }
     }
@@ -1675,7 +1688,10 @@
       function idlePool(): string[] {
         if (currentLedge) return perchPool();
         const path = window.location.pathname;
-        if (path.startsWith("/work/")) return CASE_STUDY_PHRASES;
+        if (path.startsWith("/work/")) {
+          const extras = CASE_STUDY_PAGE_PHRASES[path] ?? [];
+          return extras.length ? [...CASE_STUDY_PHRASES, ...extras] : CASE_STUDY_PHRASES;
+        }
         if (path.startsWith("/playground")) return PLAYGROUND_PHRASES;
         if (path.startsWith("/about")) return ABOUT_PHRASES;
         if (path.startsWith("/visitor-gallery")) return GALLERY_PHRASES;

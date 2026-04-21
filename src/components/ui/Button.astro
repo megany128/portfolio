@@ -1,8 +1,9 @@
 ---
 interface Props {
-  variant?: "primary" | "ghost";
+  variant?: "primary" | "ghost" | "outline";
   type?: "button" | "submit" | "reset";
   href?: string;
+  target?: string;
   class?: string;
   id?: string;
 }
@@ -11,18 +12,21 @@ const {
   variant = "primary",
   type = "button",
   href,
+  target,
   class: className = "",
   id,
 } = Astro.props;
 
 const base =
-  "inline-flex items-center justify-center gap-2 px-5 h-11 text-sm font-medium tracking-wide transition-[background,color,transform] duration-[var(--duration-fast)] ease-[var(--ease-out-soft)] active:translate-y-px disabled:opacity-50 disabled:pointer-events-none rounded-[var(--radius-pill)]";
+  "inline-flex items-center justify-center gap-2 px-5 h-11 text-sm font-medium tracking-wide transition-[background-color,color,border-color,transform] duration-[var(--duration-base)] ease-[var(--ease-out-soft)] active:translate-y-px disabled:opacity-50 disabled:pointer-events-none rounded-[var(--radius-pill)]";
 
 const variants = {
   primary:
     "bg-[var(--color-ink)] text-[var(--color-ink-inverted)] hover:bg-[var(--color-pink)]",
   ghost:
     "bg-transparent text-[var(--color-ink)] hover:bg-[var(--color-bg-neutral)]",
+  outline:
+    "bg-transparent text-[var(--color-ink-dim)] border border-[var(--color-bg-neutral-2)] hover:border-[var(--color-ink-dim)] hover:text-[var(--color-ink)]",
 } as const;
 
 const cls = `${base} ${variants[variant]} ${className}`;
@@ -30,7 +34,7 @@ const cls = `${base} ${variants[variant]} ${className}`;
 
 {
   href ? (
-    <a href={href} id={id} class={cls}>
+    <a href={href} id={id} class={cls} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined}>
       <slot />
     </a>
   ) : (

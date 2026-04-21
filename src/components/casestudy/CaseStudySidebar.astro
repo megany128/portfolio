@@ -397,6 +397,15 @@ const initialActive = active ?? sections[0]?.id;
     updateActive();
     setTimeout(updateActive, 60);
 
+    // Hover-follow: pill tracks hovered item, returns to active on leave.
+    items.forEach((item) => {
+      item.addEventListener("mouseenter", () => movePillTo(item));
+    });
+    list.addEventListener("mouseleave", () => {
+      const activeId = toc!.dataset.active;
+      if (activeId) movePillTo(itemForId(activeId));
+    });
+
     // Smooth scroll on TOC click (respect reduced motion).
     items.forEach((item) => {
       item.addEventListener("click", (e) => {
