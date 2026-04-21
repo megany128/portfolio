@@ -5,14 +5,18 @@ import ShootingStars from "../components/welcome/ShootingStars.astro";
 import Starfield from "../components/welcome/Starfield.astro";
 import WelcomeCursor from "../components/welcome/WelcomeCursor.astro";
 import SparkBurst from "../components/welcome/SparkBurst.astro";
+import { getCurrentVisitor } from "../lib/visitor-server";
 
 export const prerender = false;
+
+const visitor = await getCurrentVisitor(Astro);
+const isReturning = visitor !== null;
 ---
 
 <DarkScene title="Welcome — Megan's World">
   <Starfield />
   <ShootingStars />
-  <WelcomeHero />
+  <WelcomeHero returning={isReturning} />
   <SparkBurst />
   <WelcomeCursor />
 
@@ -81,11 +85,17 @@ export const prerender = false;
         if (triggered) return;
         triggered = true;
 
+        const isReturning = btn!.hasAttribute("data-returning");
+        const destination = isReturning ? "/home" : "/onboarding";
+
         const reducedMotion = window.matchMedia?.(
           "(prefers-reduced-motion: reduce)",
         ).matches;
         if (reducedMotion) {
-          navigate("/onboarding");
+          if (isReturning) {
+            try { sessionStorage.setItem("wallet:arrival", "1"); } catch {}
+          }
+          navigate(destination);
           return;
         }
 
@@ -136,10 +146,16 @@ export const prerender = false;
           // the user isn't stuck.
         }
 
+        // Returning visitors skip onboarding — go straight to /home with
+        // the wallet:arrival flag so the finale animation plays.
+        if (isReturning) {
+          try { sessionStorage.setItem("wallet:arrival", "1"); } catch {}
+        }
+
         // VT root crossfade is collapsed to 1ms via data-sunrise-play,
         // so navigate() resolves almost instantly — no dead cream
         // moment between cover and reveal.
-        await navigate("/onboarding");
+        await navigate(destination);
 
         // Cross-reveal: as the overlay fades out, onboarding's form
         // fades in underneath (its CSS animation started when the new

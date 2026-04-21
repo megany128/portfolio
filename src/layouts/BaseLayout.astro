@@ -60,6 +60,13 @@ const {
         animation: none !important;
       }
 
+      /* Edit card: card flies from gallery position to edit screen center. */
+      ::view-transition-old(edit-card),
+      ::view-transition-new(edit-card) {
+        animation-duration: 480ms;
+        animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
       /* Named groups (sidebar, footer) — no animation either. */
       ::view-transition-old(sidebar),
       ::view-transition-new(sidebar),

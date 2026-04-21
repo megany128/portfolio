@@ -29,6 +29,8 @@ const navItems: { key: ActiveKey; label: string; href: string }[] = [
   { key: "playground", label: "Playground", href: "/playground" },
   { key: "gallery", label: "Visitor Gallery", href: "/visitor-gallery" },
 ];
+
+const spaceLink = { label: "✦ Back to space", href: "/" };
 ---
 
 <footer
@@ -95,6 +97,15 @@ const navItems: { key: ActiveKey; label: string; href: string }[] = [
             </li>
           ))
         }
+        <li class="mt-2">
+          <a
+            data-footer-link
+            href={spaceLink.href}
+            class="footer-link text-[12px]"
+          >
+            {spaceLink.label}
+          </a>
+        </li>
       </ul>
     </div>
   </div>

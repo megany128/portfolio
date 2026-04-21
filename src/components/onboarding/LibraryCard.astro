@@ -12,6 +12,8 @@ interface Props {
   signable?: boolean;
   /** PNG data URL of a previously-drawn signature. Rendered as a static overlay when !signable. */
   signature?: string | null;
+  /** PNG data URL to pre-load onto the signature canvas when editing an existing card. */
+  existingSignature?: string | null;
   /** Optional override so multiple cards of the same color pick distinct glimmer dots + timings. */
   glimmerSeedSalt?: number;
 }
@@ -24,6 +26,7 @@ const {
   id = "library-card",
   signable = false,
   signature = null,
+  existingSignature = null,
   glimmerSeedSalt = 0,
 } = Astro.props;
 
@@ -185,7 +188,7 @@ const ARTS: Record<CardColor, ArtConfig> = {
     lineHeight: "1.1",
     right: "-6px",
     bottom: "-16px",
-    glimmerCount: 20,
+    glimmerCount: 32,
     seed: 0x0f1b,
   },
   orange: {
@@ -194,7 +197,7 @@ const ARTS: Record<CardColor, ArtConfig> = {
     lineHeight: "1.08",
     right: "-8px",
     bottom: "-6px",
-    glimmerCount: 16,
+    glimmerCount: 26,
     seed: 0xfc03,
   },
 };
@@ -335,7 +338,7 @@ const showFallback = !signable && !signature;
     </div>
   </div>
 
-  {signable && <SignaturePad />}
+  {signable && <SignaturePad existingSignature={existingSignature} />}
 
   {!signable && signature && (
     <img
@@ -433,16 +436,13 @@ const showFallback = !signable && !signature;
     --card-tint: var(--color-teal-1);
     --card-tint-soft: var(--color-teal-3);
     --card-flower-base: var(--color-teal-3);
-    /* Muted aqua-white so the glimmer sparkles without looking like
-       hot-white pinpricks against the cooler teal card. */
-    --card-flower-peak: #d9ebee;
-    --card-flower-halo: rgba(217, 235, 238, 0.6);
+    --card-flower-peak: #ffffff;
   }
   .library-card[data-color="green"] {
     background: var(--color-green);
     --card-tint: var(--color-green-1);
     --card-tint-soft: var(--color-green-2);
-    --card-flower-base: var(--color-green-1);
+    --card-flower-base: var(--color-green-2);
     --card-flower-peak: #ffffff;
   }
   .library-card[data-color="orange"] {
@@ -474,10 +474,12 @@ const showFallback = !signable && !signature;
   /* Reveal the art that matches the card's current color. */
   .library-card[data-color="pink"] .library-card__flower[data-for="pink"],
   .library-card[data-color="teal"] .library-card__flower[data-for="teal"],
-  .library-card[data-color="green"] .library-card__flower[data-for="green"],
   .library-card[data-color="orange"] .library-card__flower[data-for="orange"],
   .library-card[data-color="neutral"] .library-card__flower[data-for="neutral"] {
     opacity: 0.82;
+  }
+  .library-card[data-color="green"] .library-card__flower[data-for="green"] {
+    opacity: 0.92;
   }
   /* Static signature overlay in gallery view — drawn in the same pen color
      the visitor used in onboarding, with no blend mode so it matches the
@@ -530,6 +532,40 @@ const showFallback = !signable && !signature;
     82% {
       opacity: 1;
       text-shadow: 0 0 3px var(--card-flower-halo, rgba(255, 255, 255, 0.85));
+    }
+  }
+
+  /* Green (7.5px) and orange (9px) art uses smaller chars than pink/teal
+     (15px). Larger halo + scale bump so glimmer clusters read at the same
+     visual weight. */
+  .library-card[data-color="green"] .library-card__flower .glimmer,
+  .library-card[data-color="orange"] .library-card__flower .glimmer {
+    animation-name: flower-glimmer-small;
+  }
+  @keyframes flower-glimmer-small {
+    0%, 100% {
+      opacity: 0.2;
+      text-shadow: 0 0 0 transparent;
+      transform: scale(1);
+    }
+    35% {
+      opacity: 1;
+      text-shadow:
+        0 0 6px rgba(255, 255, 255, 0.9),
+        0 0 12px rgba(255, 255, 255, 0.4);
+      transform: scale(1.8);
+    }
+    60% {
+      opacity: 0.1;
+      text-shadow: 0 0 0 transparent;
+      transform: scale(1);
+    }
+    82% {
+      opacity: 1;
+      text-shadow:
+        0 0 5px rgba(255, 255, 255, 0.85),
+        0 0 10px rgba(255, 255, 255, 0.35);
+      transform: scale(1.6);
     }
   }
 

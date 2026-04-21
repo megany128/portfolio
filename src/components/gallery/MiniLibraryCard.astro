@@ -27,7 +27,15 @@ const {
 } = Astro.props;
 ---
 
-<div class="mini-card-wrap relative" data-color={color} data-cursor-bg={color} data-mini-card-wrap data-id={id}>
+<div
+  class="mini-card-wrap relative"
+  data-color={color}
+  data-cursor-bg={color}
+  data-mini-card-wrap
+  data-id={id}
+  transition:name={isYou ? "edit-card" : undefined}
+  transition:animate={isYou ? "initial" : undefined}
+>
   {isYou && (
     <span
       class="mini-card-pill absolute -top-3 left-1/2 -translate-x-1/2 z-20 font-[family-name:var(--font-mono)] font-bold text-[12px] uppercase px-1.5 py-0.5 rounded-[2.5px] tracking-wide"

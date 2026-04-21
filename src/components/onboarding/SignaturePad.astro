@@ -3,9 +3,15 @@
 // Pen and eraser both draw via the same Pointer Events; the eraser uses
 // destination-out compositing.  When in eraser mode, a circular outline
 // follows the pointer to preview the erase area.
+
+interface Props {
+  existingSignature?: string | null;
+}
+
+const { existingSignature = null } = Astro.props;
 ---
 
-<div data-signature-wrap class="absolute inset-0">
+<div data-signature-wrap data-existing-signature={existingSignature ?? undefined} class="absolute inset-0">
   <canvas
     data-signature-pad
     class="absolute inset-0 size-full pointer-events-auto"
@@ -144,15 +150,39 @@
 
     function size() {
       const r = pad!.getBoundingClientRect();
-      dpr = window.devicePixelRatio || 1;
-      pad!.width = Math.round(r.width * dpr);
-      pad!.height = Math.round(r.height * dpr);
+      const newDpr = window.devicePixelRatio || 1;
+      const newW = Math.round(r.width * newDpr);
+      const newH = Math.round(r.height * newDpr);
+      // Preserve existing content across resize.
+      let snapshot: ImageData | null = null;
+      if (pad!.width > 0 && pad!.height > 0 && hasInk) {
+        try { snapshot = ctx!.getImageData(0, 0, pad!.width, pad!.height); } catch {}
+      }
+      dpr = newDpr;
+      pad!.width = newW;
+      pad!.height = newH;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx!.lineCap = "round";
       ctx!.lineJoin = "round";
+      if (snapshot) {
+        ctx!.putImageData(snapshot, 0, 0);
+      }
     }
     size();
     new ResizeObserver(size).observe(pad);
+
+    // Load existing signature onto the canvas (edit mode).
+    const existingSig = wrap.dataset.existingSignature;
+    if (existingSig) {
+      const img = new Image();
+      img.onload = () => {
+        // Ensure canvas is sized before drawing.
+        size();
+        ctx!.drawImage(img, 0, 0, pad!.width / dpr, pad!.height / dpr);
+        setHasInk(true);
+      };
+      img.src = existingSig;
+    }
 
     function pos(e: PointerEvent) {
       const r = pad!.getBoundingClientRect();

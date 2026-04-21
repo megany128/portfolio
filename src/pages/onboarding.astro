@@ -1,20 +1,36 @@
 ---
 import DarkScene from "../layouts/DarkScene.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
 import VisitorCard from "../components/onboarding/VisitorCard.astro";
-import { peekNextVisitorNumber } from "../lib/visitor-server";
+import { getCurrentVisitor, peekNextVisitorNumber } from "../lib/visitor-server";
+import { SEED_VISITORS } from "../lib/seed-visitors";
 
 export const prerender = false;
 
-// Always show the onboarding flow while we're iterating on it.
-// Re-enable the redirect below once the visuals are signed off.
-//
-// import { getCurrentVisitor } from "../lib/visitor-server";
-// const visitor = await getCurrentVisitor(Astro);
-// if (visitor) return Astro.redirect("/home");
-
+const editMode = Astro.url.searchParams.has("edit");
+const visitor = await getCurrentVisitor(Astro);
 const nextNumber = await peekNextVisitorNumber(Astro);
+const seedCount = SEED_VISITORS.length;
+const displayNumber = visitor ? visitor.number + seedCount : nextNumber + seedCount;
+const isEdit = editMode && visitor !== null;
 ---
 
-<DarkScene title="Sign in — Megan's World">
-  <VisitorCard nextNumber={nextNumber} />
-</DarkScene>
+{isEdit ? (
+  <BaseLayout title="Edit card — Megan's World" showPet={false}>
+    {/* Zero-size placeholders so the sidebar/footer view-transition groups
+        resolve instantly instead of lingering from the gallery page. */}
+    <div transition:name="sidebar" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;" />
+    <div transition:name="footer" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;" />
+    <VisitorCard
+      nextNumber={displayNumber}
+      edit
+      existingName={visitor.name}
+      existingColor={visitor.color}
+      existingSignature={visitor.signature}
+    />
+  </BaseLayout>
+) : (
+  <DarkScene title="Sign in — Megan's World">
+    <VisitorCard nextNumber={displayNumber} />
+  </DarkScene>
+)}

@@ -4,6 +4,11 @@
 //     gently away when it gets close, then springs back.
 //   - Title + sparkles also drift slightly with the mouse for parallax.
 
+interface Props {
+  returning?: boolean;
+}
+
+const { returning = false } = Astro.props;
 const titleWords = ["Megan\u2019s", "World"];
 
 // The Paul Graham quote, split into words. Words wrapped in [shoved] still
@@ -32,7 +37,7 @@ const quote: Word[] = [
         <p
           class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-mute)] text-center w-full"
         >
-          Welcome to
+          {returning ? "Welcome back to" : "Welcome to"}
         </p>
         <p
           class="font-[family-name:var(--font-display)] font-light text-[36px] leading-none text-[var(--color-ink-inverted)] w-full text-center flex justify-center gap-2 flex-wrap"
@@ -47,7 +52,8 @@ const quote: Word[] = [
 
       <a
         id="enter-cta"
-        href="/onboarding"
+        href={returning ? "/home" : "/onboarding"}
+        data-returning={returning ? "" : undefined}
         class="btn-springy font-[family-name:var(--font-mono)] inline-flex items-center justify-center px-3 py-2 rounded-[12px] bg-[var(--color-bg)] text-[var(--color-ink)] text-[14px] uppercase leading-none whitespace-nowrap"
       >
         explore →
