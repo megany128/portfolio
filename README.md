@@ -1,43 +1,51 @@
-# Astro Starter Kit: Minimal
+# meganyap.com
 
-```sh
-pnpm create astro@latest -- --template minimal
+My personal portfolio — a design-focused, interactive site built with Astro and deployed on Cloudflare Workers.
+
+## Features
+
+- Animated starfield, shooting stars, and interactive particle sandbox
+- Work case studies with detailed project breakdowns
+- Visitor tracking system with an onboarding experience and gallery
+- Custom cursor, signature pad, color picker, and other playful interactions
+- Responsive design with motion-safe animations
+
+## Tech Stack
+
+- **Astro 5** — SSR with file-based routing and View Transitions
+- **Cloudflare Workers + D1** — edge hosting with SQLite for visitor data
+- **Tailwind CSS v4** — styling via Vite plugin
+- **GSAP** — animation
+- **TypeScript**
+
+## Getting Started
+
+```bash
+pnpm install
+pnpm dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Other scripts:
 
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```bash
+pnpm build      # build for Cloudflare Workers
+pnpm preview    # preview production build
+pnpm check      # TypeScript checking
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Project Structure
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+```
+src/
+├── components/    # 35+ components organized by feature
+│   ├── home/      # starfield, project cards, hero
+│   ├── about/     # community cards, favorites shelf, stickers
+│   ├── gallery/   # visitor gallery
+│   ├── onboarding/# visitor onboarding flow
+│   ├── scenery/   # shooting stars, spark bursts, particles
+│   └── ui/        # shared primitives (Button, Tag, Field…)
+├── layouts/       # base page layout
+├── lib/           # visitor tracking, utilities
+├── pages/         # file-based routes + API endpoints
+└── styles/        # design tokens (colors, type, spacing, motion)
+```
