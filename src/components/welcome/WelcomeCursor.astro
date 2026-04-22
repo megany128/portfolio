@@ -96,6 +96,14 @@
       cursor!.style.opacity = initialized ? "1" : "0";
     });
 
+    // Re-show cursor when returning from another window/tab — mouseenter
+    // doesn't always re-fire if the pointer is already over the document.
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden && initialized) {
+        cursor!.style.opacity = "1";
+      }
+    });
+
     document.addEventListener("mouseover", (e) => {
       const t = e.target as HTMLElement | null;
       const interactive = t?.closest?.("a, button, [role='button']");

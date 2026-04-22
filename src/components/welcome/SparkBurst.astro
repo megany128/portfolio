@@ -190,6 +190,17 @@
       { passive: true }
     );
 
+    // Pause RAF when page is hidden (tab/window switch) — resume on return.
+    // Full cleanup only on actual navigation (beforeunload).
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        cancelAnimationFrame(rafId);
+      } else {
+        lastFrame = performance.now();
+        rafId = requestAnimationFrame(tick);
+      }
+    });
+
     function cleanup() {
       cancelAnimationFrame(rafId);
       particles.length = 0;
