@@ -90,10 +90,15 @@ const {
   }
   @media (max-width: 639px) {
     .mini-card-wrap {
-      /* Fill available width on mobile (minus page padding) */
-      --mini-card-scale: calc((100vw - 32px) / 388);
+      /* Fill available width on mobile (minus page padding).
+         Can't store the ratio in --mini-card-scale (length ÷ number = length,
+         not the unitless number that scale() needs), so compute directly. */
       width: calc(100vw - 32px);
-      height: calc(252px * var(--mini-card-scale));
+      height: calc((100vw - 32px) * 252 / 388);
+    }
+    .mini-card-wrap .mini-card {
+      /* Derive unitless scale via trig identity: tan(atan2(a, b)) = a / b */
+      transform: scale(tan(atan2(100vw - 32px, 388px)));
     }
   }
   .mini-card-wrap .mini-card {

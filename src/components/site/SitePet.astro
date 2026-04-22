@@ -1898,11 +1898,14 @@
         if (path.startsWith("/visitor-gallery")) return GALLERY_PHRASES;
         return IDLE_PHRASES;
       }
+      let lastIdleQuipAt = 0;
       function scheduleIdle() {
         const delay = 18000 + Math.random() * 16000;
         window.setTimeout(() => {
-          if (!hovered && !dragging && !dizzy) {
+          const now = Date.now();
+          if (!hovered && !dragging && !dizzy && now - lastIdleQuipAt >= 15_000) {
             saySomething(pet, idlePool(), 2200);
+            lastIdleQuipAt = now;
           }
           scheduleIdle();
         }, delay);
@@ -1910,6 +1913,7 @@
       window.setTimeout(() => {
         if (!hovered && !dragging && !dizzy) {
           saySomething(pet, idlePool(), 2200);
+          lastIdleQuipAt = Date.now();
         }
         scheduleIdle();
       }, 12000);
