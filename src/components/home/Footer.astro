@@ -433,6 +433,21 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
       { passive: true }
     );
 
+    // --- Cached spark colors (avoid getComputedStyle every frame) ----------
+    let cachedRgbMain = "255, 255, 255";
+    let cachedRgbAlt = "255, 255, 255";
+
+    function refreshSparkColors() {
+      const style = getComputedStyle(footer!);
+      cachedRgbMain = style.getPropertyValue("--footer-spark").trim() || "255, 255, 255";
+      cachedRgbAlt = style.getPropertyValue("--footer-spark-alt").trim() || cachedRgbMain;
+    }
+    refreshSparkColors();
+
+    // Re-read when the color theme attribute changes.
+    const colorObserver = new MutationObserver(() => refreshSparkColors());
+    colorObserver.observe(footer, { attributes: true, attributeFilter: ["data-footer-color"] });
+
     // --- Animation loop ---------------------------------------------------
     let lastFrame = performance.now();
     let rafId = 0;
@@ -476,10 +491,8 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
 
         if (particles.length > 0) {
           ctx.globalCompositeOperation = "lighter";
-          // Read spark color from the footer root (set per color variant).
-          const style = getComputedStyle(footer!);
-          const rgbMain = style.getPropertyValue("--footer-spark").trim() || "255, 255, 255";
-          const rgbAlt = style.getPropertyValue("--footer-spark-alt").trim() || rgbMain;
+          const rgbMain = cachedRgbMain;
+          const rgbAlt = cachedRgbAlt;
 
           for (let i = particles.length - 1; i >= 0; i--) {
             const p = particles[i];
@@ -536,6 +549,7 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
     function cleanup() {
       cancelAnimationFrame(rafId);
       particles.length = 0;
+      colorObserver.disconnect();
       window.removeEventListener("resize", resize);
     }
     window.addEventListener("pagehide", cleanup, { once: true });

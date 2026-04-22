@@ -981,6 +981,9 @@
     let rightWall = 0;
     let lastBumpAt = 0;
     let bubbleTimer = 0;
+    let blinkTimeoutId = 0;
+    let idleTimeoutId = 0;
+    let idleFirstTimeoutId = 0;
     let lastPointerX = -9999;
     let lastPointerY = -9999;
     let hoverTimer = 0;
@@ -1008,6 +1011,26 @@
       ".cs-solution-card, .cs-feature-tile, .cs-phone, .cs-reflection-tile",
       ".cs-hero",
     ].join(", ");
+
+    // Cached ledge candidate list — avoids querySelectorAll every frame.
+    let ledgeCache: HTMLElement[] = [];
+    let ledgeCacheDirty = true;
+    let ledgeScanFrame = 0;
+    const LEDGE_SCAN_INTERVAL = 4; // only scan for ledges every Nth frame
+
+    function refreshLedgeCache() {
+      ledgeCache = Array.from(document.querySelectorAll<HTMLElement>(LEDGE_SELECTORS));
+      ledgeCacheDirty = false;
+    }
+    function invalidateLedgeCache() { ledgeCacheDirty = true; }
+    document.addEventListener("astro:page-load", invalidateLedgeCache);
+    window.addEventListener("gallery:shuffle", invalidateLedgeCache);
+    window.addEventListener("gallery:cards-added", invalidateLedgeCache);
+
+    function getLedgeCandidates(): HTMLElement[] {
+      if (ledgeCacheDirty) refreshLedgeCache();
+      return ledgeCache;
+    }
     let currentLedge: HTMLElement | null = null; // element the pet is perched on
     let ledgeGroundY = 0; // viewport-bottom-relative ground when on a ledge
     let ledgeLeftWall = 0;
@@ -1044,7 +1067,7 @@
       if (!currentLedge) return null;
       if (performance.now() - lastJumpAt < JUMP_COOLDOWN) return null;
       const cur = currentLedge.getBoundingClientRect();
-      const candidates = document.querySelectorAll<HTMLElement>(LEDGE_SELECTORS);
+      const candidates = getLedgeCandidates();
       let best: HTMLElement | null = null;
       let bestDist = Infinity;
       for (const el of candidates) {
@@ -1135,7 +1158,7 @@
 
     function findLedgeAtPosition(px: number, py: number): HTMLElement | null {
       // Find all ledge elements and check if the pet's feet overlap any.
-      const candidates = document.querySelectorAll<HTMLElement>(LEDGE_SELECTORS);
+      const candidates = getLedgeCandidates();
       let best: HTMLElement | null = null;
       let bestDist = Infinity;
       for (const el of candidates) {
@@ -1144,6 +1167,8 @@
         // Check horizontal overlap: pet center within element bounds
         const petCenter = px + PET_W / 2;
         if (petCenter < r.left - 10 || petCenter > r.right + 10) continue;
+        // Skip elements whose top is far from the pet's feet position
+        if (Math.abs(r.top - py) > 50) continue;
         // Check vertical: pet feet should be near the top edge of element
         // (within 30px above or 15px below the top)
         const distToTop = Math.abs(py - r.top);
@@ -1198,6 +1223,35 @@
       // Walk walls = ledge horizontal bounds (with padding)
       ledgeLeftWall = Math.max(0, r.left + 4);
       ledgeRightWall = Math.max(ledgeLeftWall + 4, r.right - PET_W - 4);
+    }
+
+    // Cached footer element + rect for measureGround() — avoids per-frame DOM queries.
+    let cachedFooter: HTMLElement | null | undefined = undefined; // undefined = not yet looked up
+    let cachedFooterRect: DOMRect | null = null;
+    let footerRectDirty = true;
+
+    function invalidateFooterCache() {
+      cachedFooter = undefined;
+      cachedFooterRect = null;
+      footerRectDirty = true;
+    }
+    function markFooterRectDirty() {
+      footerRectDirty = true;
+    }
+    document.addEventListener("astro:page-load", invalidateFooterCache);
+    window.addEventListener("scroll", markFooterRectDirty, { passive: true });
+    window.addEventListener("resize", markFooterRectDirty, { passive: true });
+
+    function getFooterRect(): DOMRect | null {
+      if (cachedFooter === undefined) {
+        cachedFooter = document.querySelector<HTMLElement>("footer[data-footer-root]");
+      }
+      if (!cachedFooter) return null;
+      if (footerRectDirty) {
+        cachedFooterRect = cachedFooter.getBoundingClientRect();
+        footerRectDirty = false;
+      }
+      return cachedFooterRect;
     }
 
     let fallSuspended = false; // true during the "hang time" before a ledge fall
@@ -1329,10 +1383,9 @@
     }
 
     function measureGround() {
-      const footer = document.querySelector<HTMLElement>("footer[data-footer-root]");
+      const fr = getFooterRect();
       let footerOffset = 0;
-      if (footer) {
-        const fr = footer.getBoundingClientRect();
+      if (fr) {
         if (fr.top < window.innerHeight && fr.bottom > 0) {
           footerOffset = Math.max(0, window.innerHeight - fr.top);
         }
@@ -1465,7 +1518,10 @@
 
           // Mid-flight ledge catch — while falling (not on a ledge already),
           // check if the pet's feet cross through a ledge surface this frame.
-          if (!currentLedge && yVel < 0 && !dizzy) {
+          // Throttled to every Nth frame to avoid per-frame querySelectorAll on
+          // pages with many ledge candidates (e.g. visitor gallery).
+          ledgeScanFrame = (ledgeScanFrame + 1) % LEDGE_SCAN_INTERVAL;
+          if (!currentLedge && yVel < 0 && !dizzy && ledgeScanFrame === 0) {
             const petFeetVP = window.innerHeight - groundOffset - y;
             const ledge = findLedgeAtPosition(x, petFeetVP);
             if (ledge) {
@@ -1509,11 +1565,13 @@
       pet.style.setProperty("--pet-flip", dir === 1 ? "1" : "-1");
 
       // Eye tracking toward the cursor.
+      // Pet position is known from x, y, groundOffset — no need for getBoundingClientRect().
+      // The pet is position:fixed at bottom:0, translated by (x, -(y + groundOffset)).
+      // Viewport coords: left = x, top = window.innerHeight - groundOffset - y - PET_H.
       const eyes = pet.querySelector<SVGGElement>(".site-pet__eyes");
       if (eyes && lastPointerX > -9999) {
-        const r = pet.getBoundingClientRect();
-        const cx = r.left + r.width / 2;
-        const cy = r.top + r.height / 2;
+        const cx = x + PET_W / 2;
+        const cy = window.innerHeight - groundOffset - y - PET_H / 2;
         const dx = lastPointerX - cx;
         const dy = lastPointerY - cy;
         const d = Math.hypot(dx, dy) || 1;
@@ -1859,8 +1917,9 @@
         actively blinking from a recent click.
       */
       function scheduleBlink() {
+        if (blinkTimeoutId) window.clearTimeout(blinkTimeoutId);
         const delay = 3000 + Math.random() * 4000;
-        window.setTimeout(() => {
+        blinkTimeoutId = window.setTimeout(() => {
           if (!dizzy && !pet.hasAttribute("data-blink")) {
             pet.setAttribute("data-blink", "");
             window.setTimeout(() => pet.removeAttribute("data-blink"), 160);
@@ -1900,8 +1959,9 @@
       }
       let lastIdleQuipAt = 0;
       function scheduleIdle() {
+        if (idleTimeoutId) window.clearTimeout(idleTimeoutId);
         const delay = 18000 + Math.random() * 16000;
-        window.setTimeout(() => {
+        idleTimeoutId = window.setTimeout(() => {
           const now = Date.now();
           if (!hovered && !dragging && !dizzy && now - lastIdleQuipAt >= 15_000) {
             saySomething(pet, idlePool(), 2200);
@@ -1910,7 +1970,8 @@
           scheduleIdle();
         }, delay);
       }
-      window.setTimeout(() => {
+      if (idleFirstTimeoutId) window.clearTimeout(idleFirstTimeoutId);
+      idleFirstTimeoutId = window.setTimeout(() => {
         if (!hovered && !dragging && !dizzy) {
           saySomething(pet, idlePool(), 2200);
           lastIdleQuipAt = Date.now();

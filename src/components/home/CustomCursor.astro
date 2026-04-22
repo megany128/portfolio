@@ -252,14 +252,40 @@ const { color = "pink" } = Astro.props;
     let currY = 0;
     let initialized = false;
 
+    let rafId: number | null = null;
+    let idleTimer: ReturnType<typeof setTimeout> | null = null;
+    const IDLE_MS = 500;
+    const SETTLE_PX = 0.5;
+
     function tick() {
       currX += (targetX - currX) * 0.35;
       currY += (targetY - currY) * 0.35;
       const c = el();
       if (c) c.style.transform = `translate3d(${currX}px, ${currY}px, 0)`;
-      requestAnimationFrame(tick);
+
+      // If idle timer has expired and cursor has settled, stop the loop
+      if (
+        idleTimer === null &&
+        Math.abs(targetX - currX) < SETTLE_PX &&
+        Math.abs(targetY - currY) < SETTLE_PX
+      ) {
+        // Snap to final position to avoid sub-pixel drift
+        currX = targetX;
+        currY = targetY;
+        if (c) c.style.transform = `translate3d(${currX}px, ${currY}px, 0)`;
+        rafId = null;
+        return;
+      }
+
+      rafId = requestAnimationFrame(tick);
     }
-    requestAnimationFrame(tick);
+
+    function startLoop() {
+      if (rafId === null) {
+        rafId = requestAnimationFrame(tick);
+      }
+    }
+    startLoop();
 
     function place(e: PointerEvent | MouseEvent) {
       targetX = e.clientX;
@@ -271,6 +297,11 @@ const { color = "pink" } = Astro.props;
         if (c) c.style.opacity = "1";
         initialized = true;
       }
+
+      // (Re)start the rAF loop and reset the idle timer
+      startLoop();
+      if (idleTimer !== null) clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => { idleTimer = null; }, IDLE_MS);
     }
     window.addEventListener("pointermove", place);
 

@@ -1,0 +1,37 @@
+---
+/**
+ * HTML partial endpoint — renders a batch of MiniLibraryCard components
+ * server-side so the "Load more" button can append pre-rendered cards
+ * without duplicating the card template logic on the client.
+ *
+ * Query params:
+ *   offset  — number of real visitors to skip (default 0)
+ *   limit   — batch size (default 48, max 100)
+ *   youId   — current visitor ID (for "That's you!" pill)
+ */
+import MiniLibraryCard from "../../components/gallery/MiniLibraryCard.astro";
+import { listVisitorsLite } from "../../lib/visitor-server";
+import { SEED_VISITORS } from "../../lib/seed-visitors";
+
+export const prerender = false;
+
+const url = new URL(Astro.request.url);
+const offset = Math.max(0, Number(url.searchParams.get("offset") ?? 0) || 0);
+const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit") ?? 48) || 48));
+const youId = url.searchParams.get("youId") ?? undefined;
+
+const seedCount = SEED_VISITORS.length;
+const realVisitors = await listVisitorsLite(Astro, limit, offset);
+const visitors = realVisitors.map((v) => ({ ...v, number: v.number + seedCount }));
+---
+{visitors.map((v) => (
+  <MiniLibraryCard
+    id={v.id}
+    name={v.name}
+    color={v.color}
+    number={v.number}
+    issuedAt={v.issuedAt}
+    isYou={v.id === youId}
+    signature={v.signature}
+  />
+))}

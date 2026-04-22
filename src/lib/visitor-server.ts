@@ -175,6 +175,44 @@ export async function listVisitors(
   return rows.results.map(rowToRecord);
 }
 
+/** Like listVisitors but omits the (potentially large) signature_png column.
+ *  Used by the gallery list view where signatures aren't visible at mini scale. */
+export async function listVisitorsLite(
+  ctx: APIContext,
+  limit = 100,
+  offset = 0
+): Promise<VisitorRecord[]> {
+  const rows = await db(ctx)
+    .prepare(
+      `SELECT id, number, name, color, issued_at, NULL AS signature
+       FROM visitors ORDER BY number DESC LIMIT ? OFFSET ?`
+    )
+    .bind(limit, offset)
+    .all<VisitorRow>();
+
+  return rows.results.map(rowToRecord);
+}
+
+/** Total number of visitors in the DB. */
+export async function countVisitors(ctx: APIContext): Promise<number> {
+  const row = await db(ctx)
+    .prepare(`SELECT COUNT(*) AS cnt FROM visitors`)
+    .first<{ cnt: number }>();
+  return row?.cnt ?? 0;
+}
+
+/** Fetch just the signature data URL for a single visitor. */
+export async function getVisitorSignature(
+  ctx: APIContext,
+  id: string
+): Promise<string | null> {
+  const row = await db(ctx)
+    .prepare(`SELECT signature_png FROM visitors WHERE id = ? LIMIT 1`)
+    .bind(id)
+    .first<{ signature_png: string | null }>();
+  return row?.signature_png ?? null;
+}
+
 export function isCardColor(value: unknown): value is CardColor {
   return typeof value === "string" && (CARD_COLORS as readonly string[]).includes(value);
 }

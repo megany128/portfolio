@@ -7,14 +7,21 @@ interface Props {
   youId?: string;
   /** Center cards horizontally when there aren't enough to fill a row. */
   centered?: boolean;
+  /** Total number of real (non-seed) visitors in the DB. Enables "Load more". */
+  totalReal?: number;
+  /** Number of real visitors fetched per page. */
+  pageSize?: number;
 }
 
-const { visitors, youId, centered = false } = Astro.props;
+const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.props;
 ---
 
 <div
   data-gallery-grid
   data-you-id={youId ?? ""}
+  data-offset={pageSize}
+  data-page-size={pageSize}
+  data-total-real={totalReal ?? 0}
   class:list={[
     "gallery-grid flex flex-wrap content-start items-start gap-y-6 sm:gap-y-8 gap-x-4 w-full justify-center sm:justify-start",
     centered && "justify-center",
@@ -34,6 +41,20 @@ const { visitors, youId, centered = false } = Astro.props;
     ))
   }
 </div>
+
+{/* "Load more" button — hidden when all cards are loaded. */}
+{(totalReal ?? 0) > pageSize && (
+  <button
+    type="button"
+    data-gallery-load-more
+    class="gallery-load-more self-center mt-2 bg-[var(--color-bg-neutral)] rounded-[4px] px-4 py-2 flex items-center gap-2 font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-fg-neutral)] hover:text-[var(--color-ink)] hover:bg-[var(--color-bg-neutral-2)] transition-colors"
+  >
+    Load more
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  </button>
+)}
 
 <!-- Detail modal — blurred backdrop + a container the grid animates a clone into. -->
 <div
@@ -96,9 +117,6 @@ const { visitors, youId, centered = false } = Astro.props;
 </div>
 
 <style is:global>
-  .gallery-grid {
-    perspective: 1000px;
-  }
   .gallery-detail {
     transition: opacity 300ms cubic-bezier(0.22, 1, 0.36, 1);
   }
@@ -154,8 +172,6 @@ const { visitors, youId, centered = false } = Astro.props;
                   an ~80% chance of landing in the top-6 positions.
   */
 
-  type CardEl = HTMLElement;
-
   function wireGallery() {
   const grid = document.querySelector<HTMLElement>("[data-gallery-grid]");
   const detail = document.querySelector<HTMLElement>("[data-gallery-detail]");
@@ -169,54 +185,130 @@ const { visitors, youId, centered = false } = Astro.props;
   if (grid.dataset.galleryWired === "1") return;
   grid.dataset.galleryWired = "1";
   {
-    const youId = grid.dataset.youId || null;
+    // Read youId fresh each time — the client-side identity fallback
+    // (patchGalleryIdentity) may set it after wireGallery runs.
+    const getYouId = () => grid.dataset.youId || null;
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const isMobile = window.innerWidth < 640 || "ontouchstart" in window;
 
     const SPRING_EASE = "cubic-bezier(0.34, 1.56, 0.64, 1)";
 
-    /* ---------- hover tilt + gloss ------------------------------------ */
-    const attachHover = (wrap: CardEl) => {
-      let raf = 0;
-      let pending: { x: number; y: number } | null = null;
+    /* ---------- lazy signature loading -------------------------------- */
+    // Gallery cards ship without signature data to keep initial HTML small.
+    // Fetch on detail open and inject into the clone.
+    const sigCache = new Map<string, string | null>();
 
-      const apply = () => {
-        raf = 0;
-        if (!pending) return;
-        const rect = wrap.getBoundingClientRect();
-        const px = (pending.x - rect.left) / rect.width;  // 0..1
-        const py = (pending.y - rect.top) / rect.height;  // 0..1
-        const rotY = (px - 0.5) * 16;   // ±8deg
-        const rotX = (0.5 - py) * 16;   // ±8deg
-        wrap.style.transform = `perspective(1000px) scale(1.04) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
-        const gloss = wrap.querySelector<HTMLElement>("[data-mini-gloss]");
-        if (gloss) {
-          gloss.style.setProperty("--gloss-x", `${(px * 100).toFixed(1)}%`);
-          gloss.style.setProperty("--gloss-y", `${(py * 100).toFixed(1)}%`);
+    async function lazyLoadSignature(clone: HTMLElement, cardId: string | undefined) {
+      if (!cardId) return;
+      // Seed visitors have inline signatures already — skip.
+      if (cardId.startsWith("seed-")) return;
+      // Check cache first.
+      if (sigCache.has(cardId)) {
+        const cached = sigCache.get(cardId)!;
+        if (cached) injectSignature(clone, cached);
+        return;
+      }
+      try {
+        const res = await fetch(`/api/signature/${cardId}`);
+        if (!res.ok) { sigCache.set(cardId, null); return; }
+        const dataUrl = await res.text();
+        sigCache.set(cardId, dataUrl);
+        injectSignature(clone, dataUrl);
+      } catch {
+        sigCache.set(cardId, null);
+      }
+    }
+
+    function injectSignature(clone: HTMLElement, dataUrl: string) {
+      // Find the card element inside the clone and inject the signature image.
+      const card = clone.querySelector<HTMLElement>(".library-card");
+      if (!card) return;
+      // Remove any existing fallback signature.
+      const fallback = card.querySelector(".library-card__fallback-sig");
+      if (fallback) fallback.remove();
+      // Don't double-inject.
+      if (card.querySelector(".library-card__signature")) return;
+      const img = document.createElement("img");
+      img.src = dataUrl;
+      img.alt = "signature";
+      img.className = "library-card__signature absolute inset-0 w-full h-full object-contain pointer-events-none";
+      img.loading = "eager";
+      img.decoding = "async";
+      card.appendChild(img);
+    }
+
+    /* ---------- hover tilt + gloss (delegated) ------------------------- */
+    // Single grid-level listeners instead of per-card to avoid 200+ listeners.
+    type TiltState = { raf: number; pending: { x: number; y: number } | null };
+    const tiltStates = new WeakMap<HTMLElement, TiltState>();
+
+    function applyTilt(wrap: HTMLElement, state: TiltState) {
+      state.raf = 0;
+      if (!state.pending) return;
+      const rect = wrap.getBoundingClientRect();
+      const px = (state.pending.x - rect.left) / rect.width;
+      const py = (state.pending.y - rect.top) / rect.height;
+      const rotY = (px - 0.5) * 16;
+      const rotX = (0.5 - py) * 16;
+      wrap.style.transform = `perspective(1000px) scale(1.04) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
+      const gloss = wrap.querySelector<HTMLElement>("[data-mini-gloss]");
+      if (gloss) {
+        gloss.style.setProperty("--gloss-x", `${(px * 100).toFixed(1)}%`);
+        gloss.style.setProperty("--gloss-y", `${(py * 100).toFixed(1)}%`);
+      }
+    }
+
+    function getTiltState(wrap: HTMLElement): TiltState {
+      let s = tiltStates.get(wrap);
+      if (!s) { s = { raf: 0, pending: null }; tiltStates.set(wrap, s); }
+      return s;
+    }
+
+    if (!isMobile) {
+      let hoveredWrap: HTMLElement | null = null;
+
+      function resetTilt(wrap: HTMLElement) {
+        const state = tiltStates.get(wrap);
+        if (state) {
+          state.pending = null;
+          if (state.raf) { cancelAnimationFrame(state.raf); state.raf = 0; }
         }
-      };
-
-      const onMove = (e: MouseEvent) => {
-        if (wrap.dataset.flying !== undefined) return;
-        pending = { x: e.clientX, y: e.clientY };
-        wrap.dataset.tilting = "";
-        if (!raf) raf = requestAnimationFrame(apply);
-      };
-
-      const onLeave = () => {
-        pending = null;
-        if (raf) cancelAnimationFrame(raf);
-        raf = 0;
         delete wrap.dataset.tilting;
         wrap.style.transform = "";
-      };
-
-      // Skip 3D tilt on mobile — too heavy and not useful with touch
-      if (!isMobile) {
-        wrap.addEventListener("mousemove", onMove);
-        wrap.addEventListener("mouseleave", onLeave);
       }
-    };
+
+      grid.addEventListener("mousemove", (e: MouseEvent) => {
+        const wrap = (e.target as HTMLElement).closest<HTMLElement>("[data-mini-card-wrap]");
+
+        // If mouse moved to a different card (or off all cards), reset the old one.
+        if (hoveredWrap && hoveredWrap !== wrap) {
+          resetTilt(hoveredWrap);
+          hoveredWrap = null;
+        }
+
+        if (!wrap || wrap.dataset.flying !== undefined) return;
+        hoveredWrap = wrap;
+        const state = getTiltState(wrap);
+        state.pending = { x: e.clientX, y: e.clientY };
+        wrap.dataset.tilting = "";
+        if (!state.raf) state.raf = requestAnimationFrame(() => applyTilt(wrap, state));
+      });
+
+      // Reset when mouse leaves the grid entirely.
+      grid.addEventListener("mouseleave", () => {
+        if (hoveredWrap) {
+          resetTilt(hoveredWrap);
+          hoveredWrap = null;
+        }
+      });
+    }
+
+    // Delegated click handler for card detail.
+    grid.addEventListener("click", (e: MouseEvent) => {
+      if ((e.target as HTMLElement).closest("[data-gallery-close]")) return;
+      const wrap = (e.target as HTMLElement).closest<HTMLElement>("[data-mini-card-wrap]");
+      if (wrap) openDetail(wrap);
+    });
 
     /* ---------- click → FLIP detail view ------------------------------- */
     type OpenState = {
@@ -373,7 +465,7 @@ const { visitors, youId, centered = false } = Astro.props;
       detail!.setAttribute("aria-hidden", "false");
       // Show edit button only when viewing your own card.
       const cardId = wrap.dataset.id;
-      if (cardId && cardId === youId) {
+      if (cardId && cardId === getYouId()) {
         detail!.setAttribute("data-is-you", "");
       } else {
         detail!.removeAttribute("data-is-you");
@@ -386,6 +478,10 @@ const { visitors, youId, centered = false } = Astro.props;
         targetRect: { left: endLeft, top: endTop, width: W * target.scale, height: H * target.scale },
         scale: target.scale,
       };
+
+      // Lazy-load signature — gallery cards don't ship with signature data to
+      // keep the HTML payload small. Fetch it when the detail view opens.
+      lazyLoadSignature(clone, cardId);
 
       const keyframes: Keyframe[] = [
         {
@@ -480,9 +576,12 @@ const { visitors, youId, centered = false } = Astro.props;
         openHover = attachDetailHover(newClone, nextTarget.scale);
       };
 
-      // Update edit button visibility for the new card.
+      // Lazy-load signature for the new card.
       const nextId = nextSource.dataset.id;
-      if (nextId && nextId === youId) {
+      lazyLoadSignature(newClone, nextId);
+
+      // Update edit button visibility for the new card.
+      if (nextId && nextId === getYouId()) {
         detail!.setAttribute("data-is-you", "");
       } else {
         detail!.removeAttribute("data-is-you");
@@ -588,8 +687,9 @@ const { visitors, youId, centered = false } = Astro.props;
     /** Weighted shuffle: 80% chance the current visitor lands in top-6. */
     function shuffleWithBias(cards: HTMLElement[]): HTMLElement[] {
       const shuffled = fisherYates(cards);
-      if (!youId) return shuffled;
-      const youIdx = shuffled.findIndex((el) => el.dataset.id === youId);
+      const yid = getYouId();
+      if (!yid) return shuffled;
+      const youIdx = shuffled.findIndex((el) => el.dataset.id === yid);
       if (youIdx === -1) return shuffled;
       const topCap = Math.min(6, shuffled.length);
       if (Math.random() < 0.8) {
@@ -656,20 +756,7 @@ const { visitors, youId, centered = false } = Astro.props;
 
     window.addEventListener("gallery:shuffle", runShuffle);
 
-    /* ---------- wiring per card --------------------------------------- */
-    const wireCards = () => {
-      grid!.querySelectorAll<HTMLElement>("[data-mini-card-wrap]").forEach((wrap) => {
-        if (wrap.dataset.wired) return;
-        wrap.dataset.wired = "1";
-        attachHover(wrap);
-        wrap.addEventListener("click", (e) => {
-          // Ignore clicks on the "That's you!" pill children.
-          if ((e.target as HTMLElement).closest("[data-gallery-close]")) return;
-          openDetail(wrap);
-        });
-      });
-    };
-    wireCards();
+    /* ---------- wiring (delegated — no per-card setup needed) ---------- */
 
     // If the detail is resized (e.g. viewport change), reposition.
     window.addEventListener("resize", () => {
@@ -688,6 +775,68 @@ const { visitors, youId, centered = false } = Astro.props;
       open.clone.style.top = `${window.innerHeight / 2 - H / 2}px`;
       open.clone.style.transform = `perspective(1200px) scale(${target.scale})`;
     });
+
+    /* ---------- "Load more" pagination ------------------------------- */
+    const loadMoreBtn = document.querySelector<HTMLButtonElement>("[data-gallery-load-more]");
+    if (loadMoreBtn) {
+      let loading = false;
+
+      loadMoreBtn.addEventListener("click", async () => {
+        if (loading) return;
+        loading = true;
+        loadMoreBtn.textContent = "Loading\u2026";
+
+        const offset = Number(grid.dataset.offset ?? 0);
+        const pageSize = Number(grid.dataset.pageSize ?? 48);
+        const totalReal = Number(grid.dataset.totalReal ?? 0);
+        // Read youId fresh — client-side fallback may have set it after wiring.
+        const currentYouId = grid.dataset.youId || null;
+        const params = new URLSearchParams({
+          offset: String(offset),
+          limit: String(pageSize),
+          ...(currentYouId ? { youId: currentYouId } : {}),
+        });
+
+        try {
+          const res = await fetch(`/api/gallery-cards?${params}`);
+          if (!res.ok) throw new Error("fetch failed");
+          const html = await res.text();
+
+          // Parse new cards, skip any that are already in the grid (e.g. the
+          // current visitor's card was injected into the initial batch).
+          const frag = document.createRange().createContextualFragment(html);
+          const existingIds = new Set(
+            Array.from(grid.querySelectorAll<HTMLElement>("[data-mini-card-wrap]"))
+              .map((el) => el.dataset.id),
+          );
+          for (const node of Array.from(frag.querySelectorAll<HTMLElement>("[data-mini-card-wrap]"))) {
+            if (node.dataset.id && existingIds.has(node.dataset.id)) {
+              node.remove();
+            }
+          }
+          grid.appendChild(frag);
+
+          // Update offset for next page.
+          const newOffset = offset + pageSize;
+          grid.dataset.offset = String(newOffset);
+
+          // Invalidate pet ledge cache so new cards are discoverable.
+          window.dispatchEvent(new CustomEvent("gallery:cards-added"));
+
+          // Hide button if all cards loaded.
+          if (newOffset >= totalReal) {
+            loadMoreBtn.remove();
+          }
+        } catch {
+          // Silently fail — button stays for retry.
+        } finally {
+          loading = false;
+          if (loadMoreBtn.parentElement) {
+            loadMoreBtn.innerHTML = `Load more <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
+          }
+        }
+      });
+    }
   }
   }
   wireGallery();

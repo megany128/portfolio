@@ -4,19 +4,36 @@ import Sidebar from "../components/home/Sidebar.astro";
 import Footer from "../components/home/Footer.astro";
 import CustomCursor from "../components/home/CustomCursor.astro";
 import Grid from "../components/gallery/Grid.astro";
-import { getCurrentVisitor, listVisitors } from "../lib/visitor-server";
+import { getCurrentVisitor, listVisitorsLite, countVisitors } from "../lib/visitor-server";
 import { SEED_VISITORS } from "../lib/seed-visitors";
 
 export const prerender = false;
 
+const PAGE_SIZE = 48;
+
 const visitor = await getCurrentVisitor(Astro);
 const cursorColor = visitor?.color ?? "pink";
 
-const realVisitors = await listVisitors(Astro, 200);
+const [realVisitors, realTotal] = await Promise.all([
+  listVisitorsLite(Astro, PAGE_SIZE),
+  countVisitors(Astro),
+]);
 const seedCount = SEED_VISITORS.length;
 const offsetVisitors = realVisitors.map((v) => ({ ...v, number: v.number + seedCount }));
-const visitors = [...offsetVisitors, ...SEED_VISITORS].sort((a, b) => b.number - a.number);
-const total = visitors.length;
+
+// Ensure the current visitor's card is in the initial batch even if they
+// signed up long ago and aren't in the latest PAGE_SIZE.
+let extraYou: typeof offsetVisitors[number] | null = null;
+if (visitor && !offsetVisitors.some((v) => v.id === visitor.id)) {
+  extraYou = { ...visitor, number: visitor.number + seedCount, signature: null };
+}
+
+const visitors = [
+  ...(extraYou ? [extraYou] : []),
+  ...offsetVisitors,
+  ...SEED_VISITORS,
+].sort((a, b) => b.number - a.number);
+const total = realTotal + seedCount;
 
 const ordinal = (n: number) => {
   const s = ["th", "st", "nd", "rd"];
@@ -114,7 +131,12 @@ const subtitle = visitor
             </p>
           </div>
         ) : (
-          <Grid visitors={visitors} youId={visitor?.id} />
+          <Grid
+            visitors={visitors}
+            youId={visitor?.id}
+            totalReal={realTotal}
+            pageSize={PAGE_SIZE}
+          />
         )
       }
     </main>

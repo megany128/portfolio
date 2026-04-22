@@ -260,14 +260,17 @@ function renderArt(cfg: ArtConfig) {
   return { html, style };
 }
 
-// Render every art once; CSS reveals only the one matching `data-color` so
-// the silhouette swaps along with the card's color via the ripple transition.
-const rendered = (Object.entries(ARTS) as Array<[CardColor, ArtConfig]>).map(
-  ([key, cfg]) => ({
-    key,
-    ...renderArt({ ...cfg, seed: (cfg.seed ^ (glimmerSeedSalt | 0)) >>> 0 }),
-  })
-);
+// When signable (onboarding), render every art so the silhouette swaps along
+// with the card's color via the ripple transition.  When static (gallery), only
+// render the active color — saves ~11 KB of hidden DOM per card.
+const artEntries = signable
+  ? (Object.entries(ARTS) as Array<[CardColor, ArtConfig]>)
+  : ([[color, ARTS[color]]] as Array<[CardColor, ArtConfig]>);
+
+const rendered = artEntries.map(([key, cfg]) => ({
+  key,
+  ...renderArt({ ...cfg, seed: (cfg.seed ^ (glimmerSeedSalt | 0)) >>> 0 }),
+}));
 
 /*
   Artistic fallback signature for visitors who didn't draw one. We pick a
