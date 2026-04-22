@@ -45,6 +45,7 @@ const subtitle = visitor
             Visitor Gallery
           </h1>
           <p
+            data-gallery-subtitle
             class="font-[family-name:var(--font-mono)] text-sm sm:text-base uppercase text-[var(--color-ink-dim)] mb-1"
           >
             {subtitle}
@@ -52,29 +53,29 @@ const subtitle = visitor
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-          {
-            visitor && (
-              <a
-                href="/onboarding?edit"
-                class="gallery-action bg-[var(--color-bg-neutral)] rounded-[4px] px-2 py-1 flex items-center gap-2 font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-fg-neutral)] hover:text-[var(--color-ink)] hover:bg-[var(--color-bg-neutral-2)] transition-colors"
-              >
-                Edit my card
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                  <path d="m15 5 4 4" />
-                </svg>
-              </a>
-            )
-          }
+          <a
+            href="/onboarding?edit"
+            data-gallery-edit-btn
+            class:list={[
+              "gallery-action bg-[var(--color-bg-neutral)] rounded-[4px] px-2 py-1 flex items-center gap-2 font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-fg-neutral)] hover:text-[var(--color-ink)] hover:bg-[var(--color-bg-neutral-2)] transition-colors",
+              !visitor && "hidden",
+            ]}
+          >
+            Edit my card
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+              <path d="m15 5 4 4" />
+            </svg>
+          </a>
           {
             visitors.length > 1 && (
               <button
@@ -164,5 +165,58 @@ const subtitle = visitor
     }
     wireShuffle();
     document.addEventListener("astro:page-load", wireShuffle);
+  </script>
+
+  <script>
+    /*
+      Client-side fallback: if the server didn't recognize the visitor (cookie
+      lost — common on mobile Safari / private browsing), check localStorage
+      for the cached card and patch the UI so the subtitle, edit button, and
+      "That's you!" pill still work.
+    */
+    import { readCachedCard } from "../lib/visitor";
+    import { SEED_VISITORS } from "../lib/seed-visitors";
+
+    function patchGalleryIdentity() {
+      const grid = document.querySelector<HTMLElement>("[data-gallery-grid]");
+      if (!grid) return;
+      // If the server already identified the visitor, nothing to patch.
+      if (grid.dataset.youId) return;
+
+      const card = readCachedCard();
+      if (!card) return;
+
+      const seedCount = SEED_VISITORS.length;
+      const visitorNumber = card.number + seedCount;
+
+      // Patch subtitle
+      const subtitle = document.querySelector<HTMLElement>("[data-gallery-subtitle]");
+      if (subtitle) {
+        const ordinal = (n: number) => {
+          const s = ["th", "st", "nd", "rd"];
+          const v = n % 100;
+          return n + (s[(v - 20) % 10] || s[v] || s[0]);
+        };
+        subtitle.textContent = `You're our ${ordinal(visitorNumber)} guest!`;
+      }
+
+      // Show edit button
+      const editBtn = document.querySelector<HTMLElement>("[data-gallery-edit-btn]");
+      if (editBtn) editBtn.classList.remove("hidden");
+
+      // Set youId on grid so card interactions (detail edit, "That's you!" highlight) work
+      grid.dataset.youId = card.id;
+
+      // Add "That's you!" pill to matching card
+      const wrap = grid.querySelector<HTMLElement>(`[data-mini-card-wrap][data-id="${card.id}"]`);
+      if (wrap && !wrap.querySelector(".mini-card-pill")) {
+        const pill = document.createElement("span");
+        pill.className = "mini-card-pill absolute -top-3 left-1/2 -translate-x-1/2 z-20 font-[family-name:var(--font-mono)] font-bold text-[12px] uppercase px-1.5 py-0.5 rounded-[2.5px] tracking-wide";
+        pill.textContent = "That\u2019s you!";
+        wrap.prepend(pill);
+      }
+    }
+    patchGalleryIdentity();
+    document.addEventListener("astro:page-load", patchGalleryIdentity);
   </script>
 </BaseLayout>

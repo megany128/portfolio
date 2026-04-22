@@ -88,6 +88,14 @@ const {
     height: calc(252px * var(--mini-card-scale));
     transition: transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
+  @media (max-width: 639px) {
+    .mini-card-wrap {
+      /* Fill available width on mobile (minus page padding) */
+      --mini-card-scale: calc((100vw - 32px) / 388);
+      width: calc(100vw - 32px);
+      height: calc(252px * var(--mini-card-scale));
+    }
+  }
   .mini-card-wrap .mini-card {
     position: absolute;
     top: 0;

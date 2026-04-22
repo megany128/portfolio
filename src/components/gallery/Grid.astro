@@ -16,7 +16,7 @@ const { visitors, youId, centered = false } = Astro.props;
   data-gallery-grid
   data-you-id={youId ?? ""}
   class:list={[
-    "gallery-grid flex flex-wrap content-start items-start gap-y-8 gap-x-4 w-full",
+    "gallery-grid flex flex-wrap content-start items-start gap-y-6 sm:gap-y-8 gap-x-4 w-full justify-center sm:justify-start",
     centered && "justify-center",
   ]}
 >
@@ -80,7 +80,7 @@ const { visitors, youId, centered = false } = Astro.props;
     data-gallery-edit
     href="/onboarding?edit"
     class="gallery-detail__edit absolute left-1/2 -translate-x-1/2 z-[2] flex items-center gap-2 px-3 py-2 rounded-[10px] bg-white/80 hover:bg-white text-[var(--color-ink)] font-[family-name:var(--font-mono)] text-sm uppercase shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-colors opacity-0 pointer-events-none"
-    style="top: calc(50% + 240px);"
+    style="bottom: max(24px, env(safe-area-inset-bottom, 0px) + 16px);"
   >
     Edit card
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -171,6 +171,7 @@ const { visitors, youId, centered = false } = Astro.props;
   {
     const youId = grid.dataset.youId || null;
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const isMobile = window.innerWidth < 640 || "ontouchstart" in window;
 
     const SPRING_EASE = "cubic-bezier(0.34, 1.56, 0.64, 1)";
 
@@ -210,8 +211,11 @@ const { visitors, youId, centered = false } = Astro.props;
         wrap.style.transform = "";
       };
 
-      wrap.addEventListener("mousemove", onMove);
-      wrap.addEventListener("mouseleave", onLeave);
+      // Skip 3D tilt on mobile — too heavy and not useful with touch
+      if (!isMobile) {
+        wrap.addEventListener("mousemove", onMove);
+        wrap.addEventListener("mouseleave", onLeave);
+      }
     };
 
     /* ---------- click → FLIP detail view ------------------------------- */
@@ -396,8 +400,8 @@ const { visitors, youId, centered = false } = Astro.props;
         },
       ];
       const anim = clone.animate(keyframes, {
-        duration: reduced ? 0 : 520,
-        easing: SPRING_EASE,
+        duration: reduced ? 0 : isMobile ? 200 : 520,
+        easing: isMobile ? "ease-out" : SPRING_EASE,
         fill: "forwards",
       });
       anim.onfinish = () => {
@@ -406,7 +410,7 @@ const { visitors, youId, centered = false } = Astro.props;
         clone.style.top = `${endTop}px`;
         clone.style.transform = `perspective(1200px) scale(${target.scale})`;
         try { anim.cancel(); } catch {}
-        openHover = attachDetailHover(clone, target.scale);
+        if (!isMobile) openHover = attachDetailHover(clone, target.scale);
       };
     };
 
@@ -445,7 +449,7 @@ const { visitors, youId, centered = false } = Astro.props;
           { opacity: 0, transform: `perspective(1200px) scale(${o.scale}) translateX(${exitOffset}px)` },
         ],
         {
-          duration: reduced ? 0 : 240,
+          duration: reduced ? 0 : isMobile ? 120 : 240,
           easing: "cubic-bezier(0.4, 0, 1, 1)",
           fill: "forwards",
         },
@@ -463,8 +467,8 @@ const { visitors, youId, centered = false } = Astro.props;
           { opacity: 1, transform: `perspective(1200px) scale(${nextTarget.scale}) translateX(0px)` },
         ],
         {
-          duration: reduced ? 0 : 320,
-          easing: SPRING_EASE,
+          duration: reduced ? 0 : isMobile ? 150 : 320,
+          easing: isMobile ? "ease-out" : SPRING_EASE,
           fill: "forwards",
         },
       );
@@ -538,7 +542,7 @@ const { visitors, youId, centered = false } = Astro.props;
       detail!.setAttribute("aria-hidden", "true");
 
       const anim = o.clone.animate(keyframes, {
-        duration: reduced ? 0 : 280,
+        duration: reduced ? 0 : isMobile ? 150 : 280,
         easing: "cubic-bezier(0.22, 1, 0.36, 1)",
         fill: "forwards",
       });
@@ -631,8 +635,8 @@ const { visitors, youId, centered = false } = Astro.props;
             { transform: `translate(0, 0)` },
           ],
           {
-            duration: reduced ? 0 : 560,
-            delay: reduced ? 0 : i * 20,
+            duration: reduced ? 0 : isMobile ? 300 : 560,
+            delay: reduced ? 0 : isMobile ? i * 10 : i * 20,
             easing: SPRING_EASE,
             fill: "both",
           },
