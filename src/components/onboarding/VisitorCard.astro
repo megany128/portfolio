@@ -10,9 +10,10 @@ interface Props {
   existingName?: string;
   startColor?: CardColor;
   existingSignature?: string | null;
+  fromGallery?: boolean;
 }
 
-const { nextNumber, edit = false, existingName, startColor = "pink", existingSignature } = Astro.props;
+const { nextNumber, edit = false, existingName, startColor = "pink", existingSignature, fromGallery = false } = Astro.props;
 ---
 
 <!--
@@ -58,10 +59,11 @@ const { nextNumber, edit = false, existingName, startColor = "pink", existingSig
   </div>
 
   <a
-    href={edit ? "/visitor-gallery" : "/"}
+    href={edit ? "/visitor-gallery" : fromGallery ? "/visitor-gallery" : "/"}
     data-back-link
     data-back-edit={edit ? "" : undefined}
-    aria-label={edit ? "Back to gallery" : "Back to welcome"}
+    data-back-gallery={fromGallery ? "" : undefined}
+    aria-label={edit ? "Back to gallery" : fromGallery ? "Back to gallery" : "Back to welcome"}
     class="group absolute top-3 left-3 sm:top-5 sm:left-5 z-10 flex items-center gap-2 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.18em] text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] opacity-0 [animation:fade-in_0.4s_var(--ease-out-soft)_0.2s_forwards] transition-colors"
   >
     <svg
@@ -475,8 +477,8 @@ const { nextNumber, edit = false, existingName, startColor = "pink", existingSig
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return;
         e.preventDefault();
 
-        // Edit mode: simple navigation back to gallery, no disc animation.
-        if (backLink.hasAttribute("data-back-edit")) {
+        // Edit mode or from-gallery: simple navigation back to gallery, no disc animation.
+        if (backLink.hasAttribute("data-back-edit") || backLink.hasAttribute("data-back-gallery")) {
           navigate("/visitor-gallery");
           return;
         }
@@ -558,6 +560,14 @@ const { nextNumber, edit = false, existingName, startColor = "pink", existingSig
       shuffleBtn.setAttribute("data-spinning", "");
       window.setTimeout(() => shuffleBtn.removeAttribute("data-spinning"), 520);
     });
+
+    // Sync persisted cursor element with the initial card color — the cursor
+    // uses transition:persist so its data-color can be stale from a prior page.
+    const initialColor = picker.querySelector<HTMLInputElement>("input[name='card-color']:checked");
+    if (initialColor) {
+      const cursor = document.querySelector<HTMLElement>("[data-custom-cursor]");
+      if (cursor) cursor.dataset.color = initialColor.value;
+    }
 
     picker.addEventListener("change", (e) => {
       const target = e.target as HTMLInputElement;

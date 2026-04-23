@@ -3,9 +3,10 @@ type ActiveKey = "work" | "about" | "playground" | "gallery";
 
 interface Props {
   active?: ActiveKey;
+  anon?: boolean;
 }
 
-const { active = "work" } = Astro.props;
+const { active = "work", anon = false } = Astro.props;
 
 const items: { key: ActiveKey; label: string; href: string }[] = [
   { key: "work", label: "01. My Work", href: "/home" },
@@ -47,7 +48,12 @@ const items: { key: ActiveKey; label: string; href: string }[] = [
                 : "text-[var(--color-ink-dim)] hover:text-[var(--color-ink)]"
             }`}
           >
-            <span>{item.label}</span>
+            <span class="flex items-center gap-2.5">
+              {item.label}
+              {item.key === "gallery" && anon && (
+                <span class="toc-gallery-dot" aria-hidden="true" />
+              )}
+            </span>
             <span aria-hidden="true" class="transition-transform duration-[var(--duration-fast)] group-hover:translate-x-1">→</span>
           </a>
 
@@ -377,7 +383,30 @@ const items: { key: ActiveKey; label: string; href: string }[] = [
     .toc-preview { display: none; }
   }
 
+  /* Pink nudge dot for anonymous visitors on Gallery link. */
+  .toc-gallery-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: var(--color-pink);
+    flex-shrink: 0;
+    transform: translateY(1.5px);
+    animation: toc-dot-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes toc-dot-pulse {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-pink) 50%, transparent);
+    }
+    50% {
+      opacity: 0.6;
+      box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-pink) 0%, transparent);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    .toc-gallery-dot { animation: none; }
     .toc-preview {
       transition: opacity 120ms var(--ease-out-soft);
       transform: translateY(-50%);

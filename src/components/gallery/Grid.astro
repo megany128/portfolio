@@ -23,8 +23,7 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
   data-page-size={pageSize}
   data-total-real={totalReal ?? 0}
   class:list={[
-    "gallery-grid flex flex-wrap content-start items-start gap-y-6 sm:gap-y-8 gap-x-4 w-full justify-center sm:justify-start",
-    centered && "justify-center",
+    "gallery-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-6 sm:gap-y-8 gap-x-4 w-full",
   ]}
 >
   {

@@ -15,6 +15,7 @@ const nextNumber = await peekNextVisitorNumber(Astro);
 const seedCount = SEED_VISITORS.length;
 const displayNumber = visitor ? visitor.number + seedCount : nextNumber + seedCount;
 const isEdit = editMode && visitor !== null;
+const fromGallery = Astro.url.searchParams.get("from") === "gallery";
 
 const PICKER_COLORS: CardColor[] = ["pink", "teal", "green", "orange"];
 const startColor: CardColor =
@@ -38,7 +39,11 @@ const startColor: CardColor =
   </BaseLayout>
 ) : (
   <DarkScene title="Sign in — Megan's World">
-    <VisitorCard nextNumber={displayNumber} startColor={startColor} />
+    {/* Zero-size placeholders so the sidebar/footer view-transition groups
+        resolve instantly when navigating from gallery or home. */}
+    <div transition:name="sidebar" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;" />
+    <div transition:name="footer" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;" />
+    <VisitorCard nextNumber={displayNumber} startColor={startColor} fromGallery={fromGallery} />
     <CustomCursor color={startColor} />
   </DarkScene>
 )}

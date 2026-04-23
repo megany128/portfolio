@@ -83,23 +83,10 @@ const {
     Scale factor matches --mini-card-scale below.
   */
   .mini-card-wrap {
-    --mini-card-scale: 0.72;
-    width: calc(388px * var(--mini-card-scale));
-    height: calc(252px * var(--mini-card-scale));
+    container-type: inline-size;
+    width: 100%;
+    aspect-ratio: 388 / 252;
     transition: transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  @media (max-width: 639px) {
-    .mini-card-wrap {
-      /* Fill available width on mobile (minus page padding).
-         Can't store the ratio in --mini-card-scale (length ÷ number = length,
-         not the unitless number that scale() needs), so compute directly. */
-      width: calc(100vw - 32px);
-      height: calc((100vw - 32px) * 252 / 388);
-    }
-    .mini-card-wrap .mini-card {
-      /* Derive unitless scale via trig identity: tan(atan2(a, b)) = a / b */
-      transform: scale(tan(atan2(100vw - 32px, 388px)));
-    }
   }
   .mini-card-wrap .mini-card {
     position: absolute;
@@ -107,8 +94,10 @@ const {
     left: 0;
     width: 388px;
     height: 252px;
-    transform: scale(var(--mini-card-scale));
     transform-origin: top left;
+    /* Derive unitless scale via trig identity: tan(atan2(a, b)) = a / b.
+       100cqi = container's inline size, so the card scales to fill its cell. */
+    transform: scale(tan(atan2(100cqi, 388px)));
   }
   .mini-card-wrap:hover,
   .mini-card-wrap[data-tilting],

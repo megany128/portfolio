@@ -4,9 +4,10 @@ import TableOfContents from "./TableOfContents.astro";
 
 interface Props {
   active?: "work" | "about" | "playground" | "gallery";
+  anon?: boolean;
 }
 
-const { active = "work" } = Astro.props;
+const { active = "work", anon = false } = Astro.props;
 ---
 
 <!-- Tab that sticks out on the left edge when the sidebar is collapsed -->
@@ -69,7 +70,7 @@ const { active = "work" } = Astro.props;
     </p>
   </div>
 
-  <TableOfContents active={active} />
+  <TableOfContents active={active} anon={anon} />
 
   <div class="flex flex-col gap-0.5">
     <p class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink)]">

@@ -51,7 +51,7 @@ const subtitle = visitor
 
 <BaseLayout title="Visitor Gallery — Megan Yap" description="Visitor cards left by people who've stopped by Megan's World.">
   <div class="flex items-stretch min-h-screen">
-    <Sidebar active="gallery" />
+    <Sidebar active="gallery" anon={!visitor} />
 
     <main class="flex flex-col gap-6 p-4 sm:p-6 md:p-10 flex-1 min-w-0">
       <header class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6">
@@ -70,29 +70,28 @@ const subtitle = visitor
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-          <a
-            href="/onboarding?edit"
-            data-gallery-edit-btn
-            class:list={[
-              "gallery-action bg-[var(--color-bg-neutral)] rounded-[4px] px-2 py-1 flex items-center gap-2 font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-fg-neutral)] hover:text-[var(--color-ink)] hover:bg-[var(--color-bg-neutral-2)] transition-colors",
-              !visitor && "hidden",
-            ]}
-          >
-            Edit my card
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+          {visitor ? (
+            <a
+              href="/onboarding?edit"
+              data-gallery-edit-btn
+              class="gallery-action bg-[var(--color-bg-neutral)] rounded-[4px] px-2 py-1 flex items-center gap-2 font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-fg-neutral)] hover:text-[var(--color-ink)] hover:bg-[var(--color-bg-neutral-2)] transition-colors"
             >
-              <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-              <path d="m15 5 4 4" />
-            </svg>
-          </a>
+              Edit my card
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                <path d="m15 5 4 4" />
+              </svg>
+            </a>
+          ) : null}
           {
             visitors.length > 1 && (
               <button
@@ -122,6 +121,29 @@ const subtitle = visitor
           }
         </div>
       </header>
+
+      {!visitor && (
+        <a
+          href="/onboarding?from=gallery"
+          data-gallery-signin-btn
+          class="flex items-center justify-center gap-2 rounded-[12px] bg-[var(--color-ink)] px-4 py-3 font-[family-name:var(--font-mono)] text-sm uppercase text-[var(--color-bg)] hover:bg-[var(--color-ink-dim)] transition-colors"
+        >
+          Sign the guestbook
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 5v14" />
+            <path d="M5 12h14" />
+          </svg>
+        </a>
+      )}
 
       {
         visitors.length === 0 ? (
@@ -222,9 +244,9 @@ const subtitle = visitor
         subtitle.textContent = `You're our ${ordinal(visitorNumber)} guest!`;
       }
 
-      // Show edit button
-      const editBtn = document.querySelector<HTMLElement>("[data-gallery-edit-btn]");
-      if (editBtn) editBtn.classList.remove("hidden");
+      // Hide the sign-in banner since visitor is recognized via localStorage
+      const signInBtn = document.querySelector<HTMLElement>("[data-gallery-signin-btn]");
+      if (signInBtn) signInBtn.remove();
 
       // Set youId on grid so card interactions (detail edit, "That's you!" highlight) work
       grid.dataset.youId = card.id;
