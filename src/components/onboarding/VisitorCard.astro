@@ -8,18 +8,11 @@ interface Props {
   nextNumber: number;
   edit?: boolean;
   existingName?: string;
-  existingColor?: CardColor;
+  startColor?: CardColor;
   existingSignature?: string | null;
 }
 
-const { nextNumber, edit = false, existingName, existingColor, existingSignature } = Astro.props;
-
-// Pick a random starting color per sign-up so every visitor doesn't start on
-// the default pink. Keeps the picker itself available so they can still
-// change it.
-const PICKER_COLORS: CardColor[] = ["pink", "teal", "green", "orange"];
-const startColor: CardColor =
-  existingColor ?? PICKER_COLORS[Math.floor(Math.random() * PICKER_COLORS.length)];
+const { nextNumber, edit = false, existingName, startColor = "pink", existingSignature } = Astro.props;
 ---
 
 <!--
@@ -164,6 +157,10 @@ const startColor: CardColor =
         </button>
       </div>
     </div>
+
+    <p class="sm:hidden font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.14em] text-[var(--color-ink-dim)] text-center">
+      Draw on the card to sign it
+    </p>
 
     <div
       class="onboarding-card-scale"
@@ -560,6 +557,10 @@ const startColor: CardColor =
         origin = { x: ox, y: oy };
       }
       rippleColor(card, target.value as CardColor, origin);
+
+      // Sync custom cursor color with card color.
+      const cursor = document.querySelector<HTMLElement>("[data-custom-cursor]");
+      if (cursor) cursor.dataset.color = target.value;
     });
 
     toolToggle.addEventListener("click", (e) => {

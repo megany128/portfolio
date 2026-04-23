@@ -216,7 +216,7 @@ const { color = "pink" } = Astro.props;
     cursor: var(--signature-cursor-pen) !important;
   }
   html[data-custom-cursor-active] [data-signature-pad][data-tool="eraser"] {
-    cursor: none !important;
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28'><circle cx='14' cy='14' r='12' fill='none' stroke='white' stroke-width='2'/></svg>") 14 14, crosshair !important;
   }
 </style>
 

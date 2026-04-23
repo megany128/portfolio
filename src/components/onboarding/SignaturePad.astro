@@ -71,26 +71,17 @@ const { existingSignature = null } = Astro.props;
     --signature-cursor-pen: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g fill='none' stroke='%23242424' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'><path d='M3 29l5-1.5L25.5 10 22 6.5 4.5 24 3 29z' fill='%238a8576'/><path d='M22 6.5l3.5 3.5'/><path d='M19 9.5l3.5 3.5'/></g></svg>") 4 28, crosshair;
   }
 
-  /* When in eraser mode, hide the OS cursor and let the JS-positioned ring be the cue. */
+  /* When in eraser mode, use a real CSS cursor (circle outline) so macOS
+     recognises it natively — no lag, proper detection. The 28px ring
+     matches ERASER_WIDTH in the JS. Hot-spot at centre (14,14). */
   [data-signature-pad][data-tool="eraser"] {
-    cursor: none !important;
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28'><circle cx='14' cy='14' r='12' fill='none' stroke='white' stroke-width='2'/></svg>") 14 14, crosshair !important;
   }
 
+  /* Eraser preview ring is replaced by a native CSS cursor — hide the
+     div so there's no doubling. Kept in DOM for non-fine-pointer fallback. */
   .eraser-preview {
-    width: 0;
-    height: 0;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-    transition: opacity 0.12s ease-out;
-    will-change: transform, width, height;
-    /* Force a solid opaque white ring regardless of the Tailwind utilities
-       on the element (which set a translucent, difference-blended border). */
-    border: 2px solid #ffffff !important;
-    mix-blend-mode: normal !important;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
-  }
-  .eraser-preview[data-active] {
-    opacity: 1;
+    display: none;
   }
 
   /* Clear button — hidden until the canvas has any ink on it. */

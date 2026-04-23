@@ -5,6 +5,7 @@ import VisitorCard from "../components/onboarding/VisitorCard.astro";
 import CustomCursor from "../components/home/CustomCursor.astro";
 import { getCurrentVisitor, peekNextVisitorNumber } from "../lib/visitor-server";
 import { SEED_VISITORS } from "../lib/seed-visitors";
+import type { CardColor } from "../lib/visitor";
 
 export const prerender = false;
 
@@ -14,7 +15,10 @@ const nextNumber = await peekNextVisitorNumber(Astro);
 const seedCount = SEED_VISITORS.length;
 const displayNumber = visitor ? visitor.number + seedCount : nextNumber + seedCount;
 const isEdit = editMode && visitor !== null;
-const cursorColor = visitor?.color ?? "pink";
+
+const PICKER_COLORS: CardColor[] = ["pink", "teal", "green", "orange"];
+const startColor: CardColor =
+  visitor?.color ?? PICKER_COLORS[Math.floor(Math.random() * PICKER_COLORS.length)];
 ---
 
 {isEdit ? (
@@ -27,14 +31,14 @@ const cursorColor = visitor?.color ?? "pink";
       nextNumber={displayNumber}
       edit
       existingName={visitor.name}
-      existingColor={visitor.color}
+      existingColor={startColor}
       existingSignature={visitor.signature}
     />
-    <CustomCursor color={cursorColor} />
+    <CustomCursor color={startColor} />
   </BaseLayout>
 ) : (
   <DarkScene title="Sign in — Megan's World">
-    <VisitorCard nextNumber={displayNumber} />
-    <CustomCursor color={cursorColor} />
+    <VisitorCard nextNumber={displayNumber} startColor={startColor} />
+    <CustomCursor color={startColor} />
   </DarkScene>
 )}
