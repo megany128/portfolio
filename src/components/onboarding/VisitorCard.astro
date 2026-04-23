@@ -234,6 +234,7 @@ const { nextNumber, edit = false, existingName, startColor = "pink", existingSig
     }
   }
 
+
   /*
     The LibraryCard inside is a fixed 388×252 so the signature canvas and
     flower art land in known positions. On narrow screens we scale the
@@ -297,6 +298,14 @@ const { nextNumber, edit = false, existingName, startColor = "pink", existingSig
   html[data-sunrise-play],
   html[data-sunrise-play] body {
     background: var(--color-bg);
+  }
+  /* On mobile the sunrise disc doesn't always cover the full viewport
+     (short in-app browsers, overscroll bounce). Force cream bg so no
+     dark sliver peeks through at the edges. */
+  @media (max-width: 639px) {
+    html, body {
+      background: var(--color-bg) !important;
+    }
   }
   /*
     Gate the form's appearance on a fresh sunrise arrival (armed flag).

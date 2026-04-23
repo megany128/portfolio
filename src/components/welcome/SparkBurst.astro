@@ -29,184 +29,165 @@
     twinkle: number;
   };
 
-  const canvas = document.querySelector<HTMLCanvasElement>(
-    "[data-spark-burst]"
-  );
-  if (canvas) {
-    const ctx = canvas.getContext("2d");
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+  // Teal brand color from tokens.css (--color-teal-1 #65b6c3).
+  const TEAL = "101, 182, 195";
 
-    let dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-    let rafId = 0;
-    let lastFrame = performance.now();
-    const particles: Particle[] = [];
+  let canvas: HTMLCanvasElement | null = null;
+  let ctx: CanvasRenderingContext2D | null = null;
+  let dpr = 1;
+  let rafId = 0;
+  let lastFrame = 0;
+  const particles: Particle[] = [];
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    function resize() {
-      if (!canvas || !ctx) return;
-      dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-      canvas.width = Math.floor(window.innerWidth * dpr);
-      canvas.height = Math.floor(window.innerHeight * dpr);
-      canvas.style.width = window.innerWidth + "px";
-      canvas.style.height = window.innerHeight + "px";
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
-    resize();
-    window.addEventListener("resize", resize, { passive: true });
-
-    // Teal brand color from tokens.css (--color-teal-1 #65b6c3) mixes well
-    // with the white cursor + shooting stars.
-    const TEAL = "101, 182, 195";
-
-    function spawnBurst(x: number, y: number) {
-      if (reduced) {
-        // Minimal motion: one soft ring particle.
-        particles.push({
-          x,
-          y,
-          vx: 0,
-          vy: 0,
-          life: 0,
-          ttl: 450,
-          size: 24,
-          hue: "white",
-          twinkle: 0,
-        });
-        return;
-      }
-      const count = 22 + Math.floor(Math.random() * 11); // 22..32
-      for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        // Speed in px/second. Bursty center, softer outliers.
-        const speed = 120 + Math.pow(Math.random(), 0.6) * 380;
-        const ttl = 650 + Math.random() * 300;
-        particles.push({
-          x,
-          y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          life: 0,
-          ttl,
-          size: 1.2 + Math.random() * 2.2,
-          hue: Math.random() < 0.35 ? "teal" : "white",
-          twinkle: Math.random() * Math.PI * 2,
-        });
-      }
-    }
-
-    function tick(now: number) {
-      if (!canvas || !ctx) return;
-      const dt = Math.min(48, now - lastFrame);
-      lastFrame = now;
-      const dtSec = dt / 1000;
-
-      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-      ctx.globalCompositeOperation = "lighter";
-
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.life += dt;
-        if (p.life >= p.ttl) {
-          particles.splice(i, 1);
-          continue;
-        }
-        // Slight anti-gravity so sparks drift up like embers, plus drag.
-        p.vy -= 40 * dtSec;
-        p.vx *= 0.96;
-        p.vy *= 0.96;
-        p.x += p.vx * dtSec;
-        p.y += p.vy * dtSec;
-
-        const t = p.life / p.ttl; // 0..1
-        const fade = 1 - t;
-        const twinkle = 0.7 + 0.3 * Math.sin(p.twinkle + p.life * 0.02);
-        const alpha = Math.max(0, fade * twinkle);
-
-        if (reduced) {
-          // Expanding soft ring
-          const r = p.size + t * 48;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.6})`;
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-          continue;
-        }
-
-        const rgb = p.hue === "teal" ? TEAL : "255, 255, 255";
-        const radius = p.size * (1 + 0.4 * twinkle);
-
-        // Soft glow halo
-        const halo = ctx.createRadialGradient(
-          p.x,
-          p.y,
-          0,
-          p.x,
-          p.y,
-          radius * 6
-        );
-        halo.addColorStop(0, `rgba(${rgb}, ${alpha * 0.55})`);
-        halo.addColorStop(1, `rgba(${rgb}, 0)`);
-        ctx.fillStyle = halo;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, radius * 6, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Bright core
-        ctx.fillStyle = `rgba(${rgb}, ${alpha})`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.globalCompositeOperation = "source-over";
-
-      rafId = requestAnimationFrame(tick);
-    }
-    rafId = requestAnimationFrame(tick);
-
-    // Pointer + touch listeners at window level with capture=false so
-    // existing buttons/links handle their own click first; the burst is
-    // purely visual and the canvas is pointer-events: none anyway.
-    function handlePoint(x: number, y: number) {
-      spawnBurst(x, y);
-    }
-    window.addEventListener(
-      "pointerdown",
-      (e) => {
-        // Only react to primary button / touch.
-        if (e.pointerType === "mouse" && e.button !== 0) return;
-        handlePoint(e.clientX, e.clientY);
-      },
-      { passive: true }
-    );
-    window.addEventListener(
-      "touchstart",
-      (e) => {
-        const t = e.touches[0];
-        if (t) handlePoint(t.clientX, t.clientY);
-      },
-      { passive: true }
-    );
-
-    // Pause RAF when page is hidden (tab/window switch) — resume on return.
-    // Full cleanup only on actual navigation (beforeunload).
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) {
-        cancelAnimationFrame(rafId);
-      } else {
-        lastFrame = performance.now();
-        rafId = requestAnimationFrame(tick);
-      }
-    });
-
-    function cleanup() {
-      cancelAnimationFrame(rafId);
-      particles.length = 0;
-      window.removeEventListener("resize", resize);
-    }
-    window.addEventListener("pagehide", cleanup, { once: true });
-    window.addEventListener("beforeunload", cleanup, { once: true });
+  function resize() {
+    if (!canvas || !ctx) return;
+    dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    canvas.width = Math.floor(window.innerWidth * dpr);
+    canvas.height = Math.floor(window.innerHeight * dpr);
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
+
+  function spawnBurst(x: number, y: number) {
+    if (reduced) {
+      particles.push({
+        x, y, vx: 0, vy: 0, life: 0, ttl: 450, size: 24, hue: "white", twinkle: 0,
+      });
+      return;
+    }
+    const count = 22 + Math.floor(Math.random() * 11);
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 120 + Math.pow(Math.random(), 0.6) * 380;
+      const ttl = 650 + Math.random() * 300;
+      particles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 0, ttl,
+        size: 1.2 + Math.random() * 2.2,
+        hue: Math.random() < 0.35 ? "teal" : "white",
+        twinkle: Math.random() * Math.PI * 2,
+      });
+    }
+  }
+
+  function tick(now: number) {
+    if (!canvas || !ctx) return;
+    const dt = Math.min(48, now - lastFrame);
+    lastFrame = now;
+    const dtSec = dt / 1000;
+
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    ctx.globalCompositeOperation = "lighter";
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.life += dt;
+      if (p.life >= p.ttl) {
+        particles.splice(i, 1);
+        continue;
+      }
+      p.vy -= 40 * dtSec;
+      p.vx *= 0.96;
+      p.vy *= 0.96;
+      p.x += p.vx * dtSec;
+      p.y += p.vy * dtSec;
+
+      const t = p.life / p.ttl;
+      const fade = 1 - t;
+      const twinkle = 0.7 + 0.3 * Math.sin(p.twinkle + p.life * 0.02);
+      const alpha = Math.max(0, fade * twinkle);
+
+      if (reduced) {
+        const r = p.size + t * 48;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.6})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        continue;
+      }
+
+      const rgb = p.hue === "teal" ? TEAL : "255, 255, 255";
+      const radius = p.size * (1 + 0.4 * twinkle);
+
+      const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius * 6);
+      halo.addColorStop(0, `rgba(${rgb}, ${alpha * 0.55})`);
+      halo.addColorStop(1, `rgba(${rgb}, 0)`);
+      ctx.fillStyle = halo;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, radius * 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = `rgba(${rgb}, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.globalCompositeOperation = "source-over";
+    rafId = requestAnimationFrame(tick);
+  }
+
+  // Dedupe: on mobile, pointerdown + touchstart both fire for the same tap.
+  // Ignore touchstart if a pointerdown just fired within 50ms.
+  let lastPointerDown = 0;
+
+  function onPointerDown(e: PointerEvent) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    if (!canvas) return;
+    lastPointerDown = performance.now();
+    spawnBurst(e.clientX, e.clientY);
+  }
+
+  function onTouchStart(e: TouchEvent) {
+    if (!canvas) return;
+    if (performance.now() - lastPointerDown < 50) return; // dedupe
+    const t = e.touches[0];
+    if (t) spawnBurst(t.clientX, t.clientY);
+  }
+
+  function onVisibilityChange() {
+    if (document.hidden) {
+      cancelAnimationFrame(rafId);
+    } else {
+      lastFrame = performance.now();
+      if (canvas) rafId = requestAnimationFrame(tick);
+    }
+  }
+
+  function initSparkBurst() {
+    const el = document.querySelector<HTMLCanvasElement>("[data-spark-burst]");
+    if (!el) {
+      // Not on welcome page — stop RAF + hide.
+      cancelAnimationFrame(rafId);
+      canvas = null;
+      ctx = null;
+      return;
+    }
+    if (el === canvas) return; // already wired to this element
+
+    // Fresh canvas — wire up.
+    cancelAnimationFrame(rafId);
+    particles.length = 0;
+    canvas = el;
+    ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    resize();
+    lastFrame = performance.now();
+    rafId = requestAnimationFrame(tick);
+  }
+
+  // Global listeners — registered once, re-query canvas each time.
+  window.addEventListener("resize", resize, { passive: true });
+  window.addEventListener("pointerdown", onPointerDown, { passive: true });
+  window.addEventListener("touchstart", onTouchStart, { passive: true });
+  document.addEventListener("visibilitychange", onVisibilityChange);
+
+  initSparkBurst();
+  document.addEventListener("astro:page-load", initSparkBurst);
 </script>
