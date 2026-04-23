@@ -232,11 +232,10 @@ const { color = "pink" } = Astro.props;
     100% { filter: brightness(1); }
   }
 
-  /* Hide native cursor wherever the custom one is active. */
-  html[data-custom-cursor-active],
-  html[data-custom-cursor-active] * {
-    cursor: none !important;
-  }
+  /* Hide native cursor — rule lives here (always loaded) rather than
+     gated on an html attribute that Astro's ClientRouter can wipe. The
+     JS toggle below injects/removes a <style id="cc-hide"> to turn it
+     on and off per-page. */
 </style>
 
 <script>
@@ -253,13 +252,29 @@ const { color = "pink" } = Astro.props;
   */
   (function setup() {
     if (!window.matchMedia("(pointer: fine)").matches) return;
+
+    // Persistent <style> that hides the native cursor. Injected into
+    // <head> and kept alive across view transitions — immune to Astro's
+    // html-attribute sync that was wiping data-custom-cursor-active.
+    const HIDE_ID = "cc-hide-cursor";
+    function showNativeCursor(show: boolean) {
+      let tag = document.getElementById(HIDE_ID);
+      if (!show) {
+        if (!tag) {
+          tag = document.createElement("style");
+          tag.id = HIDE_ID;
+          tag.textContent = "*, html { cursor: none !important; }";
+          document.head.appendChild(tag);
+        }
+      } else {
+        tag?.remove();
+      }
+    }
+
     if ((window as any).__customCursorInit) {
-      // Second mount — just make sure any newly-rendered cursor element is
-      // visible + active. (Persist should keep the original; this handles
-      // edge cases where a non-cursor page swapped it out.)
       const c = document.querySelector<HTMLElement>("[data-custom-cursor]");
       if (c) c.classList.remove("hidden");
-      document.documentElement.setAttribute("data-custom-cursor-active", "");
+      showNativeCursor(false);
       return;
     }
     (window as any).__customCursorInit = true;
@@ -281,7 +296,7 @@ const { color = "pink" } = Astro.props;
       first.classList.remove("hidden");
       first.style.opacity = "0";
     }
-    document.documentElement.setAttribute("data-custom-cursor-active", "");
+    showNativeCursor(false);
 
     let targetX = 0;
     let targetY = 0;
@@ -424,9 +439,7 @@ const { color = "pink" } = Astro.props;
     document.addEventListener("pointerup", clearPress);
     document.addEventListener("pointercancel", clearPress);
 
-    // When ClientRouter swaps bodies, check whether the new page includes
-    // <CustomCursor /> (via the non-persisted marker).  Pages without it
-    // (e.g. onboarding) get native cursors back; pages with it stay custom.
+    // Reconcile cursor state after every view-transition page swap.
     document.addEventListener("astro:page-load", () => {
       const wantsCustomCursor = !!document.querySelector("[data-custom-cursor-page]");
       const c = el();
@@ -435,13 +448,13 @@ const { color = "pink" } = Astro.props;
           c.classList.remove("hidden");
           if (initialized) c.style.opacity = "1";
         }
-        document.documentElement.setAttribute("data-custom-cursor-active", "");
+        showNativeCursor(false);
       } else {
         if (c) {
           c.style.opacity = "0";
           c.classList.add("hidden");
         }
-        document.documentElement.removeAttribute("data-custom-cursor-active");
+        showNativeCursor(true);
       }
     });
   })();
