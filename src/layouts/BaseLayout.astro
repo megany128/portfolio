@@ -8,6 +8,7 @@ interface Props {
   description?: string;
   image?: string;
   bodyClass?: string;
+  htmlClass?: string;
   showPet?: boolean;
 }
 
@@ -16,6 +17,7 @@ const {
   description = "Portfolio of Megan Yap.",
   image = "/og.png",
   bodyClass = "",
+  htmlClass = "",
   showPet = true,
 } = Astro.props;
 
@@ -24,7 +26,7 @@ const ogImageUrl = new URL(image, Astro.site);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class={htmlClass}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
