@@ -14,7 +14,10 @@ const visitor = await getCurrentVisitor(Astro);
 const cursorColor = visitor?.color ?? "pink";
 ---
 
-<BaseLayout title="About — Megan Yap" description="Grew up in sunny Malaysia, now exploring tech and design as a junior at Cornell. Always happy to chat — on the lookout for a full-time job and good conversations :)">
+<BaseLayout
+  title="About — Megan Yap"
+  description="Grew up in sunny Malaysia, now exploring tech and design as a junior at Cornell. Always happy to chat — on the lookout for a full-time job and good conversations :)"
+>
   <div class="flex items-stretch flex-1">
     <Sidebar active="about" />
 
@@ -60,8 +63,8 @@ const cursorColor = visitor?.color ?? "pink";
             </li>
           </ul>
           <p>
-            Always happy to chat! I&rsquo;m on the lookout for a full-time job and good conversations
-            :)
+            Always happy to chat! I&rsquo;m on the lookout for a full-time job and good
+            conversations :)
           </p>
         </div>
 
@@ -123,7 +126,7 @@ const cursorColor = visitor?.color ?? "pink";
             iconWidth={19}
             iconHeight={19}
             title="Digital Tech & Innovation"
-            description="I've been on DTI since my freshman year and have been active as Product Lead, CU Reviews PM, and Incubator PM & Designer! I've truly grown and learned so much from my time on DTI, and I'm so happy to be able to give back as a mentor now."
+            description="I've been on DTI since my freshman year and have been active as Product Lead, CU Reviews PM, and Incubator PM/Designer! I've grown so much on DTI, and am so happy to be giving back as a mentor and instructor now."
             photo="/images/communities/dti-photo.png"
           />
           <CommunityCard
@@ -132,7 +135,7 @@ const cursorColor = visitor?.color ?? "pink";
             iconHeight={16}
             iconRounded={false}
             title="Design Consulting at Cornell"
-            description="DCC is where I first got into design — it was in this club that I learned Figma for the first time and truly understood the fundamentals of how to create good user experiences. Being in this community has been lovely and I've met so many amazing people!"
+            description="DCC is where I first got into design — it was in this club that I learned Figma for the first time and truly understood the fundamentals of how to create good user experiences. Being in this community has been lovely!"
             photo="/images/communities/dcc-photo.png"
           />
           <CommunityCard
@@ -142,7 +145,7 @@ const cursorColor = visitor?.color ?? "pink";
             iconRounded={false}
             title="Armada"
             description="I just joined Armada as a builder — it's an awesome club that is sponsored by Jared Friedman (YC) and Anthropic. Everyone in Armada is insanely cracked and I'm looking forward to getting to know the people here!"
-            photo="/images/communities/armada-photo.png"
+            photo="/images/communities/armada-photo.jpeg"
           />
         </div>
       </section>
