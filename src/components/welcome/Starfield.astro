@@ -17,14 +17,24 @@ function mulberry32(a: number) {
 }
 
 const rand = mulberry32(17);
-const stars = Array.from({ length: 110 }, () => ({
-  // Positions spread across a 150% square so rotation doesn't reveal the edge.
-  x: rand() * 150 - 25,
-  y: rand() * 150 - 25,
-  size: rand() < 0.7 ? 1.5 : rand() < 0.9 ? 2 : 2.5,
-  opacity: 0.55 + rand() * 0.4,
-  twinkleDelay: rand() * 12,
-}));
+
+// Stratified placement: divide area into grid cells, place one star per cell
+// with random jitter. Prevents clustering and ensures even coverage from the start.
+const cols = 11;
+const rows = 10;
+const cellW = 150 / cols;
+const cellH = 150 / rows;
+const stars = Array.from({ length: cols * rows }, (_, i) => {
+  const col = i % cols;
+  const row = Math.floor(i / cols);
+  return {
+    x: -25 + col * cellW + rand() * cellW,
+    y: -25 + row * cellH + rand() * cellH,
+    size: rand() < 0.7 ? 1.5 : rand() < 0.9 ? 2 : 2.5,
+    opacity: 0.55 + rand() * 0.4,
+    twinkleDelay: rand() * 12,
+  };
+});
 ---
 
 <div
