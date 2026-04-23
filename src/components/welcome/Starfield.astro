@@ -1,11 +1,10 @@
 ---
-// Faint static starfield that rotates very slowly around the viewport center.
-// Sits behind everything else on the welcome scene to give a spacey feel
-// without drawing attention.
+// Three-layer starfield with parallax depth. Each layer rotates at a
+// different speed (and one reverses direction) so the sky feels alive
+// rather than rigidly spinning as one sheet.
 //
 // Dots are pre-generated server-side so layout is stable across loads.
 
-// Deterministic pseudo-random so each server render is identical but varied.
 function mulberry32(a: number) {
   return () => {
     a = (a + 0x6d2b79f5) | 0;
@@ -16,75 +15,101 @@ function mulberry32(a: number) {
   };
 }
 
-const rand = mulberry32(17);
+type Star = { x: number; y: number; size: number; opacity: number; twinkleDelay: number };
 
-// Stratified placement: divide area into grid cells, place one star per cell
-// with random jitter. Prevents clustering and ensures even coverage from the start.
-const cols = 11;
-const rows = 10;
-const cellW = 150 / cols;
-const cellH = 150 / rows;
-const stars = Array.from({ length: cols * rows }, (_, i) => {
-  const col = i % cols;
-  const row = Math.floor(i / cols);
-  return {
-    x: -25 + col * cellW + rand() * cellW,
-    y: -25 + row * cellH + rand() * cellH,
-    size: rand() < 0.7 ? 1.5 : rand() < 0.9 ? 2 : 2.5,
-    opacity: 0.55 + rand() * 0.4,
-    twinkleDelay: rand() * 12,
-  };
-});
+function makeLayer(seed: number, grid: number, maxR: number, skip: number,
+  sizeRange: [number, number, number], opRange: [number, number]) {
+  const rand = mulberry32(seed);
+  const cellSize = 100 / grid;
+  const stars: Star[] = [];
+  for (let row = 0; row < grid; row++) {
+    for (let col = 0; col < grid; col++) {
+      const cx = (col + 0.5) * cellSize - 50;
+      const cy = (row + 0.5) * cellSize - 50;
+      if (Math.sqrt(cx * cx + cy * cy) > maxR) continue;
+      if (rand() < skip) { rand(); rand(); rand(); rand(); continue; }
+      stars.push({
+        x: col * cellSize + (rand() * 1.6 - 0.3) * cellSize,
+        y: row * cellSize + (rand() * 1.6 - 0.3) * cellSize,
+        size: rand() < sizeRange[0] ? sizeRange[1] : sizeRange[2],
+        opacity: opRange[0] + rand() * (opRange[1] - opRange[0]),
+        twinkleDelay: rand() * 14,
+      });
+    }
+  }
+  return stars;
+}
+
+// Far: sparse tiny dim stars, slowest rotation
+const far  = makeLayer(17, 12, 45, 0.22, [0.8, 1, 1.5],   [0.25, 0.5]);
+// Mid: a handful of mid-brightness stars, tighter toward center
+const mid  = makeLayer(53, 10, 38, 0.28, [0.65, 1.5, 2],   [0.45, 0.7]);
+// Near: few brighter stars clustered near center
+const near = makeLayer(91,  9, 30, 0.32, [0.5, 2, 2.5],    [0.6, 0.9]);
 ---
 
 <div
   aria-hidden="true"
   class="pointer-events-none absolute inset-0 overflow-hidden"
 >
-  <!--
-    The starfield fills a 150% square that rotates around the viewport center,
-    so when the grid spins we never see a hard edge come into view.
-  -->
-  <div class="starfield absolute top-1/2 left-1/2 w-[150%] h-[150%] -translate-x-1/2 -translate-y-1/2">
-    {
-      stars.map((s) => (
-        <span
-          class="star absolute rounded-full bg-white"
-          style={`
-            left: ${s.x}%;
-            top: ${s.y}%;
-            width: ${s.size}px;
-            height: ${s.size}px;
-            opacity: ${s.opacity};
-            animation-delay: ${s.twinkleDelay}s;
-          `}
-        />
-      ))
-    }
+  <!-- Far layer — slowest, counter-clockwise for depth contrast -->
+  <div class="starfield starfield--far absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style="width: 150vmax; height: 150vmax;">
+    {far.map((s) => (
+      <span
+        class="star absolute rounded-full bg-white"
+        style={`left:${s.x}%;top:${s.y}%;width:${s.size}px;height:${s.size}px;opacity:${s.opacity};animation-delay:${s.twinkleDelay}s;`}
+      />
+    ))}
+  </div>
+
+  <!-- Mid layer -->
+  <div class="starfield starfield--mid absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style="width: 150vmax; height: 150vmax;">
+    {mid.map((s) => (
+      <span
+        class="star absolute rounded-full bg-white"
+        style={`left:${s.x}%;top:${s.y}%;width:${s.size}px;height:${s.size}px;opacity:${s.opacity};animation-delay:${s.twinkleDelay}s;`}
+      />
+    ))}
+  </div>
+
+  <!-- Near layer — fastest, slightly fewer stars -->
+  <div class="starfield starfield--near absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style="width: 150vmax; height: 150vmax;">
+    {near.map((s) => (
+      <span
+        class="star absolute rounded-full bg-white"
+        style={`left:${s.x}%;top:${s.y}%;width:${s.size}px;height:${s.size}px;opacity:${s.opacity};animation-delay:${s.twinkleDelay}s;`}
+      />
+    ))}
   </div>
 </div>
 
 <style is:global>
-  @keyframes starfield-spin {
-    from { transform: translate(-50%, -50%) rotate(0deg); }
-    to   { transform: translate(-50%, -50%) rotate(360deg); }
-  }
   @keyframes star-twinkle {
     0%, 100% { opacity: 0.7; }
     50%      { opacity: 1; }
   }
 
-  .starfield {
-    animation: starfield-spin 240s linear infinite;
-  }
+  .starfield--far  { animation: 360s linear infinite starfield-far; }
+  .starfield--mid  { animation: 260s linear infinite starfield-mid; }
+  .starfield--near { animation: 190s linear infinite starfield-near; }
+
+  @keyframes starfield-far  { to { rotate: -360deg; } }
+  @keyframes starfield-mid  { to { rotate:  360deg; } }
+  @keyframes starfield-near { to { rotate: -360deg; } }
 
   .star {
-    will-change: opacity;
     box-shadow: 0 0 3px rgba(255, 255, 255, 0.7);
     animation: star-twinkle 9s ease-in-out infinite;
   }
 
+  /* Near-layer stars get a slightly bigger glow. */
+  .starfield--near .star {
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .starfield, .star { animation: none; }
+    .starfield--far, .starfield--mid, .starfield--near, .star {
+      animation: none;
+    }
   }
 </style>

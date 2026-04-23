@@ -42,11 +42,13 @@ const quote: Word[] = [
         <p
           class="font-[family-name:var(--font-display)] font-light text-[28px] sm:text-[36px] leading-none text-[var(--color-ink-inverted)] w-full text-center flex justify-center gap-2 flex-wrap"
         >
-          {titleWords.map((word) => (
-            <span data-shove class="inline-block will-change-transform">
-              {word}
-            </span>
-          ))}
+          {
+            titleWords.map((word) => (
+              <span data-shove class="inline-block will-change-transform">
+                {word}
+              </span>
+            ))
+          }
         </p>
       </div>
 
@@ -80,9 +82,6 @@ const quote: Word[] = [
         ))
       }
       <br />
-      <span data-shove class="inline-block will-change-transform">-</span>{" "}
-      <span data-shove class="inline-block will-change-transform">paul</span>{" "}
-      <span data-shove class="inline-block will-change-transform">graham</span>
     </p>
   </div>
 </section>
