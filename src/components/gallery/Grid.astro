@@ -219,21 +219,20 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       }
     }
 
-    function injectSignature(clone: HTMLElement, dataUrl: string) {
-      // Find the card element inside the clone and inject the signature image.
-      const card = clone.querySelector<HTMLElement>(".library-card");
+    function injectSignature(el: HTMLElement, dataUrl: string) {
+      const card = el.querySelector<HTMLElement>(".library-card");
       if (!card) return;
-      // Remove any existing fallback signature.
-      const fallback = card.querySelector(".library-card__fallback-sig");
-      if (fallback) fallback.remove();
-      // Don't double-inject.
       if (card.querySelector(".library-card__signature")) return;
+      const fallback = card.querySelector<HTMLElement>(".library-card__fallback-sig");
       const img = document.createElement("img");
       img.src = dataUrl;
       img.alt = "signature";
       img.className = "library-card__signature absolute inset-0 w-full h-full object-contain pointer-events-none";
       img.loading = "eager";
       img.decoding = "async";
+      // Remove fallback only after the signature image has decoded so there
+      // is no flash of empty space between the two.
+      if (fallback) img.onload = () => fallback.remove();
       card.appendChild(img);
     }
 
@@ -776,6 +775,30 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       open.clone.style.transform = `perspective(1200px) scale(${target.scale})`;
     });
 
+    /* ---------- lazy-load signatures for visible mini cards ---------- */
+    const sigObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const wrap = entry.target as HTMLElement;
+          sigObserver.unobserve(wrap);
+          const cardId = wrap.dataset.id;
+          if (cardId) lazyLoadSignature(wrap, cardId);
+        }
+      },
+      { rootMargin: "200px 0px" },
+    );
+
+    function observeMiniCards() {
+      grid!.querySelectorAll<HTMLElement>(
+        "[data-mini-card-wrap]:not([data-sig-queued])",
+      ).forEach((wrap) => {
+        wrap.dataset.sigQueued = "";
+        sigObserver.observe(wrap);
+      });
+    }
+    observeMiniCards();
+
     /* ---------- "Load more" pagination ------------------------------- */
     const loadMoreBtn = document.querySelector<HTMLButtonElement>("[data-gallery-load-more]");
     if (loadMoreBtn) {
@@ -815,6 +838,9 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
             }
           }
           grid.appendChild(frag);
+
+          // Observe new cards for lazy signature loading.
+          observeMiniCards();
 
           // Update offset for next page.
           const newOffset = offset + pageSize;
