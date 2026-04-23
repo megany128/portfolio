@@ -16,7 +16,12 @@ export default defineConfig({
       // .wrangler/state on every D1 read. Without this, each /onboarding
       // SSR hits D1 → WAL writes → Vite HMR full-reload → next SSR, in an
       // ~10s loop that re-rolls the visitor name on its own.
-      watch: { ignored: ["**/.wrangler/**", "**/dist/**"] },
+      watch: {
+        ignored: [
+          (/** @type {string} */ p) => p.includes(".wrangler"),
+          "**/dist/**",
+        ],
+      },
     },
   },
 });
