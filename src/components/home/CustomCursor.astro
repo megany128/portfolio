@@ -382,7 +382,12 @@ const { color = "pink" } = Astro.props;
         return;
       }
       const hit = target.closest<HTMLElement>("[data-cursor-bg]");
-      const onBrandBg = hit != null && hit.dataset.cursorBg !== "neutral";
+      if (!hit) {
+        c.removeAttribute("data-conflict");
+        return;
+      }
+      // Any non-neutral brand bg → swap cursor to white for contrast.
+      const onBrandBg = hit.dataset.cursorBg !== "neutral";
       if (onBrandBg) c.setAttribute("data-conflict", "");
       else c.removeAttribute("data-conflict");
     }

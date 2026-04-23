@@ -26,7 +26,7 @@ const swatches: { color: CardColor; bg: string }[] = [
   <legend class="sr-only">Card color</legend>
   {
     swatches.map(({ color, bg }) => (
-      <label class="cursor-pointer">
+      <label class="cursor-pointer p-2 -m-2" data-cursor="dot">
         <input
           type="radio"
           name={name}
@@ -36,7 +36,8 @@ const swatches: { color: CardColor; bg: string }[] = [
         />
         <span
           aria-hidden="true"
-          class="block size-[26px] rounded-full transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:scale-110 active:scale-95 peer-checked:scale-110 peer-checked:ring-2 peer-checked:ring-[var(--color-ink)] peer-checked:ring-offset-2 peer-checked:ring-offset-[var(--color-bg)]"
+          data-cursor-bg={color}
+          class="block size-[26px] rounded-full transition-transform duration-[var(--duration-base)] ease-[var(--ease-out-soft)] hover:scale-125 active:scale-95 peer-checked:scale-110 peer-checked:ring-2 peer-checked:ring-[var(--color-ink)] peer-checked:ring-offset-2 peer-checked:ring-offset-[var(--color-bg)]"
           style={`background:${bg};`}
         />
         <span class="sr-only">{color}</span>
