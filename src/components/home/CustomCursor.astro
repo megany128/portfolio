@@ -17,6 +17,11 @@ const { color = "pink" } = Astro.props;
                            (no percentage translate that would jump on size
                            change or click).
 -->
+<!-- Non-persisted marker: only exists on pages that render <CustomCursor />.
+     The astro:page-load handler checks for it to decide whether native cursor
+     should be hidden. Pages without the component get native cursors back. -->
+<div data-custom-cursor-page aria-hidden="true" style="display:none"></div>
+
 <div
   data-custom-cursor
   data-color={color}
@@ -382,18 +387,25 @@ const { color = "pink" } = Astro.props;
     document.addEventListener("pointerup", clearPress);
     document.addEventListener("pointercancel", clearPress);
 
-    // When ClientRouter swaps bodies, the persisted cursor should remain,
-    // but make sure hidden/active stays set on the fresh node (in case the
-    // new page originally rendered with `hidden`).
+    // When ClientRouter swaps bodies, check whether the new page includes
+    // <CustomCursor /> (via the non-persisted marker).  Pages without it
+    // (e.g. onboarding) get native cursors back; pages with it stay custom.
     document.addEventListener("astro:page-load", () => {
+      const wantsCustomCursor = !!document.querySelector("[data-custom-cursor-page]");
       const c = el();
-      if (c) {
-        c.classList.remove("hidden");
-        // Restore visibility — mouseleave may have fired during the page
-        // swap and mouseenter won't re-fire if pointer is already inside.
-        if (initialized) c.style.opacity = "1";
+      if (wantsCustomCursor) {
+        if (c) {
+          c.classList.remove("hidden");
+          if (initialized) c.style.opacity = "1";
+        }
+        document.documentElement.setAttribute("data-custom-cursor-active", "");
+      } else {
+        if (c) {
+          c.style.opacity = "0";
+          c.classList.add("hidden");
+        }
+        document.documentElement.removeAttribute("data-custom-cursor-active");
       }
-      document.documentElement.setAttribute("data-custom-cursor-active", "");
     });
   })();
 </script>

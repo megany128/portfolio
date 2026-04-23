@@ -109,5 +109,11 @@
       const interactive = t?.closest?.("a, button, [role='button']");
       cursor!.dataset.mode = interactive ? "link" : "dot";
     });
+
+    // Remove cursor-none override when navigating away so the next page
+    // (e.g. onboarding) gets native cursors back.
+    document.addEventListener("astro:before-swap", () => {
+      document.documentElement.removeAttribute("data-welcome-cursor-active");
+    }, { once: true });
   }
 </script>

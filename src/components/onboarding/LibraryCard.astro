@@ -518,7 +518,6 @@ const showFallback = !signable && !signature;
     display: inline-block;
     color: var(--card-flower-peak);
     animation: flower-glimmer var(--glimmer-duration, 2.8s) ease-in-out var(--glimmer-delay, 0s) infinite;
-    will-change: opacity;
   }
 
   /* Glimmer dots flash noticeably against the base-tint silhouette — they
@@ -576,6 +575,29 @@ const showFallback = !signable && !signature;
         0 0 10px rgba(255, 255, 255, 0.35);
       transform: scale(1.6);
     }
+  }
+
+  /* Gallery mini-cards are scaled to ~0.72× — text-shadow halos are invisible
+     at that size and force expensive repaints. Swap to opacity-only keyframes
+     so the browser can run the animation entirely on the compositor thread. */
+  .mini-card .library-card__flower .glimmer {
+    animation-name: flower-glimmer-mini;
+  }
+  .mini-card .library-card[data-color="green"] .library-card__flower .glimmer,
+  .mini-card .library-card[data-color="orange"] .library-card__flower .glimmer {
+    animation-name: flower-glimmer-mini-small;
+  }
+  @keyframes flower-glimmer-mini {
+    0%, 100% { opacity: 0.2; }
+    35%      { opacity: 1; }
+    60%      { opacity: 0.1; }
+    82%      { opacity: 1; }
+  }
+  @keyframes flower-glimmer-mini-small {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    35%      { opacity: 1;   transform: scale(1.8); }
+    60%      { opacity: 0.1; transform: scale(1); }
+    82%      { opacity: 1;   transform: scale(1.6); }
   }
 
   @media (prefers-reduced-motion: reduce) {

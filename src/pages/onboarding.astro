@@ -2,6 +2,7 @@
 import DarkScene from "../layouts/DarkScene.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import VisitorCard from "../components/onboarding/VisitorCard.astro";
+import CustomCursor from "../components/home/CustomCursor.astro";
 import { getCurrentVisitor, peekNextVisitorNumber } from "../lib/visitor-server";
 import { SEED_VISITORS } from "../lib/seed-visitors";
 
@@ -13,6 +14,7 @@ const nextNumber = await peekNextVisitorNumber(Astro);
 const seedCount = SEED_VISITORS.length;
 const displayNumber = visitor ? visitor.number + seedCount : nextNumber + seedCount;
 const isEdit = editMode && visitor !== null;
+const cursorColor = visitor?.color ?? "pink";
 ---
 
 {isEdit ? (
@@ -28,9 +30,11 @@ const isEdit = editMode && visitor !== null;
       existingColor={visitor.color}
       existingSignature={visitor.signature}
     />
+    <CustomCursor color={cursorColor} />
   </BaseLayout>
 ) : (
   <DarkScene title="Sign in — Megan's World">
     <VisitorCard nextNumber={displayNumber} />
+    <CustomCursor color={cursorColor} />
   </DarkScene>
 )}
