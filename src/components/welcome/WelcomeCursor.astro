@@ -65,6 +65,8 @@
     let currX = 0;
     let currY = 0;
     let initialized = false;
+    let rafId = 0;
+    let idleTimer = 0;
 
     cursor!.style.opacity = "0";
 
@@ -76,9 +78,22 @@
       window.dispatchEvent(
         new CustomEvent("welcome:pointer", { detail: { x: currX, y: currY } })
       );
-      requestAnimationFrame(tick);
+      rafId = requestAnimationFrame(tick);
     }
-    requestAnimationFrame(tick);
+
+    function startLoop() {
+      if (!rafId) rafId = requestAnimationFrame(tick);
+    }
+    function stopLoop() {
+      if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+    }
+    function resetIdle() {
+      clearTimeout(idleTimer);
+      startLoop();
+      idleTimer = window.setTimeout(stopLoop, 500);
+    }
+
+    startLoop();
 
     window.addEventListener("pointermove", (e) => {
       targetX = e.clientX;
@@ -89,6 +104,7 @@
         cursor!.style.opacity = "1";
         initialized = true;
       }
+      resetIdle();
     });
 
     document.addEventListener("mouseleave", () => (cursor!.style.opacity = "0"));
@@ -99,8 +115,12 @@
     // Re-show cursor when returning from another window/tab — mouseenter
     // doesn't always re-fire if the pointer is already over the document.
     document.addEventListener("visibilitychange", () => {
-      if (!document.hidden && initialized) {
+      if (document.hidden) {
+        stopLoop();
+        clearTimeout(idleTimer);
+      } else if (initialized) {
         cursor!.style.opacity = "1";
+        resetIdle();
       }
     });
 

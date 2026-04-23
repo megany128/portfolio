@@ -684,7 +684,7 @@
       transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
     white-space: nowrap;
   }
-  .hat-rack:hover .hat-rack__menu,
+  .hat-rack:hover:not([data-hat-picked]) .hat-rack__menu,
   .hat-rack:focus-within .hat-rack__menu,
   .hat-rack[data-open] .hat-rack__menu {
     opacity: 1;
@@ -2090,6 +2090,7 @@
           } catch {}
           applyHat(choice);
           rack.removeAttribute("data-open");
+          rack.setAttribute("data-hat-picked", "");
           const pet = el();
           if (pet && !reduced) {
             pet.setAttribute("data-hopping", "");
@@ -2103,6 +2104,7 @@
         if (rack.hasAttribute("data-open")) rack.removeAttribute("data-open");
         else rack.setAttribute("data-open", "");
       });
+      rack.addEventListener("pointerleave", () => rack.removeAttribute("data-hat-picked"));
       // Click outside closes the menu.
       document.addEventListener("click", (e) => {
         if (!rack.hasAttribute("data-open")) return;

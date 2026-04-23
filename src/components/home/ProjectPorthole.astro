@@ -352,6 +352,7 @@ const accentBg: Record<NonNullable<Props["accent"]>, string> = {
     let curTX = 0;
     let curTY = 0;
     let hovering = false;
+    let cachedRect: DOMRect | null = null;
 
     function apply() {
       card.style.setProperty(
@@ -366,7 +367,7 @@ const accentBg: Record<NonNullable<Props["accent"]>, string> = {
 
     function tick() {
       // Ease current values toward targets.
-      const k = 0.18;
+      const k = 0.28;
       curRX += (targetRX - curRX) * k;
       curRY += (targetRY - curRY) * k;
       curCX += (targetCX - curCX) * k;
@@ -392,7 +393,7 @@ const accentBg: Record<NonNullable<Props["accent"]>, string> = {
     }
 
     function onMove(e: PointerEvent) {
-      const r = card.getBoundingClientRect();
+      const r = cachedRect ?? card.getBoundingClientRect();
       const nx = (e.clientX - r.left) / r.width; // 0..1
       const ny = (e.clientY - r.top) / r.height;
       // Card tilts *toward* the cursor — positive rotateX when cursor is above
@@ -408,10 +409,12 @@ const accentBg: Record<NonNullable<Props["accent"]>, string> = {
 
     function onEnter() {
       hovering = true;
+      cachedRect = card.getBoundingClientRect();
       if (!raf) raf = requestAnimationFrame(tick);
     }
     function onLeave() {
       hovering = false;
+      cachedRect = null;
       targetRX = 0;
       targetRY = 0;
       targetCX = 50;
