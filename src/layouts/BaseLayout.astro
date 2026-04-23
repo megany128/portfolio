@@ -6,6 +6,7 @@ import SitePet from "../components/site/SitePet.astro";
 interface Props {
   title?: string;
   description?: string;
+  image?: string;
   bodyClass?: string;
   showPet?: boolean;
 }
@@ -13,9 +14,13 @@ interface Props {
 const {
   title = "Megan Yap",
   description = "Portfolio of Megan Yap.",
+  image = "/og.png",
   bodyClass = "",
   showPet = true,
 } = Astro.props;
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+const ogImageUrl = new URL(image, Astro.site);
 ---
 
 <!doctype html>
@@ -25,6 +30,22 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- OpenGraph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:site_name" content="Megan Yap" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
     <link rel="icon" type="image/png" href="/portfolio-logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
