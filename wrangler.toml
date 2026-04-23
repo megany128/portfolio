@@ -4,9 +4,7 @@ compatibility_flags = ["nodejs_compat"]
 main = "./dist/_worker.js/index.js"
 assets = { directory = "./dist", binding = "ASSETS" }
 
-# Set the real value via: wrangler secret put ADMIN_TOKEN
-[vars]
-ADMIN_TOKEN = ""
+# ADMIN_TOKEN is set via: pnpm exec wrangler secret put ADMIN_TOKEN
 
 [[d1_databases]]
 binding = "DB"
