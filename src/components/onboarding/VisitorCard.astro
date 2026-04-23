@@ -44,7 +44,7 @@ const { nextNumber, edit = false, existingName, startColor = "pink", existingSig
   } catch (e) {}
 </script>
 
-<section class="relative min-h-dvh flex flex-col items-center justify-center px-4 sm:px-6 py-6 overflow-hidden">
+<section class="relative min-h-dvh flex flex-col items-center px-4 sm:px-6 py-6 overflow-hidden onboarding-section">
   <!-- Sunrise: renders at full cover by default. The welcome page grows its
        own cream disc out of the explore button before navigating here, and
        this element simply continues the cream fill so the first paint of
@@ -112,7 +112,7 @@ const { nextNumber, edit = false, existingName, startColor = "pink", existingSig
     novalidate
     data-edit={edit ? "" : undefined}
     data-existing-name={existingName ?? undefined}
-    class="relative w-full max-w-[512px] flex flex-col items-center gap-8 sm:gap-10 text-[var(--color-ink)]"
+    class="relative w-full max-w-[512px] flex flex-col items-center gap-8 sm:gap-10 text-[var(--color-ink)] my-auto"
   >
     <header class="font-[family-name:var(--font-mono)] text-sm sm:text-base uppercase text-center w-full leading-none">
       {edit ? (
