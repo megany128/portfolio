@@ -344,12 +344,14 @@
     }
   }
 
-  async function fetchOthers(excludeId: string | undefined): Promise<AnyCard[]> {
+  async function fetchOthers(excludeId: string | undefined, seedCount = 0): Promise<AnyCard[]> {
     try {
       const res = await fetch("/api/visitors?limit=20", { credentials: "same-origin" });
       if (!res.ok) return [];
       const data = (await res.json()) as { visitors: AnyCard[] };
-      const list = data.visitors.filter((v) => v.id !== excludeId);
+      const list = data.visitors
+        .filter((v) => v.id !== excludeId)
+        .map((v) => ({ ...v, number: v.number + seedCount }));
       return list.length ? list : await seedSamples();
     } catch {
       return await seedSamples();
@@ -385,7 +387,12 @@
       // eventually unmounted, `pad.toDataURL()` would return a blank canvas.
       const signatureDataUrl = snapshotSignature();
 
-      const others = await fetchOthers(issued.id);
+      // Offset DB visitor numbers by seed count so wallet cards match
+      // gallery display numbering (seed visitors occupy 1..N).
+      const { SEED_VISITORS } = await import("../../lib/seed-visitors");
+      const seedCount = SEED_VISITORS.length;
+
+      const others = await fetchOthers(issued.id, seedCount);
 
       const gap = 32;
       const cardW = 388;
@@ -413,7 +420,7 @@
       });
 
       // Hero card — user's — carries the signature snapshot.
-      const hero = buildCard({ ...issued }, signatureDataUrl);
+      const hero = buildCard({ ...issued, number: issued.number + seedCount }, signatureDataUrl);
       hero.dataset.hero = "true";
       track.appendChild(hero);
       elements.push(hero);

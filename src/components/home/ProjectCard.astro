@@ -49,6 +49,7 @@ const accentBg: Record<NonNullable<Props["accent"]>, string> = {
     class="project-card__frame relative rounded-[12px] overflow-hidden w-full grid place-items-center text-[var(--color-ink-inverted)] font-[family-name:var(--font-display)] text-xl font-light"
     style={`height: ${imageHeight}px;`}
     aria-hidden={image ? undefined : "true"}
+    data-cursor-bg={accent}
   >
     <div
       class="project-card__media absolute inset-0"

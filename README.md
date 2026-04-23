@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://meganyap.me">
+    <img src="public/og.png" alt="Megan's World" />
+  </a>
+</p>
+
 # meganyap.me
 
 My personal portfolio — a design-focused, interactive site built with Astro and deployed on Cloudflare Workers.

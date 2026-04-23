@@ -490,6 +490,12 @@ const showFallback = !signable && !signature;
   .library-card__signature {
     mix-blend-mode: normal;
   }
+  /* Force existing colored signatures to white so they match the fallback
+     style. New signatures are already drawn in white; this covers older
+     ones saved with the card's accent color. Neutral cards keep dark ink. */
+  .library-card:not([data-color="neutral"]) .library-card__signature {
+    filter: brightness(0) invert(1);
+  }
 
   /* Fallback artistic signature — positioned above the `x ______` baseline,
      tinted with each card's soft peak color so it feels like ink, not print. */

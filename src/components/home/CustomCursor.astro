@@ -346,8 +346,8 @@ const { color = "pink" } = Astro.props;
         return;
       }
       const hit = target.closest<HTMLElement>("[data-cursor-bg]");
-      const matching = hit?.dataset.cursorBg === c.dataset.color;
-      if (matching) c.setAttribute("data-conflict", "");
+      const onBrandBg = hit != null && hit.dataset.cursorBg !== "neutral";
+      if (onBrandBg) c.setAttribute("data-conflict", "");
       else c.removeAttribute("data-conflict");
     }
     document.addEventListener("mouseover", (e) => refreshConflict(e.target));

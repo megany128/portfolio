@@ -61,6 +61,7 @@ const accentBg: Record<NonNullable<Props["accent"]>, string> = {
     class="porthole__frame relative rounded-[14px] overflow-hidden w-full grid place-items-center text-[var(--color-ink-inverted)] font-[family-name:var(--font-display)] text-xl font-light"
     style={`height: ${imageHeight}px;`}
     aria-hidden={image ? undefined : "true"}
+    data-cursor-bg={accent}
   >
     <div
       class="porthole__media absolute inset-0"
