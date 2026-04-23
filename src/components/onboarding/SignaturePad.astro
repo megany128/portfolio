@@ -81,6 +81,8 @@ const { existingSignature = null } = Astro.props;
     let last: { x: number; y: number } | null = null;
     let tool: Tool = "pen";
     let hasInk = false;
+    /** Track active pointer IDs so multi-touch (pinch-zoom) cancels drawing. */
+    let activePointers = new Set<number>();
 
     function setHasInk(v: boolean) {
       if (hasInk === v) return;
@@ -228,12 +230,21 @@ const { existingSignature = null } = Astro.props;
 
     function start(e: PointerEvent) {
       e.preventDefault();
+      activePointers.add(e.pointerId);
+      // Two+ fingers = pinch-zoom intent — cancel any stroke in progress.
+      if (activePointers.size > 1) {
+        drawing = false;
+        last = null;
+        return;
+      }
       drawing = true;
       last = pos(e);
       pad!.setPointerCapture(e.pointerId);
     }
 
     function move(e: PointerEvent) {
+      // Ignore moves while multi-touch is active (pinch-zoom).
+      if (activePointers.size > 1) return;
       const p = pos(e);
       // Always update the eraser preview position when the pointer is over the pad.
       setPreview(p.x, p.y, true);
@@ -246,6 +257,7 @@ const { existingSignature = null } = Astro.props;
     }
 
     function end(e: PointerEvent) {
+      activePointers.delete(e.pointerId);
       drawing = false;
       last = null;
       try { pad!.releasePointerCapture(e.pointerId); } catch {}
@@ -255,6 +267,7 @@ const { existingSignature = null } = Astro.props;
     function leave() {
       drawing = false;
       last = null;
+      activePointers.clear();
       preview!.removeAttribute("data-active");
     }
 

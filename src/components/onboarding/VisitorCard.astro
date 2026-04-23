@@ -249,6 +249,7 @@ const { nextNumber, edit = false, existingName, startColor = "pink", existingSig
     position: relative;
     width: calc(var(--card-w) * var(--card-scale));
     height: calc(var(--card-h) * var(--card-scale));
+    overflow: hidden;
   }
   .onboarding-card-scale > :global(:first-child) {
     position: absolute;
@@ -257,8 +258,14 @@ const { nextNumber, edit = false, existingName, startColor = "pink", existingSig
     transform: scale(var(--card-scale));
     transform-origin: top left;
   }
-  /* Below ~420px of card + padding, shrink so the card + its 24px radius
-     always have room to breathe inside a 100vw viewport. */
+  /* Scale down progressively so the card always fits inside the viewport
+     with breathing room. Wider first breakpoint catches mid-size phones
+     (iPhone Pro Max, Pixel) that the old 419px gate missed. */
+  @media (max-width: 480px) {
+    .onboarding-card-scale {
+      --card-scale: 0.88;
+    }
+  }
   @media (max-width: 419px) {
     .onboarding-card-scale {
       --card-scale: 0.78;
