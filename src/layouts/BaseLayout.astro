@@ -8,7 +8,7 @@ interface Props {
   description?: string;
   image?: string;
   bodyClass?: string;
-  htmlClass?: string;
+  darkHtml?: boolean;
   showPet?: boolean;
 }
 
@@ -17,7 +17,7 @@ const {
   description = "Portfolio of Megan Yap.",
   image = "/og.png",
   bodyClass = "",
-  htmlClass = "",
+  darkHtml = false,
   showPet = true,
 } = Astro.props;
 
@@ -26,7 +26,7 @@ const ogImageUrl = new URL(image, Astro.site);
 ---
 
 <!doctype html>
-<html lang="en" class={htmlClass}>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -57,6 +57,7 @@ const ogImageUrl = new URL(image, Astro.site);
     />
     <title>{title}</title>
     <ClientRouter />
+    {darkHtml && <style set:html="html { background: var(--color-ink) !important; }" />}
 
     <style is:global>
       /*

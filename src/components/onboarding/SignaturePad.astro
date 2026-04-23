@@ -14,12 +14,9 @@ const { existingSignature = null } = Astro.props;
 <div data-signature-wrap data-existing-signature={existingSignature ?? undefined} class="absolute inset-0">
   <canvas
     data-signature-pad
-    data-cursor="hidden"
+    data-cursor="pen"
     class="absolute inset-0 size-full pointer-events-auto"
-    style={`
-      cursor: var(--signature-cursor-pen);
-      touch-action: none;
-    `}
+    style="touch-action: none;"
   ></canvas>
 
   <!-- Clear button: shown only after the visitor has drawn something. -->
@@ -42,44 +39,14 @@ const { existingSignature = null } = Astro.props;
 </div>
 
 <style is:global>
-  /*
-    Per-color pen cursors — the pen-tip fill matches the card's accent so the
-    cursor reads as part of the active card. The ink stroke and cursor fill
-    are driven by --pen-stroke, set per-card on .library-card.
+  /* Pen stroke color per card theme. */
+  .library-card[data-color="pink"]    { --pen-stroke: #ffffff; }
+  .library-card[data-color="teal"]    { --pen-stroke: #ffffff; }
+  .library-card[data-color="green"]   { --pen-stroke: #ffffff; }
+  .library-card[data-color="orange"]  { --pen-stroke: #ffffff; }
+  .library-card[data-color="neutral"] { --pen-stroke: var(--color-ink); }
 
-    Hot-spot is the tip at (4, 28). `fill` is the tip color; `stroke` is the
-    pen outline (kept white everywhere so the pen silhouette stays legible).
-  */
-  .library-card[data-color="pink"] {
-    --pen-stroke: #ffffff;
-    --signature-cursor-pen: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g fill='none' stroke='%23ffffff' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'><path d='M3 29l5-1.5L25.5 10 22 6.5 4.5 24 3 29z' fill='%23eabaca'/><path d='M22 6.5l3.5 3.5'/><path d='M19 9.5l3.5 3.5'/></g></svg>") 4 28, crosshair;
-  }
-  .library-card[data-color="teal"] {
-    --pen-stroke: #ffffff;
-    --signature-cursor-pen: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g fill='none' stroke='%23ffffff' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'><path d='M3 29l5-1.5L25.5 10 22 6.5 4.5 24 3 29z' fill='%2365b6c3'/><path d='M22 6.5l3.5 3.5'/><path d='M19 9.5l3.5 3.5'/></g></svg>") 4 28, crosshair;
-  }
-  .library-card[data-color="green"] {
-    --pen-stroke: #ffffff;
-    --signature-cursor-pen: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g fill='none' stroke='%23ffffff' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'><path d='M3 29l5-1.5L25.5 10 22 6.5 4.5 24 3 29z' fill='%237db592'/><path d='M22 6.5l3.5 3.5'/><path d='M19 9.5l3.5 3.5'/></g></svg>") 4 28, crosshair;
-  }
-  .library-card[data-color="orange"] {
-    --pen-stroke: #ffffff;
-    --signature-cursor-pen: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g fill='none' stroke='%23ffffff' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'><path d='M3 29l5-1.5L25.5 10 22 6.5 4.5 24 3 29z' fill='%23eebc94'/><path d='M22 6.5l3.5 3.5'/><path d='M19 9.5l3.5 3.5'/></g></svg>") 4 28, crosshair;
-  }
-  .library-card[data-color="neutral"] {
-    --pen-stroke: var(--color-ink);
-    --signature-cursor-pen: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g fill='none' stroke='%23242424' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'><path d='M3 29l5-1.5L25.5 10 22 6.5 4.5 24 3 29z' fill='%238a8576'/><path d='M22 6.5l3.5 3.5'/><path d='M19 9.5l3.5 3.5'/></g></svg>") 4 28, crosshair;
-  }
-
-  /* When in eraser mode, use a real CSS cursor (circle outline) so macOS
-     recognises it natively — no lag, proper detection. The 28px ring
-     matches ERASER_WIDTH in the JS. Hot-spot at centre (14,14). */
-  [data-signature-pad][data-tool="eraser"] {
-    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28'><circle cx='14' cy='14' r='12' fill='none' stroke='white' stroke-width='2'/></svg>") 14 14, crosshair !important;
-  }
-
-  /* Eraser preview ring is replaced by a native CSS cursor — hide the
-     div so there's no doubling. Kept in DOM for non-fine-pointer fallback. */
+  /* Eraser preview ring replaced by custom cursor's eraser mode. */
   .eraser-preview {
     display: none;
   }
@@ -305,6 +272,11 @@ const { existingSignature = null } = Astro.props;
       const detail = (e as CustomEvent<{ tool: Tool }>).detail;
       tool = detail.tool;
       pad!.dataset.tool = tool;
+      // Sync custom cursor mode with active drawing tool.
+      pad!.dataset.cursor = tool;
+      // Force custom cursor to re-read mode (mouseover won't fire if
+      // pointer is already on the canvas when the tool toggles).
+      pad!.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
       if (tool !== "eraser") preview!.removeAttribute("data-active");
     }) as EventListener);
 
