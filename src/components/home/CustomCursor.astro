@@ -315,6 +315,24 @@ const { color = "pink" } = Astro.props;
       place(e);
     });
 
+    // Re-show cursor when returning from another window/tab — mouseenter
+    // doesn't always re-fire if the pointer is already over the document.
+    // Also pause/resume the rAF loop to avoid wasted frames while hidden.
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+      } else {
+        if (initialized) {
+          const c = el();
+          if (c) c.style.opacity = "1";
+        }
+        startLoop();
+      }
+    });
+
     function modeAndLabel(target: EventTarget | null): { mode: string; label: string | null } {
       if (!(target instanceof Element)) return { mode: "dot", label: null };
       const explicit = target.closest<HTMLElement>("[data-cursor]");

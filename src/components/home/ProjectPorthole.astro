@@ -425,6 +425,15 @@ const accentBg: Record<NonNullable<Props["accent"]>, string> = {
     card.addEventListener("pointermove", onMove, { passive: true });
     card.addEventListener("pointerleave", onLeave);
 
+    // Pause RAF when page is hidden (tab/window switch) — resume on return.
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        if (raf) { cancelAnimationFrame(raf); raf = 0; }
+      } else if (hovering) {
+        if (!raf) raf = requestAnimationFrame(tick);
+      }
+    });
+
     // Clean up if the element is removed by ClientRouter between page swaps.
     // Astro's view transitions persist the DOM when possible, so this is
     // mostly a safety net.

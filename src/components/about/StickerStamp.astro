@@ -452,6 +452,17 @@ const stickers = [
     }
     let rafId = requestAnimationFrame(tick);
 
+    // Pause RAF when page is hidden (tab/window switch) — resume on return.
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        cancelAnimationFrame(rafId);
+        rafId = 0;
+      } else if (!rafId) {
+        lastFrame = performance.now();
+        rafId = requestAnimationFrame(tick);
+      }
+    });
+
     window.addEventListener(
       "pagehide",
       () => {

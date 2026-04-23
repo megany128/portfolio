@@ -119,6 +119,8 @@ const quote: Word[] = [
     const RADIUS = 95;
     const STRENGTH = 26; // px max push at zero distance
 
+    let heroRafId = 0;
+
     function tick() {
       // Compute target shove for each word.
       for (const el of shoves) {
@@ -155,8 +157,18 @@ const quote: Word[] = [
         el.style.transform = `translate3d(${px.toFixed(2)}px, ${py.toFixed(2)}px, 0)`;
       }
 
-      requestAnimationFrame(tick);
+      heroRafId = requestAnimationFrame(tick);
     }
-    requestAnimationFrame(tick);
+    heroRafId = requestAnimationFrame(tick);
+
+    // Pause RAF when page is hidden (tab/window switch) — resume on return.
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        cancelAnimationFrame(heroRafId);
+        heroRafId = 0;
+      } else if (!heroRafId) {
+        heroRafId = requestAnimationFrame(tick);
+      }
+    });
   }
 </script>

@@ -1412,12 +1412,14 @@
       }
     }
 
+    let petRafId = 0;
+
     function tick(now: number) {
       const dt = Math.min(48, now - lastT);
       lastT = now;
       const pet = el();
       if (!pet) {
-        requestAnimationFrame(tick);
+        petRafId = requestAnimationFrame(tick);
         return;
       }
       measureGround();
@@ -1580,9 +1582,20 @@
         eyes.style.transform = `translate(${ex.toFixed(2)}px, ${ey.toFixed(2)}px)`;
       }
 
-      requestAnimationFrame(tick);
+      petRafId = requestAnimationFrame(tick);
     }
-    requestAnimationFrame(tick);
+    petRafId = requestAnimationFrame(tick);
+
+    // Pause RAF when page is hidden (tab/window switch) — resume on return.
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        cancelAnimationFrame(petRafId);
+        petRafId = 0;
+      } else if (!petRafId) {
+        lastT = performance.now();
+        petRafId = requestAnimationFrame(tick);
+      }
+    });
 
     window.addEventListener(
       "pointermove",
