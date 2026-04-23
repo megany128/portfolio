@@ -4,6 +4,10 @@ compatibility_flags = ["nodejs_compat"]
 main = "./dist/_worker.js/index.js"
 assets = { directory = "./dist", binding = "ASSETS" }
 
+# Set the real value via: wrangler secret put ADMIN_TOKEN
+[vars]
+ADMIN_TOKEN = ""
+
 [[d1_databases]]
 binding = "DB"
 database_name = "portfolio"

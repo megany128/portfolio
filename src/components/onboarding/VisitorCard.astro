@@ -218,12 +218,19 @@ const { nextNumber, edit = false, existingName, startColor = "pink", existingSig
       </div>
     </div>
 
-    <button
-      type="submit"
-      class="btn-springy enter-btn font-[family-name:var(--font-mono)] inline-flex items-center justify-center px-5 py-3 rounded-[14px] bg-[var(--color-ink)] text-[var(--color-ink-inverted)] text-[15px] uppercase leading-none whitespace-nowrap"
-    >
-      {edit ? "save →" : "enter →"}
-    </button>
+    <div class="flex flex-col items-center gap-2">
+      <button
+        type="submit"
+        class="btn-springy enter-btn font-[family-name:var(--font-mono)] inline-flex items-center justify-center px-5 py-3 rounded-[14px] bg-[var(--color-ink)] text-[var(--color-ink-inverted)] text-[15px] uppercase leading-none whitespace-nowrap"
+      >
+        {edit ? "save →" : "enter →"}
+      </button>
+      <p
+        data-submit-error
+        class="font-[family-name:var(--font-mono)] text-[13px] text-[var(--color-pink)] opacity-0 transition-opacity duration-200"
+        aria-live="polite"
+      ></p>
+    </div>
   </form>
 
   <WalletTransition />
@@ -609,6 +616,8 @@ const { nextNumber, edit = false, existingName, startColor = "pink", existingSig
       submitting = true;
       submitBtn.disabled = true;
       submitBtn.style.opacity = "0.6";
+      const errorEl = form.querySelector<HTMLElement>("[data-submit-error]");
+      if (errorEl) errorEl.style.opacity = "0";
       primeWalletAudio();
       try {
         const name = nameInput.value.trim() || seed;
@@ -640,6 +649,11 @@ const { nextNumber, edit = false, existingName, startColor = "pink", existingSig
         window.dispatchEvent(event);
       } catch (err) {
         console.error(err);
+        const errorEl = form.querySelector<HTMLElement>("[data-submit-error]");
+        if (errorEl) {
+          errorEl.textContent = err instanceof Error ? err.message : "Something went wrong";
+          errorEl.style.opacity = "1";
+        }
         submitBtn.disabled = false;
         submitBtn.style.opacity = "";
         submitting = false;

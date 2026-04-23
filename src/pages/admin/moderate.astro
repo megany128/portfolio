@@ -1,0 +1,170 @@
+---
+export const prerender = false;
+---
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Moderation — Admin</title>
+  <style>
+    * { margin: 0; box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: #0f0f0f; color: #e5e5e5; padding: 24px; }
+    h1 { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
+    .login { max-width: 320px; margin: 80px auto; }
+    .login input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: #e5e5e5; font-size: 14px; margin-top: 8px; }
+    .login button { margin-top: 12px; width: 100%; padding: 10px; border-radius: 8px; border: none; background: #e5e5e5; color: #0f0f0f; font-weight: 600; cursor: pointer; }
+    .queue { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
+    .card { background: #1a1a1a; border-radius: 12px; padding: 16px; display: flex; gap: 16px; align-items: center; }
+    .card-info { flex: 1; min-width: 0; }
+    .card-name { font-size: 16px; font-weight: 600; }
+    .card-meta { font-size: 12px; color: #888; margin-top: 4px; }
+    .card-sig { width: 120px; height: 60px; border-radius: 8px; object-fit: contain; background: #333; }
+    .card-actions { display: flex; gap: 8px; }
+    .card-actions button { padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; }
+    .btn-approve { background: #22c55e; color: #000; }
+    .btn-reject { background: #ef4444; color: #fff; }
+    .btn-approve:disabled, .btn-reject:disabled { opacity: 0.4; cursor: default; }
+    .empty { color: #666; font-style: italic; margin-top: 20px; }
+    .badge { display: inline-block; background: #ef4444; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
+    .color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle; }
+    .count { font-size: 14px; color: #888; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="login" id="login">
+    <h1>Moderation</h1>
+    <input type="password" id="token" placeholder="Admin token" autocomplete="off" />
+    <button onclick="doLogin()">Enter</button>
+  </div>
+
+  <div id="app" style="display:none;">
+    <h1>Moderation Queue</h1>
+    <p class="count" id="count"></p>
+    <div class="queue" id="queue"></div>
+  </div>
+
+  <script is:inline>
+    const COLORS = { pink: '#e8758a', teal: '#4a9ba5', green: '#4a8c5c', orange: '#d4874d', neutral: '#8a8a8a' };
+    let token = localStorage.getItem('admin_token') || '';
+
+    if (token) { tryLoad(); }
+
+    function doLogin() {
+      token = document.getElementById('token').value.trim();
+      if (!token) return;
+      localStorage.setItem('admin_token', token);
+      tryLoad();
+    }
+
+    async function tryLoad() {
+      const res = await fetch('/api/admin/moderate', {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      if (!res.ok) {
+        localStorage.removeItem('admin_token');
+        document.getElementById('login').style.display = '';
+        document.getElementById('app').style.display = 'none';
+        return;
+      }
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('app').style.display = '';
+      const { pending } = await res.json();
+      render(pending);
+    }
+
+    function render(cards) {
+      const q = document.getElementById('queue');
+      document.getElementById('count').textContent = cards.length + ' pending';
+      if (!cards.length) {
+        q.innerHTML = '<p class="empty">Nothing to review.</p>';
+        return;
+      }
+      q.innerHTML = '';
+      for (const c of cards) {
+        const row = document.createElement('div');
+        row.className = 'card';
+        row.dataset.id = c.id;
+
+        if (c.signature) {
+          const img = document.createElement('img');
+          img.className = 'card-sig';
+          img.src = c.signature;
+          img.alt = 'signature';
+          row.appendChild(img);
+        } else {
+          const placeholder = document.createElement('div');
+          placeholder.className = 'card-sig';
+          placeholder.style.cssText = 'display:grid;place-items:center;color:#666;font-size:11px;';
+          placeholder.textContent = 'no sig';
+          row.appendChild(placeholder);
+        }
+
+        const info = document.createElement('div');
+        info.className = 'card-info';
+        const nameEl = document.createElement('div');
+        nameEl.className = 'card-name';
+        const dot = document.createElement('span');
+        dot.className = 'color-dot';
+        dot.style.background = COLORS[c.color] || '#888';
+        nameEl.appendChild(dot);
+        nameEl.appendChild(document.createTextNode(c.name));
+        if (c.reportCount > 0) {
+          const badge = document.createElement('span');
+          badge.className = 'badge';
+          badge.textContent = c.reportCount + ' report' + (c.reportCount > 1 ? 's' : '');
+          nameEl.appendChild(badge);
+        }
+        info.appendChild(nameEl);
+        const meta = document.createElement('div');
+        meta.className = 'card-meta';
+        meta.textContent = '#' + c.number + ' \u00b7 ' + (c.issuedAt?.slice(0, 10) || '?');
+        info.appendChild(meta);
+        row.appendChild(info);
+
+        const actions = document.createElement('div');
+        actions.className = 'card-actions';
+        const approveBtn = document.createElement('button');
+        approveBtn.className = 'btn-approve';
+        approveBtn.textContent = 'Approve';
+        approveBtn.addEventListener('click', () => act(c.id, 'approve', approveBtn));
+        const rejectBtn = document.createElement('button');
+        rejectBtn.className = 'btn-reject';
+        rejectBtn.textContent = 'Reject';
+        rejectBtn.addEventListener('click', () => act(c.id, 'reject', rejectBtn));
+        actions.appendChild(approveBtn);
+        actions.appendChild(rejectBtn);
+        row.appendChild(actions);
+
+        q.appendChild(row);
+      }
+    }
+
+    async function act(id, action, btn) {
+      const card = btn.closest('.card');
+      card.querySelectorAll('button').forEach(b => b.disabled = true);
+      const res = await fetch('/api/admin/moderate', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action }),
+      });
+      if (res.ok) {
+        card.style.opacity = '0.3';
+        card.style.transition = 'opacity 0.3s';
+        setTimeout(() => card.remove(), 350);
+        const cnt = document.getElementById('count');
+        const remaining = document.querySelectorAll('.card:not([style*="opacity: 0.3"])').length - 1;
+        cnt.textContent = remaining + ' pending';
+        if (remaining <= 0) {
+          document.getElementById('queue').innerHTML = '<p class="empty">Nothing to review.</p>';
+        }
+      }
+    }
+
+    // Enter key on token input
+    document.getElementById('token').addEventListener('keydown', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+  </script>
+</body>
+</html>

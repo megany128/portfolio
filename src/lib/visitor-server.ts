@@ -140,16 +140,17 @@ export async function updateVisitor(
 ): Promise<VisitorRecord | null> {
   const hasSignature = Object.prototype.hasOwnProperty.call(input, "signature");
 
+  // Reset approval on edit — name/signature may have changed.
   const stmt = hasSignature
     ? db(ctx)
         .prepare(
-          `UPDATE visitors SET name = ?, color = ?, signature_png = ? WHERE id = ?
+          `UPDATE visitors SET name = ?, color = ?, signature_png = ?, approved = 0 WHERE id = ?
            RETURNING id, number, name, color, issued_at, signature_png AS signature`
         )
         .bind(input.name, input.color, input.signature ?? null, id)
     : db(ctx)
         .prepare(
-          `UPDATE visitors SET name = ?, color = ? WHERE id = ?
+          `UPDATE visitors SET name = ?, color = ?, approved = 0 WHERE id = ?
            RETURNING id, number, name, color, issued_at, signature_png AS signature`
         )
         .bind(input.name, input.color, id);
@@ -167,7 +168,7 @@ export async function listVisitors(
   const rows = await db(ctx)
     .prepare(
       `SELECT id, number, name, color, issued_at, signature_png AS signature
-       FROM visitors ORDER BY number DESC LIMIT ?`
+       FROM visitors WHERE approved = 1 ORDER BY number DESC LIMIT ?`
     )
     .bind(limit)
     .all<VisitorRow>();
@@ -185,7 +186,7 @@ export async function listVisitorsLite(
   const rows = await db(ctx)
     .prepare(
       `SELECT id, number, name, color, issued_at, NULL AS signature
-       FROM visitors ORDER BY number DESC LIMIT ? OFFSET ?`
+       FROM visitors WHERE approved = 1 ORDER BY number DESC LIMIT ? OFFSET ?`
     )
     .bind(limit, offset)
     .all<VisitorRow>();
@@ -193,21 +194,21 @@ export async function listVisitorsLite(
   return rows.results.map(rowToRecord);
 }
 
-/** Total number of visitors in the DB. */
+/** Total number of approved visitors in the DB. */
 export async function countVisitors(ctx: APIContext): Promise<number> {
   const row = await db(ctx)
-    .prepare(`SELECT COUNT(*) AS cnt FROM visitors`)
+    .prepare(`SELECT COUNT(*) AS cnt FROM visitors WHERE approved = 1`)
     .first<{ cnt: number }>();
   return row?.cnt ?? 0;
 }
 
-/** Fetch just the signature data URL for a single visitor. */
+/** Fetch just the signature data URL for a single approved visitor. */
 export async function getVisitorSignature(
   ctx: APIContext,
   id: string
 ): Promise<string | null> {
   const row = await db(ctx)
-    .prepare(`SELECT signature_png FROM visitors WHERE id = ? LIMIT 1`)
+    .prepare(`SELECT signature_png FROM visitors WHERE id = ? AND approved = 1 LIMIT 1`)
     .bind(id)
     .first<{ signature_png: string | null }>();
   return row?.signature_png ?? null;
@@ -223,4 +224,97 @@ export async function peekNextVisitorNumber(ctx: APIContext): Promise<number> {
     .prepare(`SELECT COALESCE(MAX(number), 0) + 1 AS next FROM visitors`)
     .first<{ next: number }>();
   return row?.next ?? 1;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Moderation                                                        */
+/* ------------------------------------------------------------------ */
+
+export type PendingVisitor = VisitorRecord & { reportCount: number };
+
+/** List visitors awaiting approval, most recent first. */
+export async function listPendingVisitors(
+  ctx: APIContext,
+  limit = 100
+): Promise<PendingVisitor[]> {
+  const rows = await db(ctx)
+    .prepare(
+      `SELECT v.id, v.number, v.name, v.color, v.issued_at,
+              v.signature_png AS signature,
+              COALESCE(r.cnt, 0) AS report_count
+       FROM visitors v
+       LEFT JOIN (SELECT card_id, COUNT(*) AS cnt FROM reports GROUP BY card_id) r
+         ON r.card_id = v.id
+       WHERE v.approved = 0
+       ORDER BY v.issued_at DESC
+       LIMIT ?`
+    )
+    .bind(limit)
+    .all<VisitorRow & { report_count: number }>();
+
+  return rows.results.map((row) => ({
+    ...rowToRecord(row),
+    reportCount: row.report_count,
+  }));
+}
+
+/** Approve a visitor card — makes it visible in the gallery. */
+export async function approveVisitor(ctx: APIContext, id: string): Promise<boolean> {
+  const row = await db(ctx)
+    .prepare(`UPDATE visitors SET approved = 1 WHERE id = ? RETURNING id`)
+    .bind(id)
+    .first();
+  return !!row;
+}
+
+/** Reject (delete) a visitor card permanently. */
+export async function rejectVisitor(ctx: APIContext, id: string): Promise<boolean> {
+  await db(ctx).prepare(`DELETE FROM reports WHERE card_id = ?`).bind(id).run();
+  const row = await db(ctx)
+    .prepare(`DELETE FROM visitors WHERE id = ? RETURNING id`)
+    .bind(id)
+    .first();
+  return !!row;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Reports                                                           */
+/* ------------------------------------------------------------------ */
+
+const AUTO_HIDE_THRESHOLD = 3;
+
+/**
+ * Report a card. Returns true if the report was recorded, false if
+ * the reporter already reported this card.
+ * Auto-hides the card if it hits the report threshold.
+ */
+export async function reportCard(
+  ctx: APIContext,
+  cardId: string,
+  reporterId: string
+): Promise<{ recorded: boolean; autoHidden: boolean }> {
+  try {
+    await db(ctx)
+      .prepare(`INSERT INTO reports (card_id, reporter_id) VALUES (?, ?)`)
+      .bind(cardId, reporterId)
+      .run();
+  } catch (err) {
+    if (String(err).includes("UNIQUE constraint")) {
+      return { recorded: false, autoHidden: false };
+    }
+    throw err;
+  }
+
+  // Atomic: hide only if report count just reached threshold.
+  const hidden = await db(ctx)
+    .prepare(
+      `UPDATE visitors SET approved = 0
+       WHERE id = ? AND approved = 1
+         AND (SELECT COUNT(*) FROM reports WHERE card_id = ?) >= ?
+       RETURNING id`
+    )
+    .bind(cardId, cardId, AUTO_HIDE_THRESHOLD)
+    .first();
+
+  return { recorded: true, autoHidden: !!hidden };
 }

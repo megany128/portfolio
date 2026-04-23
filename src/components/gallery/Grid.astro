@@ -108,6 +108,18 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       <path d="m15 5 4 4" />
     </svg>
   </a>
+  <button
+    data-gallery-report
+    type="button"
+    class="gallery-detail__report absolute left-1/2 -translate-x-1/2 z-[2] flex items-center gap-2 px-3 py-2 rounded-[10px] bg-white/80 hover:bg-white text-[var(--color-ink)] font-[family-name:var(--font-mono)] text-sm uppercase shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-colors opacity-0 pointer-events-none"
+    style="bottom: max(24px, env(safe-area-inset-bottom, 0px) + 16px);"
+  >
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+      <line x1="4" x2="4" y1="22" y2="15" />
+    </svg>
+    Report
+  </button>
   <div
     data-gallery-stage
     class="gallery-detail__stage absolute inset-0 pointer-events-none"
@@ -129,6 +141,12 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
     opacity: 1;
   }
   .gallery-detail[data-open][data-is-you] .gallery-detail__edit {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 300ms cubic-bezier(0.22, 1, 0.36, 1) 200ms;
+  }
+  /* Report button: visible when detail is open, card is NOT yours, AND viewer is signed in. */
+  .gallery-detail[data-open][data-can-report]:not([data-is-you]) .gallery-detail__report {
     opacity: 1;
     pointer-events: auto;
     transition: opacity 300ms cubic-bezier(0.22, 1, 0.36, 1) 200ms;
@@ -462,11 +480,17 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       detail!.setAttribute("data-open", "");
       detail!.setAttribute("aria-hidden", "false");
       // Show edit button only when viewing your own card.
+      // Show report button when signed in and viewing someone else's card.
       const cardId = wrap.dataset.id;
       if (cardId && cardId === getYouId()) {
         detail!.setAttribute("data-is-you", "");
       } else {
         detail!.removeAttribute("data-is-you");
+      }
+      if (getYouId()) {
+        detail!.setAttribute("data-can-report", "");
+      } else {
+        detail!.removeAttribute("data-can-report");
       }
 
       open = {
@@ -578,12 +602,18 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       const nextId = nextSource.dataset.id;
       lazyLoadSignature(newClone, nextId);
 
-      // Update edit button visibility for the new card.
+      // Update edit/report button visibility for the new card.
       if (nextId && nextId === getYouId()) {
         detail!.setAttribute("data-is-you", "");
       } else {
         detail!.removeAttribute("data-is-you");
       }
+      if (getYouId()) {
+        detail!.setAttribute("data-can-report", "");
+      } else {
+        detail!.removeAttribute("data-can-report");
+      }
+      resetReportBtn();
 
       open = {
         source: nextSource,
@@ -605,6 +635,7 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       open = null;
       openHover?.remove();
       openHover = null;
+      resetReportBtn();
 
       // Reset transform to the un-tilted scaled state before measuring so the
       // close animation starts from a known orientation.
@@ -656,6 +687,42 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
     const nextBtn = detail.querySelector<HTMLButtonElement>("[data-gallery-next]");
     prevBtn?.addEventListener("click", () => navigateDetail(-1));
     nextBtn?.addEventListener("click", () => navigateDetail(1));
+
+    /* ---------- report button ----------------------------------------- */
+    const reportBtn = detail.querySelector<HTMLButtonElement>("[data-gallery-report]");
+    const REPORT_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>`;
+    function resetReportBtn() {
+      if (!reportBtn) return;
+      reportBtn.disabled = false;
+      reportBtn.innerHTML = `${REPORT_SVG} Report`;
+    }
+
+    reportBtn?.addEventListener("click", async () => {
+      if (!open) return;
+      const cardId = open.source.dataset.id;
+      if (!cardId) return;
+      reportBtn.disabled = true;
+      reportBtn.textContent = "Reporting\u2026";
+      try {
+        const res = await fetch("/api/report", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ cardId }),
+        });
+        if (res.status === 401) {
+          reportBtn.textContent = "Sign in to report";
+        } else if (res.ok) {
+          const data = await res.json();
+          reportBtn.textContent = data.recorded ? "Reported" : "Already reported";
+        } else {
+          reportBtn.textContent = "Error";
+        }
+      } catch {
+        reportBtn.textContent = "Error";
+      }
+      // Keep status visible; reset when user navigates or closes.
+    });
 
     window.addEventListener("keydown", (e) => {
       if (!open) return;

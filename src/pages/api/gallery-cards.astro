@@ -13,6 +13,7 @@ import MiniLibraryCard from "../../components/gallery/MiniLibraryCard.astro";
 import { listVisitorsLite } from "../../lib/visitor-server";
 import { SEED_VISITORS } from "../../lib/seed-visitors";
 
+export const partial = true;
 export const prerender = false;
 
 const url = new URL(Astro.request.url);

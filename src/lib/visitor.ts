@@ -80,7 +80,8 @@ export async function submitCard(input: {
     }),
   });
   if (!res.ok) {
-    throw new Error(`Failed to submit visitor card (${res.status})`);
+    const message = await res.text().catch(() => "");
+    throw new Error(message || `Failed to submit visitor card (${res.status})`);
   }
   const card = (await res.json()) as VisitorCard;
   writeCachedCard(card);

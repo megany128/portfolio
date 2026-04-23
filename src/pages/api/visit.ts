@@ -6,6 +6,7 @@ import {
   updateVisitor,
   writeVisitorId,
 } from "../../lib/visitor-server";
+import { containsProfanity } from "../../lib/profanity";
 
 export const prerender = false;
 
@@ -62,6 +63,9 @@ export async function POST(ctx: APIContext) {
 
   if (typeof name !== "string" || name.trim().length === 0 || name.length > 60) {
     return new Response("Invalid name", { status: 400 });
+  }
+  if (containsProfanity(name)) {
+    return new Response("Please choose a different name", { status: 400 });
   }
   if (!isCardColor(color)) {
     return new Response("Invalid color", { status: 400 });
