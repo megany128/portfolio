@@ -370,6 +370,29 @@ const { color = "pink" } = Astro.props;
     // Re-show cursor when returning from another window/tab — mouseenter
     // doesn't always re-fire if the pointer is already over the document.
     // Also pause/resume the rAF loop to avoid wasted frames while hidden.
+    function recoverCursor() {
+      // Only recover on pages that actually use custom cursor.
+      if (!document.querySelector("[data-custom-cursor-page]")) return;
+
+      // Force browser to re-evaluate cursor:none — some browsers (Safari)
+      // stop honoring the rule after window regains focus. Rewriting
+      // textContent triggers a CSSOM recalc without removing the tag
+      // (avoids a frame where native cursor could flash through).
+      const existing = document.getElementById(HIDE_ID);
+      if (existing) {
+        existing.textContent = "";
+        existing.textContent = "*, html { cursor: none !important; }";
+      } else {
+        showNativeCursor(false);
+      }
+
+      if (initialized) {
+        const c = el();
+        if (c) c.style.opacity = "1";
+      }
+      startLoop();
+    }
+
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
         if (rafId !== null) {
@@ -377,13 +400,13 @@ const { color = "pink" } = Astro.props;
           rafId = null;
         }
       } else {
-        if (initialized) {
-          const c = el();
-          if (c) c.style.opacity = "1";
-        }
-        startLoop();
+        recoverCursor();
       }
     });
+
+    // visibilitychange doesn't always fire for window switches (Cmd+Tab) —
+    // window focus handles that case.
+    window.addEventListener("focus", recoverCursor);
 
     function modeAndLabel(target: EventTarget | null): { mode: string; label: string | null } {
       if (!(target instanceof Element)) return { mode: "dot", label: null };
