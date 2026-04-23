@@ -200,9 +200,22 @@ const { color = "pink" } = Astro.props;
     100% { filter: brightness(1); }
   }
 
+  /* Hidden mode — cursor disappears over elements that supply their own
+     (e.g. the signature-pad pen / eraser cursors). */
+  .custom-cursor[data-mode="hidden"] {
+    opacity: 0 !important;
+  }
+
   /* Hide native cursor wherever the custom one is active. */
   html[data-custom-cursor-active] *,
   html[data-custom-cursor-active] {
+    cursor: none !important;
+  }
+  /* Signature pad supplies its own SVG pen / eraser cursor — exempt it. */
+  html[data-custom-cursor-active] [data-signature-pad] {
+    cursor: var(--signature-cursor-pen) !important;
+  }
+  html[data-custom-cursor-active] [data-signature-pad][data-tool="eraser"] {
     cursor: none !important;
   }
 </style>
