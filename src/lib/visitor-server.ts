@@ -239,6 +239,60 @@ export async function peekNextVisitorNumber(ctx: APIContext): Promise<number> {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Gallery stats                                                     */
+/* ------------------------------------------------------------------ */
+
+export type DailyCount = { day: string; count: number };
+
+export type GalleryStats = {
+  colorCounts: Record<CardColor, number>;
+  withSignature: number;
+  firstIssuedAt: string | null;
+  latestIssuedAt: string | null;
+  dailySignups: DailyCount[];
+};
+
+export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
+  const d = db(ctx);
+  const [colorRows, sigRow, timeRow, dailyRows] = await d.batch([
+    d.prepare(
+      `SELECT color, COUNT(*) AS cnt FROM visitors WHERE approved = 1 GROUP BY color`,
+    ),
+    d.prepare(
+      `SELECT COUNT(*) AS cnt FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL`,
+    ),
+    d.prepare(
+      `SELECT MIN(issued_at) AS first_at, MAX(issued_at) AS latest_at FROM visitors WHERE approved = 1`,
+    ),
+    d.prepare(
+      `SELECT DATE(issued_at) AS day, COUNT(*) AS cnt FROM visitors WHERE approved = 1 GROUP BY day ORDER BY day`,
+    ),
+  ]);
+
+  const colorCounts: Record<CardColor, number> = {
+    pink: 0, teal: 0, green: 0, orange: 0, neutral: 0,
+  };
+  for (const row of (colorRows as D1Result<{ color: CardColor; cnt: number }>).results) {
+    if (row.color in colorCounts) colorCounts[row.color] = row.cnt;
+  }
+
+  const withSignature = (sigRow as D1Result<{ cnt: number }>).results[0]?.cnt ?? 0;
+  const timeResult = (timeRow as D1Result<{ first_at: string | null; latest_at: string | null }>).results[0];
+
+  const dailySignups: DailyCount[] = (dailyRows as D1Result<{ day: string; cnt: number }>).results.map(
+    (r) => ({ day: r.day, count: r.cnt }),
+  );
+
+  return {
+    colorCounts,
+    withSignature,
+    firstIssuedAt: timeResult?.first_at ?? null,
+    latestIssuedAt: timeResult?.latest_at ?? null,
+    dailySignups,
+  };
+}
+
+/* ------------------------------------------------------------------ */
 /*  Moderation                                                        */
 /* ------------------------------------------------------------------ */
 

@@ -778,6 +778,12 @@
       if (count <= 7) return CLICK_PHRASES_ANNOYED;
       return CLICK_PHRASES_DONE;
     }
+    // Global poke count — fetched once, incremented optimistically on click.
+    let globalPokes = 0;
+    let pokeQuipUsed = false;
+    let sessionClicks = 0;
+    fetch("/api/pet-pokes").then((r) => r.json()).then((d) => { globalPokes = d.pokes; }).catch(() => {});
+
     const HOVER_PHRASES = ["what's up?", "hi!", "oh hey", "howdy", "sup?", "hello"];
     const DRAG_PHRASES = [
       "where are you\ntaking me?",
@@ -1881,9 +1887,25 @@
           const nowT = performance.now();
           if (nowT - lastClickAt > 5000) clickCount = 0;
           clickCount += 1;
+          sessionClicks += 1;
+          globalPokes += 1;
           lastClickAt = nowT;
           triggerHop();
-          saySomething(pet, clickPool(clickCount), 1400);
+
+          // High chance (40%) of poke-count quip in first 5 clicks, once per session.
+          if (!pokeQuipUsed && globalPokes > 0 && sessionClicks <= 5 && Math.random() < 0.4) {
+            pokeQuipUsed = true;
+            saySomething(pet, [`i've been poked\n${globalPokes} ${globalPokes === 1 ? "time" : "times"}`], 2200);
+          } else {
+            saySomething(pet, clickPool(clickCount), 1400);
+          }
+
+          // Increment server counter (fire-and-forget).
+          fetch("/api/pet-pokes", { method: "POST" }).catch(() => {});
+          try {
+            const p = parseInt(localStorage.getItem("sitepet:pokes") ?? "0", 10);
+            localStorage.setItem("sitepet:pokes", String(p + 1));
+          } catch {}
         }
         pressStart = null;
       };

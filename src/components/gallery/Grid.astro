@@ -555,7 +555,7 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       const o = open;
 
       const cards = Array.from(grid!.children).filter(
-        (n): n is HTMLElement => n instanceof HTMLElement,
+        (n): n is HTMLElement => n instanceof HTMLElement && !n.hasAttribute("data-filter-hide"),
       );
       const currentIdx = cards.indexOf(o.source);
       if (currentIdx === -1) return;
@@ -829,7 +829,7 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
     const runShuffle = () => {
       if (open) closeDetail();
       const cards = Array.from(grid!.children).filter(
-        (n): n is HTMLElement => n instanceof HTMLElement,
+        (n): n is HTMLElement => n instanceof HTMLElement && !n.hasAttribute("data-filter-hide"),
       );
       if (cards.length < 2) return;
 

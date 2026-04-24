@@ -4,7 +4,8 @@ import Sidebar from "../components/home/Sidebar.astro";
 import Footer from "../components/home/Footer.astro";
 import CustomCursor from "../components/home/CustomCursor.astro";
 import Grid from "../components/gallery/Grid.astro";
-import { getCurrentVisitor, listVisitorsLite, countVisitors } from "../lib/visitor-server";
+import StatsPanel from "../components/gallery/StatsPanel.astro";
+import { getCurrentVisitor, listVisitorsLite, countVisitors, getGalleryStats } from "../lib/visitor-server";
 import { SEED_VISITORS } from "../lib/seed-visitors";
 
 export const prerender = false;
@@ -14,9 +15,10 @@ const PAGE_SIZE = 48;
 const visitor = await getCurrentVisitor(Astro);
 const cursorColor = visitor?.color ?? "pink";
 
-const [realVisitors, realTotal] = await Promise.all([
+const [realVisitors, realTotal, galleryStats] = await Promise.all([
   listVisitorsLite(Astro, PAGE_SIZE),
   countVisitors(Astro),
+  getGalleryStats(Astro),
 ]);
 const seedCount = SEED_VISITORS.length;
 const offsetVisitors = realVisitors.map((v) => ({ ...v, number: v.number + seedCount }));
@@ -122,6 +124,10 @@ const subtitle = visitor
         </div>
       </header>
 
+      {total > 0 && (
+        <StatsPanel stats={galleryStats} total={total} seedCount={seedCount} />
+      )}
+
       {!visitor && (
         <a
           href="/onboarding?from=gallery"
@@ -161,6 +167,7 @@ const subtitle = visitor
           />
         )
       }
+
     </main>
   </div>
 
