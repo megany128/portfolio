@@ -2103,11 +2103,19 @@
       rack.querySelectorAll<HTMLElement>("[data-hat-choice]").forEach((btn) => {
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
+          const prev = readHat();
           const choice = (btn.dataset.hatChoice || "none") as HatKey;
           try {
             localStorage.setItem(HAT_KEY, choice);
           } catch {}
           applyHat(choice);
+          if (prev !== choice) {
+            fetch("/api/hat-picks", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ from: prev, to: choice }),
+            }).catch(() => {});
+          }
           rack.removeAttribute("data-open");
           rack.setAttribute("data-hat-picked", "");
           // Blur so :focus-within doesn't keep the menu visible.

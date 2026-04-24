@@ -242,6 +242,8 @@ export async function peekNextVisitorNumber(ctx: APIContext): Promise<number> {
 /*  Gallery stats                                                     */
 /* ------------------------------------------------------------------ */
 
+export type HatKey = "bucket" | "top" | "cap" | "sprout" | "party";
+
 export type GalleryStats = {
   colorCounts: Record<CardColor, number>;
   withSignature: number;
@@ -251,11 +253,12 @@ export type GalleryStats = {
   signupTimestamps: string[];
   /** Highest assigned visitor number (includes unapproved). */
   maxNumber: number;
+  hatCounts: Record<HatKey, number>;
 };
 
 export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
   const d = db(ctx);
-  const [colorRows, sigRow, timeRow, dailyRows, maxRow] = await d.batch([
+  const [colorRows, sigRow, timeRow, dailyRows, maxRow, hatRows] = await d.batch([
     d.prepare(
       `SELECT color, COUNT(*) AS cnt FROM visitors WHERE approved = 1 GROUP BY color`,
     ),
@@ -270,6 +273,9 @@ export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
     ),
     d.prepare(
       `SELECT COALESCE(MAX(number), 0) AS max_num FROM visitors WHERE approved = 1`,
+    ),
+    d.prepare(
+      `SELECT key, value FROM counters WHERE key LIKE 'hat_%' AND value > 0`,
     ),
   ]);
 
@@ -289,6 +295,12 @@ export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
 
   const maxNumber = (maxRow as D1Result<{ max_num: number }>).results[0]?.max_num ?? 0;
 
+  const hatCounts: Record<HatKey, number> = { bucket: 0, top: 0, cap: 0, sprout: 0, party: 0 };
+  for (const row of (hatRows as D1Result<{ key: string; value: number }>).results) {
+    const hat = row.key.replace("hat_", "") as HatKey;
+    if (hat in hatCounts) hatCounts[hat] = row.value;
+  }
+
   return {
     colorCounts,
     withSignature,
@@ -296,6 +308,7 @@ export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
     latestIssuedAt: timeResult?.latest_at ?? null,
     signupTimestamps,
     maxNumber,
+    hatCounts,
   };
 }
 

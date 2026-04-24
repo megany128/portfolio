@@ -1,6 +1,6 @@
 ---
 import type { CardColor } from "../../lib/visitor";
-import type { GalleryStats } from "../../lib/visitor-server";
+import type { GalleryStats, HatKey } from "../../lib/visitor-server";
 
 interface Props {
   stats: GalleryStats;
@@ -54,6 +54,25 @@ function timeAgo(d: Date): string {
 const latestAgo = latestDate ? timeAgo(latestDate) : null;
 
 const signupTimestamps = stats.signupTimestamps;
+
+// Hat picks
+const hatLabels: Record<HatKey, string> = {
+  bucket: "Bucket",
+  top: "Top Hat",
+  cap: "Cap",
+  sprout: "Sprout",
+  party: "Party",
+};
+const hatSvgs: Record<HatKey, string> = {
+  bucket: `<svg width="20" height="11" viewBox="-4 -9 48 17"><rect x="10" y="-5" width="24" height="10" rx="3" fill="#e8c84a"/><rect x="-1" y="2" width="46" height="6" rx="3" fill="#e8c84a"/></svg>`,
+  top: `<svg width="18" height="13" viewBox="0 -14 44 19"><rect x="13" y="-12" width="18" height="14" rx="2.5" fill="#1a1a1a"/><rect x="4" y="0" width="36" height="5" rx="2.5" fill="#1a1a1a"/></svg>`,
+  cap: `<svg width="20" height="11" viewBox="0 -6 44 15"><rect x="8" y="-4" width="28" height="10" rx="4" fill="#168b9d"/><rect x="22" y="4" width="20" height="5" rx="2.5" fill="#168b9d"/></svg>`,
+  sprout: `<svg width="20" height="15" viewBox="8 -14 26 20"><rect x="21.2" y="-6" width="1.6" height="12" fill="#2a8f50"/><ellipse cx="17" cy="-7" rx="5" ry="2.8" fill="#3ca564" transform="rotate(28 17 -7)"/><ellipse cx="27" cy="-7" rx="5" ry="2.8" fill="#3ca564" transform="rotate(-28 27 -7)"/></svg>`,
+  party: `<svg width="18" height="13" viewBox="10 -14 26 16"><polygon points="22.5,-12 14,0 31,0" fill="#bf5a7a"/><rect x="14" y="0" width="17" height="2" rx="1" fill="#bf5a7a"/><circle cx="22.5" cy="-12" r="2" fill="#168b9d"/></svg>`,
+};
+const hatOrder: HatKey[] = ["bucket", "top", "cap", "sprout", "party"];
+const hatCounts = stats.hatCounts;
+const hatTotal = Object.values(hatCounts).reduce((a, b) => a + b, 0);
 ---
 
 <details data-stats-panel class="stats-panel mt-2 w-full">
@@ -127,13 +146,31 @@ const signupTimestamps = stats.signupTimestamps;
         <div class="stats-card rounded-[var(--radius-md)] bg-[var(--color-bg-neutral)]/60 border border-[var(--color-bg-neutral-2)]/60 p-3">
           <p class="font-[family-name:var(--font-mono)] text-xs uppercase text-[var(--color-fg-neutral)]">Signed Their Card</p>
           <p class="font-[family-name:var(--font-display)] text-2xl font-light text-[var(--color-ink)] mt-1">{sigPct}%</p>
-          <p class="font-[family-name:var(--font-mono)] text-[11px] text-[var(--color-ink-mute)]">{sigTotal} of {total}</p>
         </div>
 
         {latestAgo && (
           <div class="stats-card rounded-[var(--radius-md)] bg-[var(--color-bg-neutral)]/60 border border-[var(--color-bg-neutral-2)]/60 p-3">
             <p class="font-[family-name:var(--font-mono)] text-xs uppercase text-[var(--color-fg-neutral)]">Latest Guest</p>
             <p class="font-[family-name:var(--font-display)] text-2xl font-light text-[var(--color-ink)] mt-1">{latestAgo}</p>
+          </div>
+        )}
+
+        {hatTotal > 0 && (
+          <div class="stats-card rounded-[var(--radius-md)] bg-[var(--color-bg-neutral)]/60 border border-[var(--color-bg-neutral-2)]/60 p-3 col-span-2">
+            <p class="font-[family-name:var(--font-mono)] text-xs uppercase text-[var(--color-fg-neutral)] mb-2">Favorite Hats</p>
+            <div class="flex gap-3 flex-wrap">
+              {hatOrder.filter((h) => hatCounts[h] > 0).sort((a, b) => hatCounts[b] - hatCounts[a]).map((hat) => (
+                <div class="flex items-center gap-1.5">
+                  <Fragment set:html={hatSvgs[hat]} />
+                  <span class="font-[family-name:var(--font-mono)] text-xs text-[var(--color-ink-dim)]">
+                    {hatLabels[hat]}
+                  </span>
+                  <span class="font-[family-name:var(--font-mono)] text-[11px] text-[var(--color-ink-mute)] tabular-nums">
+                    ({hatCounts[hat]})
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
