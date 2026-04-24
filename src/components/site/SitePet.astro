@@ -1895,7 +1895,7 @@
           // First poke of the session always shows the global count fact.
           if (!pokeQuipUsed && globalPokes > 0) {
             pokeQuipUsed = true;
-            saySomething(pet, [`this is the ${globalPokes}${globalPokes === 1 ? "st" : globalPokes === 2 ? "nd" : globalPokes === 3 ? "rd" : "th"} time\nsomeone has poked me!`], 2400);
+            saySomething(pet, [`this is the ${globalPokes}${globalPokes === 1 ? "st" : globalPokes === 2 ? "nd" : globalPokes === 3 ? "rd" : "th"} time\nsomeone has poked me :(`], 2400);
           } else {
             saySomething(pet, clickPool(clickCount), 1400);
           }

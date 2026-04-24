@@ -160,6 +160,17 @@ function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+// Pairs that are individually innocent words but collide into loaded
+// real-world references. Keep tiny; reroll on hit.
+const blockedPairs = new Set<string>([
+  "pearl harbor",
+]);
+
 export function generateVisitorName(): string {
-  return `${pick(adjectives)} ${pick(nouns)}`;
+  for (let i = 0; i < 8; i++) {
+    const name = `${pick(adjectives)} ${pick(nouns)}`;
+    if (!blockedPairs.has(name)) return name;
+  }
+  // Exhausted retries (absurdly unlikely): fall back to a safe default.
+  return "flower dreamer";
 }

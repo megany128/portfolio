@@ -846,13 +846,25 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       for (const c of next) last.set(c, c.getBoundingClientRect());
 
       // INVERT + PLAY with stagger.
+      // Bound total stagger window so large grids don't drag on for seconds.
+      // Skip offscreen cards (user never sees them) + layer moving cards by
+      // travel distance so long flights paint above short ones.
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const onscreen = (r: DOMRect) =>
+        r.bottom > -100 && r.top < vh + 100 && r.right > -100 && r.left < vw + 100;
+      const STAGGER_WINDOW = reduced ? 0 : isMobile ? 300 : 700;
+      const n = next.length;
       next.forEach((c, i) => {
         const f = first.get(c)!;
         const l = last.get(c)!;
         const dx = f.left - l.left;
         const dy = f.top - l.top;
         if (dx === 0 && dy === 0) return;
+        if (!onscreen(f) && !onscreen(l)) return;
+        const dist = Math.hypot(dx, dy);
         c.dataset.flying = "";
+        c.style.zIndex = String(10 + Math.round(dist / 10));
         const anim = c.animate(
           [
             { transform: `translate(${dx}px, ${dy}px)` },
@@ -860,7 +872,7 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
           ],
           {
             duration: reduced ? 0 : isMobile ? 300 : 560,
-            delay: reduced ? 0 : isMobile ? i * 10 : i * 20,
+            delay: n > 1 ? (i / (n - 1)) * STAGGER_WINDOW : 0,
             easing: SPRING_EASE,
             fill: "both",
           },
@@ -874,6 +886,7 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
           } catch {}
           delete c.dataset.flying;
           c.style.transform = "";
+          c.style.zIndex = "";
         };
       });
     };
