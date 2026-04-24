@@ -76,7 +76,10 @@ const { existingSignature = null } = Astro.props;
     const ctx = pad.getContext("2d");
     if (!ctx) return;
 
-    let dpr = window.devicePixelRatio || 1;
+    // Minimum 3× backing-store resolution so signatures captured on 1× DPR
+    // devices still look sharp on Retina screens and in the 1.7× detail zoom.
+    const SIG_MIN_DPR = 3;
+    let dpr = Math.max(window.devicePixelRatio || 1, SIG_MIN_DPR);
     let drawing = false;
     let last: { x: number; y: number } | null = null;
     let tool: Tool = "pen";
@@ -111,7 +114,7 @@ const { existingSignature = null } = Astro.props;
 
     function size() {
       const r = pad!.getBoundingClientRect();
-      const newDpr = window.devicePixelRatio || 1;
+      const newDpr = Math.max(window.devicePixelRatio || 1, SIG_MIN_DPR);
       const newW = Math.round(r.width * newDpr);
       const newH = Math.round(r.height * newDpr);
       // Preserve existing content across resize.

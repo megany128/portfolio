@@ -1892,10 +1892,10 @@
           lastClickAt = nowT;
           triggerHop();
 
-          // High chance (40%) of poke-count quip in first 5 clicks, once per session.
-          if (!pokeQuipUsed && globalPokes > 0 && sessionClicks <= 5 && Math.random() < 0.4) {
+          // First poke of the session always shows the global count fact.
+          if (!pokeQuipUsed && globalPokes > 0) {
             pokeQuipUsed = true;
-            saySomething(pet, [`i've been poked\n${globalPokes} ${globalPokes === 1 ? "time" : "times"}`], 2200);
+            saySomething(pet, [`this is the ${globalPokes}${globalPokes === 1 ? "st" : globalPokes === 2 ? "nd" : globalPokes === 3 ? "rd" : "th"} time\nsomeone has poked me!`], 2400);
           } else {
             saySomething(pet, clickPool(clickCount), 1400);
           }

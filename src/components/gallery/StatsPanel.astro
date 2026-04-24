@@ -34,9 +34,9 @@ for (const c of displayColors) mergedCounts[c] = stats.colorCounts[c] ?? 0;
 for (const c of seedColors) mergedCounts[c] = (mergedCounts[c] ?? 0) + 1;
 
 const maxCount = Math.max(...Object.values(mergedCounts), 1);
-const realTotal = total - seedCount;
-const sigTotal = stats.withSignature;
-const sigPct = realTotal > 0 ? Math.round((sigTotal / realTotal) * 100) : 0;
+const seedsWithSig = seedColors.length; // all seed visitors have signatures
+const sigTotal = stats.withSignature + seedsWithSig;
+const sigPct = total > 0 ? Math.round((sigTotal / total) * 100) : 0;
 
 // Time since latest visitor
 const latestDate = stats.latestIssuedAt ? new Date(stats.latestIssuedAt) : null;
@@ -53,31 +53,7 @@ function timeAgo(d: Date): string {
 }
 const latestAgo = latestDate ? timeAgo(latestDate) : null;
 
-// Build timeline — fill gaps so every day between first and last has a bar
-const daily = stats.dailySignups;
-const dayMap = new Map(daily.map((d) => [d.day, d.count]));
-
-function fillDays(): { day: string; count: number }[] {
-  if (daily.length === 0) return [];
-  const first = new Date(daily[0].day + "T00:00:00Z");
-  const last = new Date(daily[daily.length - 1].day + "T00:00:00Z");
-  const filled: { day: string; count: number }[] = [];
-  const cur = new Date(first);
-  while (cur <= last) {
-    const key = cur.toISOString().slice(0, 10);
-    filled.push({ day: key, count: dayMap.get(key) ?? 0 });
-    cur.setUTCDate(cur.getUTCDate() + 1);
-  }
-  return filled;
-}
-
-const timeline = fillDays();
-const timelineMax = Math.max(...timeline.map((d) => d.count), 1);
-
-function fmtDate(iso: string): string {
-  const d = new Date(iso + "T00:00:00Z");
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
-}
+const signupTimestamps = stats.signupTimestamps;
 ---
 
 <details data-stats-panel class="stats-panel mt-2 w-full">
@@ -91,64 +67,8 @@ function fmtDate(iso: string): string {
   <div class="stats-body-wrap">
   <div class="stats-body rounded-[var(--radius-md)] border border-[var(--color-bg-neutral-2)] bg-[var(--color-bg-neutral)]/40 mt-4 p-4 sm:p-6 flex flex-col gap-6">
 
-    {/* ---- Visitors over time (line graph) ---- */}
-    {timeline.length > 1 && (() => {
-      const svgW = 600;
-      const svgH = 80;
-      const padX = 0;
-      const padY = 4;
-      const graphW = svgW - padX * 2;
-      const graphH = svgH - padY * 2;
-      const pts = timeline.map((d, i) => {
-        const x = padX + (i / (timeline.length - 1)) * graphW;
-        const y = padY + graphH - (d.count / timelineMax) * graphH;
-        return { x, y, ...d };
-      });
-      const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
-      const areaPath = `${linePath} L${pts[pts.length - 1].x.toFixed(1)},${svgH} L${pts[0].x.toFixed(1)},${svgH} Z`;
-      return (
-        <div>
-          <h3 class="font-[family-name:var(--font-mono)] text-xs uppercase text-[var(--color-fg-neutral)] mb-3 tracking-wide">
-            Visitors Over Time
-          </h3>
-          <div class="flex flex-col gap-1">
-            <svg
-              viewBox={`0 0 ${svgW} ${svgH}`}
-              preserveAspectRatio="none"
-              class="w-full h-20"
-              data-stats-line
-              role="img"
-              aria-label={`Visitor signups over time: ${timeline.length} days, peak ${timelineMax} in a day`}
-            >
-              <path d={areaPath} fill="var(--color-teal)" opacity="0.12" />
-              <path d={linePath} fill="none" stroke="var(--color-teal)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.7" />
-              <line data-stats-crosshair x1="0" y1="0" x2="0" y2={String(svgH)} stroke="var(--color-ink-mute)" stroke-width="1" stroke-dasharray="3 3" opacity="0" />
-              <circle data-stats-active-dot cx="0" cy="0" r="4.5" fill="var(--color-teal)" stroke="var(--color-bg)" stroke-width="2" opacity="0" />
-              {pts.map((p) => (
-                <circle
-                  cx={p.x.toFixed(1)}
-                  cy={p.y.toFixed(1)}
-                  r="3"
-                  fill="var(--color-teal)"
-                  opacity="0"
-                  class="stats-line__dot"
-                  data-tip-day={p.day}
-                  data-tip-count={p.count}
-                />
-              ))}
-            </svg>
-            <div class="flex justify-between font-[family-name:var(--font-mono)] text-[10px] text-[var(--color-ink-mute)]">
-              <span>{fmtDate(timeline[0].day)}</span>
-              <span>{fmtDate(timeline[timeline.length - 1].day)}</span>
-            </div>
-          </div>
-          <div
-            data-stats-tooltip
-            class="fixed px-1.5 py-0.5 rounded-[var(--radius-sm)] bg-[var(--color-ink)] text-[var(--color-ink-inverted)] font-[family-name:var(--font-mono)] text-[10px] whitespace-nowrap pointer-events-none opacity-0 transition-opacity z-50"
-          />
-        </div>
-      );
-    })()}
+    {/* ---- Visitors over time (client-rendered for local timezone) ---- */}
+    <div data-stats-timeline data-timestamps={JSON.stringify(signupTimestamps)} />
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
@@ -207,7 +127,7 @@ function fmtDate(iso: string): string {
         <div class="stats-card rounded-[var(--radius-md)] bg-[var(--color-bg-neutral)]/60 border border-[var(--color-bg-neutral-2)]/60 p-3">
           <p class="font-[family-name:var(--font-mono)] text-xs uppercase text-[var(--color-fg-neutral)]">Signed Their Card</p>
           <p class="font-[family-name:var(--font-display)] text-2xl font-light text-[var(--color-ink)] mt-1">{sigPct}%</p>
-          <p class="font-[family-name:var(--font-mono)] text-[11px] text-[var(--color-ink-mute)]">{sigTotal} of {realTotal}</p>
+          <p class="font-[family-name:var(--font-mono)] text-[11px] text-[var(--color-ink-mute)]">{sigTotal} of {total}</p>
         </div>
 
         {latestAgo && (
@@ -217,12 +137,6 @@ function fmtDate(iso: string): string {
           </div>
         )}
 
-        {/* Pet pokes — filled client-side from localStorage */}
-        <div class="stats-card rounded-[var(--radius-md)] bg-[var(--color-bg-neutral)]/60 border border-[var(--color-bg-neutral-2)]/60 p-3" data-stats-pokes-card style="display:none">
-          <p class="font-[family-name:var(--font-mono)] text-xs uppercase text-[var(--color-fg-neutral)]">Pet Pokes</p>
-          <p class="font-[family-name:var(--font-display)] text-2xl font-light text-[var(--color-ink)] mt-1" data-stats-pokes-count>0</p>
-          <p class="font-[family-name:var(--font-mono)] text-[11px] text-[var(--color-ink-mute)]">by you</p>
-        </div>
       </div>
 
     </div>
@@ -317,7 +231,78 @@ function fmtDate(iso: string): string {
 </style>
 
 <script>
+  function renderTimeline() {
+    const container = document.querySelector<HTMLElement>("[data-stats-timeline]");
+    if (!container || container.dataset.rendered === "1") return;
+
+    const timestamps: string[] = JSON.parse(container.dataset.timestamps || "[]");
+    if (timestamps.length === 0) return;
+
+    // Group by viewer's local day
+    const dayMap = new Map<string, number>();
+    for (const ts of timestamps) {
+      const d = new Date(ts);
+      const key = [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
+      dayMap.set(key, (dayMap.get(key) ?? 0) + 1);
+    }
+
+    const sortedDays = [...dayMap.keys()].sort();
+    if (sortedDays.length < 2) return;
+
+    const parseDay = (s: string) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+    const fmtKey = (d: Date) => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
+    const fmtLabel = (s: string) => parseDay(s).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+    // Fill gaps so every day between first and last has a point
+    const filled: { day: string; count: number }[] = [];
+    const cur = parseDay(sortedDays[0]);
+    const last = parseDay(sortedDays[sortedDays.length - 1]);
+    while (cur <= last) {
+      const key = fmtKey(cur);
+      filled.push({ day: key, count: dayMap.get(key) ?? 0 });
+      cur.setDate(cur.getDate() + 1);
+    }
+    if (filled.length < 2) return;
+
+    const svgW = 600, svgH = 80, padY = 4;
+    const graphH = svgH - padY * 2;
+    const max = Math.max(...filled.map((d) => d.count), 1);
+
+    const pts = filled.map((d, i) => ({
+      x: (i / (filled.length - 1)) * svgW,
+      y: padY + graphH - (d.count / max) * graphH,
+      ...d,
+    }));
+
+    const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+    const areaPath = `${linePath} L${pts[pts.length - 1].x.toFixed(1)},${svgH} L${pts[0].x.toFixed(1)},${svgH} Z`;
+
+    const dots = pts.map((p) =>
+      `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="var(--color-teal)" opacity="0" class="stats-line__dot" data-tip-day="${p.day}" data-tip-count="${p.count}" />`
+    ).join("");
+
+    container.innerHTML = `
+      <h3 class="font-[family-name:var(--font-mono)] text-xs uppercase text-[var(--color-fg-neutral)] mb-3 tracking-wide">Visitors Over Time</h3>
+      <div class="flex flex-col gap-1">
+        <svg viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="none" class="w-full h-20" data-stats-line role="img" aria-label="Visitor signups over time: ${filled.length} days, peak ${max} in a day">
+          <path d="${areaPath}" fill="var(--color-teal)" opacity="0.12" />
+          <path d="${linePath}" fill="none" stroke="var(--color-teal)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.7" />
+          <line data-stats-crosshair x1="0" y1="0" x2="0" y2="${svgH}" stroke="var(--color-ink-mute)" stroke-width="1" stroke-dasharray="3 3" opacity="0" />
+          <circle data-stats-active-dot cx="0" cy="0" r="4.5" fill="var(--color-teal)" stroke="var(--color-bg)" stroke-width="2" opacity="0" />
+          ${dots}
+        </svg>
+        <div class="flex justify-between font-[family-name:var(--font-mono)] text-[10px] text-[var(--color-ink-mute)]">
+          <span>${fmtLabel(filled[0].day)}</span>
+          <span>${fmtLabel(filled[filled.length - 1].day)}</span>
+        </div>
+      </div>
+      <div data-stats-tooltip class="fixed px-1.5 py-0.5 rounded-[var(--radius-sm)] bg-[var(--color-ink)] text-[var(--color-ink-inverted)] font-[family-name:var(--font-mono)] text-[10px] whitespace-nowrap pointer-events-none opacity-0 transition-opacity z-50"></div>`;
+    container.dataset.rendered = "1";
+  }
+
   function wireStatsPanel() {
+    renderTimeline();
+
     // Smooth open/close — intercept native <details> toggle
     const details = document.querySelector<HTMLDetailsElement>("[data-stats-panel]");
     const summary = details?.querySelector<HTMLElement>("summary");
@@ -443,7 +428,7 @@ function fmtDate(iso: string): string {
               pending++;
               const a = c.animate(
                 [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "translate(0, 0)" }],
-                { duration: flipDur, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" },
+                { duration: flipDur, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
               );
               a.onfinish = () => { pending--; if (!pending) filtering = false; };
             } else {
@@ -500,17 +485,6 @@ function fmtDate(iso: string): string {
       resetBtn?.addEventListener("click", clearFilter);
     }
 
-    // Pet pokes card
-    const card = document.querySelector<HTMLElement>("[data-stats-pokes-card]");
-    const countEl = document.querySelector<HTMLElement>("[data-stats-pokes-count]");
-    if (card && countEl) {
-      const pokes = parseInt(localStorage.getItem("sitepet:pokes") ?? "0", 10);
-      if (pokes > 0) {
-        card.style.display = "";
-        countEl.textContent = String(pokes);
-      }
-    }
-
     // Line graph hover: crosshair + active dot + tooltip
     const svg = document.querySelector<SVGElement>("[data-stats-line]");
     const tip = document.querySelector<HTMLElement>("[data-stats-tooltip]");
@@ -518,8 +492,8 @@ function fmtDate(iso: string): string {
     const activeDot = svg?.querySelector<SVGCircleElement>("[data-stats-active-dot]");
     if (svg && tip && crosshair && activeDot) {
       const fmtDate = (iso: string) => {
-        const d = new Date(iso + "T00:00:00Z");
-        return d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+        const [y, m, d] = iso.split("-").map(Number);
+        return new Date(y, m - 1, d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
       };
 
       svg.addEventListener("mousemove", (e: MouseEvent) => {

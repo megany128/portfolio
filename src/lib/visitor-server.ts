@@ -242,14 +242,13 @@ export async function peekNextVisitorNumber(ctx: APIContext): Promise<number> {
 /*  Gallery stats                                                     */
 /* ------------------------------------------------------------------ */
 
-export type DailyCount = { day: string; count: number };
-
 export type GalleryStats = {
   colorCounts: Record<CardColor, number>;
   withSignature: number;
   firstIssuedAt: string | null;
   latestIssuedAt: string | null;
-  dailySignups: DailyCount[];
+  /** Raw issued_at timestamps — grouped by local day on the client. */
+  signupTimestamps: string[];
 };
 
 export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
@@ -265,7 +264,7 @@ export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
       `SELECT MIN(issued_at) AS first_at, MAX(issued_at) AS latest_at FROM visitors WHERE approved = 1`,
     ),
     d.prepare(
-      `SELECT DATE(issued_at) AS day, COUNT(*) AS cnt FROM visitors WHERE approved = 1 GROUP BY day ORDER BY day`,
+      `SELECT issued_at FROM visitors WHERE approved = 1 ORDER BY issued_at`,
     ),
   ]);
 
@@ -279,8 +278,8 @@ export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
   const withSignature = (sigRow as D1Result<{ cnt: number }>).results[0]?.cnt ?? 0;
   const timeResult = (timeRow as D1Result<{ first_at: string | null; latest_at: string | null }>).results[0];
 
-  const dailySignups: DailyCount[] = (dailyRows as D1Result<{ day: string; cnt: number }>).results.map(
-    (r) => ({ day: r.day, count: r.cnt }),
+  const signupTimestamps = (dailyRows as D1Result<{ issued_at: string }>).results.map(
+    (r) => r.issued_at,
   );
 
   return {
@@ -288,7 +287,7 @@ export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
     withSignature,
     firstIssuedAt: timeResult?.first_at ?? null,
     latestIssuedAt: timeResult?.latest_at ?? null,
-    dailySignups,
+    signupTimestamps,
   };
 }
 
