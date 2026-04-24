@@ -269,7 +269,7 @@ export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
       `SELECT issued_at FROM visitors WHERE approved = 1 ORDER BY issued_at`,
     ),
     d.prepare(
-      `SELECT COALESCE(MAX(number), 0) AS max_num FROM visitors`,
+      `SELECT COALESCE(MAX(number), 0) AS max_num FROM visitors WHERE approved = 1`,
     ),
   ]);
 

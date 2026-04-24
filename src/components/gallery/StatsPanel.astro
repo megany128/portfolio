@@ -33,7 +33,7 @@ const mergedCounts: Record<DisplayColor, number> = { pink: 0, teal: 0, green: 0,
 for (const c of displayColors) mergedCounts[c] = stats.colorCounts[c] ?? 0;
 for (const c of seedColors) mergedCounts[c] = (mergedCounts[c] ?? 0) + 1;
 
-const maxCount = Math.max(...Object.values(mergedCounts), 1);
+const colorTotal = Object.values(mergedCounts).reduce((a, b) => a + b, 0) || 1;
 const seedsWithSig = seedColors.length; // all seed visitors have signatures
 const sigTotal = stats.withSignature + seedsWithSig;
 const sigPct = total > 0 ? Math.round((sigTotal / total) * 100) : 0;
@@ -81,7 +81,7 @@ const signupTimestamps = stats.signupTimestamps;
           {displayColors.map((color) => {
             const count = mergedCounts[color];
             const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-            const barW = Math.max(2, (count / maxCount) * 100);
+            const barW = Math.max(2, (count / colorTotal) * 100);
             return (
               <button
                 type="button"
