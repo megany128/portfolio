@@ -583,12 +583,11 @@
      `--rack-x` / `--rack-y` are the left/top anchors in viewport coords.
   */
   /*
-    Rack is absolutely positioned on the document so it scrolls with
-    the sidebar instead of bouncing against a fixed viewport anchor.
-    JS sets --rack-x / --rack-y in page coordinates.
+    Rack is fixed-positioned so it tracks the sticky sidebar.
+    JS sets --rack-x / --rack-y in viewport coordinates.
   */
   .hat-rack {
-    position: absolute;
+    position: fixed;
     left: var(--rack-x, 40px);
     top: var(--rack-y, 40px);
     z-index: 85;
@@ -2058,16 +2057,14 @@
       rack.style.display = "";
       const r = toc.getBoundingClientRect();
       if (r.width === 0) return;
-      // Toggle is 40×34 (sprite = sprout on a shelf). Shelf brackets
+      // Toggle is 26×22 (sprite = sprout on a shelf). Shelf brackets
       // meet the toggle's bottom edge, so aligning toggle bottom with
-      // the nav top plants the stand flush on the Explore box. We use
-      // document/page coordinates (viewport + scroll) so the rack
-      // scrolls with the sidebar instead of bouncing against a fixed
-      // viewport anchor.
+      // the nav top plants the stand flush on the Explore box. Sidebar
+      // is position:sticky so we use viewport coords (fixed positioning).
       const TOGGLE_W = 26;
       const TOGGLE_H = 22;
-      const left = r.left + window.scrollX + r.width - TOGGLE_W - 12;
-      const top = r.top + window.scrollY - TOGGLE_H;
+      const left = r.left + r.width - TOGGLE_W - 12;
+      const top = r.top - TOGGLE_H;
       rack.style.setProperty("--rack-x", `${Math.round(left)}px`);
       rack.style.setProperty("--rack-y", `${Math.round(top)}px`);
     }
@@ -2114,10 +2111,12 @@
         if (target instanceof Node && rack.contains(target)) return;
         rack.removeAttribute("data-open");
       });
-      // Only re-measure when layout actually changes. Scroll doesn't
-      // move the rack anymore (it's page-absolute), so no scroll
-      // listener is needed here.
+      // Re-measure on resize and sidebar internal scroll (sticky sidebar
+      // with overflow-y: auto can scroll its content independently).
       window.addEventListener("resize", () => positionRack(rack), { passive: true });
+      window.addEventListener("scroll", () => positionRack(rack), { passive: true });
+      const sidebar = document.querySelector<HTMLElement>("[data-sidebar]");
+      if (sidebar) sidebar.addEventListener("scroll", () => positionRack(rack), { passive: true });
       window.setTimeout(() => positionRack(rack), 300);
       applyHat(readHat());
     }

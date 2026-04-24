@@ -9,23 +9,23 @@ export const prerender = false;
   <title>Moderation — Admin</title>
   <style>
     * { margin: 0; box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; background: #0f0f0f; color: #e5e5e5; padding: 24px; }
+    body { font-family: system-ui, sans-serif; background: #fff; color: #1a1a1a; padding: 24px; }
     h1 { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
     .login { max-width: 320px; margin: 80px auto; }
-    .login input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: #e5e5e5; font-size: 14px; margin-top: 8px; }
-    .login button { margin-top: 12px; width: 100%; padding: 10px; border-radius: 8px; border: none; background: #e5e5e5; color: #0f0f0f; font-weight: 600; cursor: pointer; }
+    .login input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #ddd; background: #f5f5f5; color: #1a1a1a; font-size: 14px; margin-top: 8px; }
+    .login button { margin-top: 12px; width: 100%; padding: 10px; border-radius: 8px; border: none; background: #1a1a1a; color: #fff; font-weight: 600; cursor: pointer; }
     .queue { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
-    .card { background: #1a1a1a; border-radius: 12px; padding: 16px; display: flex; gap: 16px; align-items: center; }
+    .card { background: #f9f9f9; border-radius: 12px; padding: 20px; display: flex; gap: 16px; align-items: center; border: 1px solid #e0e0e0; }
     .card-info { flex: 1; min-width: 0; }
     .card-name { font-size: 16px; font-weight: 600; }
     .card-meta { font-size: 12px; color: #888; margin-top: 4px; }
-    .card-sig { width: 120px; height: 60px; border-radius: 8px; object-fit: contain; background: #333; }
+    .card-sig { border-radius: 8px; object-fit: contain; }
     .card-actions { display: flex; gap: 8px; }
     .card-actions button { padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; }
-    .btn-approve { background: #22c55e; color: #000; }
+    .btn-approve { background: #22c55e; color: #fff; }
     .btn-reject { background: #ef4444; color: #fff; }
     .btn-approve:disabled, .btn-reject:disabled { opacity: 0.4; cursor: default; }
-    .empty { color: #666; font-style: italic; margin-top: 20px; }
+    .empty { color: #999; font-style: italic; margin-top: 20px; }
     .badge { display: inline-block; background: #ef4444; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
     .color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle; }
     .count { font-size: 14px; color: #888; margin-bottom: 16px; }
@@ -35,7 +35,8 @@ export const prerender = false;
   <div class="login" id="login">
     <h1>Moderation</h1>
     <input type="password" id="token" placeholder="Admin token" autocomplete="off" />
-    <button onclick="doLogin()">Enter</button>
+    <button type="button" id="login-btn">Enter</button>
+    <p id="login-error" style="color:#ef4444;font-size:13px;margin-top:8px;display:none;"></p>
   </div>
 
   <div id="app" style="display:none;">
@@ -54,10 +55,11 @@ export const prerender = false;
       token = document.getElementById('token').value.trim();
       if (!token) return;
       localStorage.setItem('admin_token', token);
-      tryLoad();
+      tryLoad(true);
     }
 
-    async function tryLoad() {
+    async function tryLoad(showError) {
+      const errEl = document.getElementById('login-error');
       const res = await fetch('/api/admin/moderate', {
         headers: { Authorization: 'Bearer ' + token },
       });
@@ -65,8 +67,13 @@ export const prerender = false;
         localStorage.removeItem('admin_token');
         document.getElementById('login').style.display = '';
         document.getElementById('app').style.display = 'none';
+        if (showError && errEl) {
+          errEl.textContent = 'Invalid token';
+          errEl.style.display = '';
+        }
         return;
       }
+      if (errEl) errEl.style.display = 'none';
       document.getElementById('login').style.display = 'none';
       document.getElementById('app').style.display = '';
       const { pending } = await res.json();
@@ -86,16 +93,18 @@ export const prerender = false;
         row.className = 'card';
         row.dataset.id = c.id;
 
+        const sigBg = COLORS[c.color] || '#333';
         if (c.signature) {
           const img = document.createElement('img');
           img.className = 'card-sig';
+          img.style.cssText = 'width:240px;height:150px;border-radius:8px;object-fit:contain;flex-shrink:0;background:' + sigBg;
           img.src = c.signature;
           img.alt = 'signature';
           row.appendChild(img);
         } else {
           const placeholder = document.createElement('div');
           placeholder.className = 'card-sig';
-          placeholder.style.cssText = 'display:grid;place-items:center;color:#666;font-size:11px;';
+          placeholder.style.cssText = 'width:240px;height:150px;border-radius:8px;display:grid;place-items:center;color:#999;font-size:11px;flex-shrink:0;background:#eee;';
           placeholder.textContent = 'no sig';
           row.appendChild(placeholder);
         }
@@ -161,7 +170,7 @@ export const prerender = false;
       }
     }
 
-    // Enter key on token input
+    document.getElementById('login-btn').addEventListener('click', doLogin);
     document.getElementById('token').addEventListener('keydown', e => {
       if (e.key === 'Enter') doLogin();
     });

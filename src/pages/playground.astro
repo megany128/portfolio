@@ -14,7 +14,7 @@ const cursorColor = visitor?.color ?? "pink";
 
 <BaseLayout title="Playground — Megan Yap">
   <div class="flex items-stretch min-h-screen">
-    <Sidebar active="playground" anon={!visitor} />
+    <Sidebar active="playground" anon={!visitor} visitorCard={visitor ? { name: visitor.name, color: visitor.color, number: visitor.number, signature: visitor.signature } : null} />
 
     <main class="pg-main relative flex flex-1 min-w-0 overflow-hidden items-center justify-center p-10">
       <!-- Cosmic backdrop: solid cosmos color + ambient starfield. Animates

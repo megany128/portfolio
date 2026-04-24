@@ -124,6 +124,11 @@ const { nextNumber, edit = false, existingName, startColor = "pink", existingSig
         <p class="text-[var(--color-ink)]">Welcome, visitor.</p>
         <p class="text-[var(--color-ink-dim)] mt-2">i hope you enjoy your time here.</p>
       )}
+      {!edit && (
+        <p class="text-[var(--color-ink-dim)] mt-3 text-[11px] sm:text-xs tracking-[0.14em]">
+          Your card will appear in the visitor gallery after review.
+        </p>
+      )}
     </header>
 
     <div class="flex items-center gap-3 sm:gap-6 w-full">

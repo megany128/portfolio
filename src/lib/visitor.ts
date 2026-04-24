@@ -64,6 +64,20 @@ export async function fetchCurrentCard(): Promise<VisitorCard | null> {
   }
 }
 
+export async function deleteCard(): Promise<boolean> {
+  try {
+    const res = await fetch("/api/visit", {
+      method: "DELETE",
+      credentials: "same-origin",
+    });
+    if (!res.ok) return false;
+    clearCachedCard();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function submitCard(input: {
   name: string;
   color: CardColor;

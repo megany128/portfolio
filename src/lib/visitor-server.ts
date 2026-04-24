@@ -214,6 +214,18 @@ export async function getVisitorSignature(
   return row?.signature_png ?? null;
 }
 
+/** Fetch signature for the visitor's own card (no approval check). */
+export async function getVisitorSignatureOwn(
+  ctx: APIContext,
+  id: string
+): Promise<string | null> {
+  const row = await db(ctx)
+    .prepare(`SELECT signature_png FROM visitors WHERE id = ? LIMIT 1`)
+    .bind(id)
+    .first<{ signature_png: string | null }>();
+  return row?.signature_png ?? null;
+}
+
 export function isCardColor(value: unknown): value is CardColor {
   return typeof value === "string" && (CARD_COLORS as readonly string[]).includes(value);
 }
@@ -275,6 +287,16 @@ export async function rejectVisitor(ctx: APIContext, id: string): Promise<boolea
     .bind(id)
     .first();
   return !!row;
+}
+
+/** Self-delete: remove a visitor's own card, their reports, and reports on them. */
+export async function deleteOwnVisitor(ctx: APIContext, id: string): Promise<boolean> {
+  const results = await db(ctx).batch([
+    db(ctx).prepare(`DELETE FROM reports WHERE card_id = ?`).bind(id),
+    db(ctx).prepare(`DELETE FROM reports WHERE reporter_id = ?`).bind(id),
+    db(ctx).prepare(`DELETE FROM visitors WHERE id = ? RETURNING id`).bind(id),
+  ]);
+  return !!(results[2]?.results?.length);
 }
 
 /* ------------------------------------------------------------------ */

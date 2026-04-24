@@ -33,7 +33,7 @@ const cursorColor = visitor?.color ?? "pink";
   </div>
 
   <div class="flex items-stretch min-h-screen" data-home-shell>
-    <Sidebar anon={!visitor} />
+    <Sidebar anon={!visitor} visitorCard={visitor ? { name: visitor.name, color: visitor.color, number: visitor.number, signature: visitor.signature } : null} />
 
     <main class="flex flex-col gap-6 sm:gap-8 p-4 sm:p-6 md:p-12 flex-1 min-w-0" data-home-main>
       <div class="flex flex-col gap-8" data-home-stack>

@@ -51,7 +51,7 @@ const subtitle = visitor
 
 <BaseLayout title="Visitor Gallery — Megan Yap" description="Visitor cards left by people who've stopped by Megan's World.">
   <div class="flex items-stretch min-h-screen">
-    <Sidebar active="gallery" anon={!visitor} />
+    <Sidebar active="gallery" anon={!visitor} visitorCard={visitor ? { name: visitor.name, color: visitor.color, number: visitor.number, signature: visitor.signature } : null} />
 
     <main class="flex flex-col gap-6 p-4 sm:p-6 md:p-10 flex-1 min-w-0">
       <header class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6">

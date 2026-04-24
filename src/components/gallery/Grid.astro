@@ -96,18 +96,35 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       <path d="M9 18l6-6-6-6" />
     </svg>
   </button>
-  <a
-    data-gallery-edit
-    href="/onboarding?edit"
-    class="gallery-detail__edit absolute left-1/2 -translate-x-1/2 z-[2] flex items-center gap-2 px-3 py-2 rounded-[10px] bg-white/80 hover:bg-white text-[var(--color-ink)] font-[family-name:var(--font-mono)] text-sm uppercase shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-colors opacity-0 pointer-events-none"
+  <div
+    data-gallery-you-actions
+    class="gallery-detail__you-actions absolute left-1/2 -translate-x-1/2 z-[2] flex items-center gap-2 opacity-0 pointer-events-none"
     style="bottom: max(24px, env(safe-area-inset-bottom, 0px) + 16px);"
   >
-    Edit card
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-      <path d="m15 5 4 4" />
-    </svg>
-  </a>
+    <a
+      data-gallery-edit
+      href="/onboarding?edit"
+      class="gallery-detail__edit flex items-center gap-2 px-3 py-2 rounded-[10px] bg-white/80 hover:bg-white text-[var(--color-ink)] font-[family-name:var(--font-mono)] text-sm uppercase shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-colors"
+    >
+      Edit card
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+        <path d="m15 5 4 4" />
+      </svg>
+    </a>
+    <button
+      data-gallery-delete
+      type="button"
+      class="gallery-detail__delete flex items-center gap-2 px-3 py-2 rounded-[10px] bg-white/80 hover:bg-red-50 text-[var(--color-ink)] hover:text-red-600 font-[family-name:var(--font-mono)] text-sm uppercase shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-colors"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 6h18" />
+        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+      </svg>
+      Delete
+    </button>
+  </div>
   <button
     data-gallery-report
     type="button"
@@ -140,7 +157,7 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
   .gallery-detail[data-open] .gallery-detail__nav {
     opacity: 1;
   }
-  .gallery-detail[data-open][data-is-you] .gallery-detail__edit {
+  .gallery-detail[data-open][data-is-you] .gallery-detail__you-actions {
     opacity: 1;
     pointer-events: auto;
     transition: opacity 300ms cubic-bezier(0.22, 1, 0.36, 1) 200ms;
@@ -614,6 +631,7 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
         detail!.removeAttribute("data-can-report");
       }
       resetReportBtn();
+      resetDeleteBtn();
 
       open = {
         source: nextSource,
@@ -636,6 +654,7 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       openHover?.remove();
       openHover = null;
       resetReportBtn();
+      resetDeleteBtn();
 
       // Reset transform to the un-tilted scaled state before measuring so the
       // close animation starts from a known orientation.
@@ -722,6 +741,46 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
         reportBtn.textContent = "Error";
       }
       // Keep status visible; reset when user navigates or closes.
+    });
+
+    /* ---------- delete button ------------------------------------------ */
+    const deleteBtn = detail.querySelector<HTMLButtonElement>("[data-gallery-delete]");
+    const DELETE_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`;
+    let deleteConfirming = false;
+
+    function resetDeleteBtn() {
+      if (!deleteBtn) return;
+      deleteConfirming = false;
+      deleteBtn.disabled = false;
+      deleteBtn.innerHTML = `${DELETE_SVG} Delete`;
+      deleteBtn.classList.remove("!bg-red-100", "!text-red-600");
+    }
+
+    deleteBtn?.addEventListener("click", async () => {
+      if (!open) return;
+      if (!deleteConfirming) {
+        deleteConfirming = true;
+        deleteBtn.innerHTML = `${DELETE_SVG} Confirm delete?`;
+        deleteBtn.classList.add("!bg-red-100", "!text-red-600");
+        return;
+      }
+      deleteBtn.disabled = true;
+      deleteBtn.textContent = "Deleting\u2026";
+      try {
+        const source = open!.source;
+        const { deleteCard } = await import("../../lib/visitor");
+        const ok = await deleteCard();
+        if (ok) {
+          if (open) closeDetail();
+          source.remove();
+          // Clear grid's youId so future detail opens don't show "you" actions.
+          grid!.dataset.youId = "";
+        } else {
+          deleteBtn.textContent = "Error";
+        }
+      } catch {
+        deleteBtn.textContent = "Error";
+      }
     });
 
     window.addEventListener("keydown", (e) => {

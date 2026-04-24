@@ -1,13 +1,15 @@
 ---
 import Logo from "../ui/Logo.astro";
 import TableOfContents from "./TableOfContents.astro";
+import type { CardColor } from "../../lib/visitor";
 
 interface Props {
   active?: "work" | "about" | "playground" | "gallery";
   anon?: boolean;
+  visitorCard?: { name: string; color: CardColor; number: number; signature?: string | null } | null;
 }
 
-const { active = "work", anon = false } = Astro.props;
+const { active = "work", anon = false, visitorCard = null } = Astro.props;
 ---
 
 <!-- Tab that sticks out on the left edge when the sidebar is collapsed -->
@@ -84,6 +86,54 @@ const { active = "work", anon = false } = Astro.props;
     </p>
   </div>
 
+  {visitorCard && (
+    <div class="sidebar-visitor-card-wrap" data-color={visitorCard.color}>
+      <a
+        href="/visitor-gallery"
+        data-sidebar-card
+        data-cursor-bg={visitorCard.color}
+        class="sidebar-card-pill"
+        aria-label="Your visitor card — view gallery"
+      >
+        <span class="sidebar-card-pill__dot"></span>
+        <span class="sidebar-card-pill__label">My visitor card</span>
+      </a>
+      <div class="sidebar-card-popover">
+        <a href="/visitor-gallery" class="sidebar-card-popover__link" data-cursor-bg={visitorCard.color}>
+          <pre class="sidebar-card__art" aria-hidden="true">{
+            visitorCard.color === "teal"
+              ? "⠀⠀⠀⢸⣦⡀⠀⠀⠀⠀⢀⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⢸⣏⠻⣶⣤⡶⢾⡿⠁⠀⢠⣄⡀⢀⣴⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⣀⣼⠷⠀⠀⠁⢀⣿⠃⠀⠀⢀⣿⣿⣿⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠴⣾⣯⣅⣀⠀⠀⠀⠈⢻⣦⡀⠒⠻⠿⣿⡿⠿⠓⠂⠀⠀⢀⡇⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠉⢻⡇⣤⣾⣿⣷⣿⣿⣤⠀⠀⣿⠁⠀⠀⠀⢀⣴⣿⣿⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠸⣿⡿⠏⠀⢀⠀⠀⠿⣶⣤⣤⣤⣄⣀⣴⣿⡿⢻⣿⡆⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠟⠁⠀⢀⣼⠀⠀⠀⠹⣿⣟⠿⠿⠿⡿⠋⠀⠘⣿⣇⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⢳⣶⣶⣿⣿⣇⣀⠀⠀⠙⣿⣆⠀⠀⠀⠀⠀⠀⠛⠿⣿⣦⣤⣀⠀⠀\n⠀⠀⠀⠀⠀⠀⣹⣿⣿⣿⣿⠿⠋⠁⠀⣹⣿⠳⠀⠀⠀⠀⠀⠀⢀⣠⣽⣿⡿⠟⠃\n⠀⠀⠀⠀⠀⢰⠿⠛⠻⢿⡇⠀⠀⠀⣰⣿⠏⠀⠀⢀⠀⠀⠀⣾⣿⠟⠋⠁⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠋⠀⠀⣰⣿⣿⣾⣿⠿⢿⣷⣀⢀⣿⡇⠁⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠋⠉⠁⠀⠀⠀⠀⠙⢿⣿⣿⠇⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀"
+              : visitorCard.color === "green"
+                ? "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⢾⣛⡆⠈⡏⠰⠶⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢦⣿⣄⣉⣁⣤⠽⣦⣤⡶⠶⣤⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠚⠹⡉⢃⣴⠟⠉⠀⠀⠀⠀⠉⠻⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⢡⡿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠈⢷⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡂⣿⡇⠀⠀⠀⠀⣠⣤⣀⠀⠀⠀⠘⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⢻⣷⠀⠀⠀⠀⢯⡉⣿⡆⠀⠀⣰⡇⠀⢀⣀⢤⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣧⣀⠀⠀⢀⣴⡟⠀⠀⣰⣿⡷⢏⡭⠔⠹⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠛⠿⠿⠟⠋⠀⢀⣼⣿⣿⣿⠿⣭⡉⢛⡃⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⣀⣤⠶⠿⣟⣟⣝⡷⣲⢤⣀⠀⠀⠀⠀⠀⠀⢠⠀⠀⠀⠀⠀⠀⣠⣾⡿⠃⠹⡟⢖⠢⠽⠦⠁⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⢀⣴⠞⠁⠀⠀⠀⠀⠀⠉⠙⢦⣕⡯⣷⣄⠀⠀⠠⣴⠋⢓⡶⠂⠀⢀⣼⣿⠟⠁⠀⠀⠈⠺⡄⠋⣀⣰⣀⠀⠀⠀⠀⠀⠀\n⠀⣠⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢯⣒⢭⣦⠀⠀⢸⠕⠦⠇⠀⣤⣿⡿⠃⣠⠴⠶⠶⣤⡀⠀⠀⠼⠿⡏⠀⠀⠀⠀⠀⠀\n⢀⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣝⡫⢧⠀⠀⠀⠀⣠⣾⡿⠉⠀⢸⠁⢀⣀⠀⠈⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⣼⠁⠀⠀⠀⠀⣠⣶⣿⣿⣷⣦⡀⠀⠀⠀⠀⠙⡮⣛⡆⠀⠀⣰⣿⡏⢐⡀⠀⠸⣦⣀⣨⠇⠒⣸⣀⣀⣄⣀⡀⠀⠀⠀⠀⠀⠀\n⢹⠆⠀⠀⠀⢠⣿⡿⠃⠀⠀⠉⢻⡄⠀⠀⠀⠀⠙⣗⢿⠀⣸⡟⡙⢷⡈⢠⠀⡀⠈⠉⣁⠘⣠⠟⠉⠉⠙⢿⣿⡆⠀⠀⠀⠀⠀\n⠘⣇⠀⠀⠀⠈⢿⡇⠀⢲⠀⠀⠀⢻⡀⠀⢤⣴⡀⠹⣽⣴⡿⣁⠀⠈⠻⣦⣤⣥⣌⣡⡤⠞⠁⠀⣰⠛⠆⣸⣿⡇⠀⠀⠀⠀⠀"
+                : visitorCard.color === "orange"
+                  ? "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣤⣴⣦⣦⡄⠀⠀⠀⠀\n⠀⠀⠀⣀⣤⣤⣤⣤⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣶⣿⣿⣿⣿⣿⣿⣿⣷⣄⠀⠀\n⠀⣰⣿⣿⠿⢿⣿⣿⣿⣿⣿⣷⣦⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⣿⣿⠿⠛⠉⠉⠁⠉⠉⠙⠻⣧⠀\n⣰⣿⣿⡟⠀⠀⠈⠙⠛⠿⣿⣿⣿⣿⣿⣶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⡿⠟⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡆\n⣿⣿⣿⠁⠀⠀⠀⠀⠀⠀⠀⠈⠙⠛⠿⢿⣿⣿⣦⣀⠀⠀⠀⠀⠀⠀⢀⣴⣿⡿⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣽⣧\n⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⢀⠈⠙⠻⣿⣷⣄⣤⣤⣤⣦⣾⡿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⣿⡿\n⣿⣿⣿⣷⣄⣀⣀⣀⣀⣠⣤⣶⣾⣿⣿⣿⣿⣿⣿⣷⣾⣿⣿⣿⣿⣿⣿⣶⣶⣿⣶⣶⣤⣀⠀⠀⢀⠀⠀⠀⠀⣀⣠⣾⣿⣿⠃\n⠘⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠟⠛⠋⠉⠉⣴⣾⣿⣿⣿⣿⣿⣿⣯⣍⠉⠛⠻⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠃⠀\n⠀⠀⠉⠛⠻⠿⠿⠿⠿⠿⠿⠛⠋⠀⠀⠀⠀⢠⣾⣿⣿⠟⠁⠁⠀⠈⠻⣿⣿⣷⡀⠀⠀⠉⠛⠻⠿⠿⠻⠿⠿⠟⠋⠁⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣿⣿⠃⠀⠀⠀⠀⠀⠀⠹⣿⣿⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣿⡏⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣿⣿⣿⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⣀⣠⣤⣴⣶⣶⣾⣿⣿⣿⣿⠟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⣧⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⣠⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⣿⣷⣦⣤⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⣴⣿⣿⣿⠟⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⢿⣿⣿⣿⣿⣿⣿⣷⣤⡀⠀⠀⠀⠀⠀\n⠀⣸⣿⣿⡿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠛⠻⣿⣿⣿⣧⡀⠀⠀⠀\n⢀⣿⣿⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣿⣿⣧⠀⠀⠀\n⠸⣿⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣿⣿⡆⠀⠀\n⠀⠹⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⣿⡧⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⠏⠀⠀"
+                  : "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⢔⣶⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡼⠗⡿⣾⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡼⠓⡞⢩⣯⡀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠰⡹⠁⢰⠃⣩⣿⡇⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢷⣿⠿⣉⣩⠛⠲⢶⡠⢄⠐⣣⠃⣰⠗⠋⢀⣯⠁⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣯⣠⠬⠦⢤⣀⠈⠓⢽⣾⢔⣡⡴⠞⠻⠙⢳⡄\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣵⣳⠖⠉⠉⢉⣩⣵⣿⣿⣒⢤⣴⠤⠽⣬⡇\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⢻⣟⠟⠋⢡⡎⢿⢿⠳⡕⢤⡉⡷⡽⠁\n⣧⢮⢭⠛⢲⣦⣀⠀⠀⠀⠠⡀⠀⠀⠀⡾⣥⣏⣖⡟⠸⢺⠀⠀⠈⠙⠋⠁⠀⠀\n⠈⠻⣶⡛⠲⣄⠀⠙⠢⣀⠀⢇⠀⠀⠀⠘⠿⣯⣮⢦⠶⠃⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⢻⣿⣥⡬⠽⠶⠤⣌⣣⣼⡔⠊⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⢠⣿⣧⣤⡴⢤⡴⣶⣿⣟⢯⡙⠒⠤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠘⣗⣞⣢⡟⢋⢜⣿⠛⡿⡄⢻⡮⣄⠈⠳⢦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠈⠻⠮⠴⠵⢋⣇⡇⣷⢳⡀⢱⡈⢋⠛⣄⣹⣲⡀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣱⡇⣦⢾⣾⠿⠟⠿⠷⠷⣻⠧⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠻⠽⠞⠊⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"
+          }</pre>
+          <span class="sidebar-card__title">Megan&rsquo;s World</span>
+          <dl class="sidebar-card__fields">
+            <div>
+              <dt>Visitor</dt>
+              <dd>{visitorCard.name}</dd>
+            </div>
+          </dl>
+          {visitorCard.signature && (
+            <img
+              src={visitorCard.signature}
+              alt=""
+              class="sidebar-card__signature"
+              loading="lazy"
+              decoding="async"
+            />
+          )}
+          <div class="sidebar-card__footer">
+            <span class="sidebar-card__number">No. {visitorCard.number}</span>
+            <span class="sidebar-card__sig">x <span class="sidebar-card__sigline"></span></span>
+          </div>
+        </a>
+      </div>
+    </div>
+  )}
+
   <div class="sidebar-status mt-auto font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)] leading-snug">
     <p data-sidebar-clock>--:--:-- --</p>
     <p>
@@ -97,14 +147,183 @@ const { active = "work", anon = false } = Astro.props;
      Sidebar gets a stacking context so ToC hover previews
      float above main content (which uses transforms/opacity). */
   .site-sidebar {
-    position: relative;
-    z-index: 10;
+    position: sticky;
+    top: 0;
+    max-height: 100dvh;
+    align-self: flex-start;
+    z-index: 40;
+    overflow: visible;
   }
 
   .sidebar-tab,
   .sidebar-backdrop,
   .sidebar-close {
     display: none;
+  }
+
+  /* Mini visitor card — compact pill that expands to a card popover on hover. */
+  .sidebar-visitor-card-wrap {
+    position: relative;
+  }
+  .sidebar-card-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 10px;
+    border-radius: 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    text-decoration: none;
+    color: var(--color-ink-dim);
+    background: var(--color-bg-neutral-2);
+    transition: background var(--duration-fast) var(--ease-out-soft), color var(--duration-fast) var(--ease-out-soft);
+  }
+  .sidebar-card-pill:hover {
+    color: var(--color-ink);
+    background: #cfc7af;
+  }
+  .sidebar-card-pill__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  [data-color="pink"] .sidebar-card-pill__dot { background: var(--color-pink); }
+  [data-color="teal"] .sidebar-card-pill__dot { background: var(--color-teal); }
+  [data-color="green"] .sidebar-card-pill__dot { background: var(--color-green); }
+  [data-color="orange"] .sidebar-card-pill__dot { background: var(--color-orange); }
+  [data-color="neutral"] .sidebar-card-pill__dot { background: var(--color-fg-neutral); }
+
+  /* Popover card — floats to the right on hover, like ToC previews. */
+  .sidebar-card-popover {
+    position: absolute;
+    left: calc(100% + 16px);
+    top: 50%;
+    transform: translateY(-50%) translateX(-8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 220ms var(--ease-out-soft), transform 280ms var(--ease-out-soft);
+    z-index: 50;
+  }
+  .sidebar-visitor-card-wrap:hover .sidebar-card-popover {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(-50%) translateX(0);
+  }
+  .sidebar-card-popover__link {
+    display: flex;
+    flex-direction: column;
+    width: 200px;
+    min-height: 130px;
+    padding: 14px 16px 12px;
+    border-radius: 14px;
+    font-family: var(--font-mono);
+    color: var(--color-ink-inverted);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+      0 18px 36px -16px rgba(36, 36, 36, 0.35),
+      0 4px 10px -4px rgba(36, 36, 36, 0.2);
+  }
+  [data-color="pink"] .sidebar-card-popover__link { background: var(--color-pink); }
+  [data-color="teal"] .sidebar-card-popover__link { background: var(--color-teal); }
+  [data-color="green"] .sidebar-card-popover__link { background: var(--color-green); }
+  [data-color="orange"] .sidebar-card-popover__link { background: var(--color-orange); }
+  [data-color="neutral"] .sidebar-card-popover__link {
+    background: var(--color-bg-neutral-2);
+    color: var(--color-ink);
+  }
+  .sidebar-card-popover__link:hover {
+    transform: scale(1.03) rotate(-0.5deg);
+    transition: transform var(--duration-fast) var(--ease-out-soft);
+  }
+  .sidebar-card__art {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 5px;
+    line-height: 1.08;
+    opacity: 0.35;
+    pointer-events: none;
+    white-space: pre;
+    margin: 0;
+  }
+  .sidebar-card__title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 12px;
+    line-height: 1;
+    text-transform: none;
+  }
+  .sidebar-card__fields {
+    margin-top: 6px;
+  }
+  .sidebar-card__fields dt {
+    font-size: 7px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.65;
+    line-height: 1;
+  }
+  .sidebar-card__fields dd {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    margin: 2px 0 0;
+  }
+  .sidebar-card__footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-top: auto;
+    position: relative;
+  }
+  .sidebar-card__number {
+    font-size: 7px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.65;
+    line-height: 1;
+  }
+  .sidebar-card__sig {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    font-size: 10px;
+    line-height: 1;
+    flex: 1;
+    margin-left: 14px;
+  }
+  .sidebar-card__sigline {
+    display: block;
+    flex: 1;
+    border-bottom: 1px solid var(--color-ink-inverted);
+    margin-bottom: 1px;
+  }
+  [data-color="neutral"] .sidebar-card__sigline {
+    border-color: var(--color-ink);
+  }
+  .sidebar-card__signature {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    object-position: center bottom;
+    pointer-events: none;
+    mix-blend-mode: normal;
+  }
+  [data-color]:not([data-color="neutral"]) .sidebar-card__signature {
+    filter: brightness(0) invert(1);
+  }
+  @media (max-width: 1023px) {
+    .sidebar-card-popover { display: none; }
   }
 
   @media (max-width: 1023px) {

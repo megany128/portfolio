@@ -1,5 +1,5 @@
 import type { APIContext } from "astro";
-import { getVisitorSignature } from "../../../lib/visitor-server";
+import { getVisitorSignature, readVisitorId, getVisitorSignatureOwn } from "../../../lib/visitor-server";
 
 export const prerender = false;
 
@@ -7,7 +7,11 @@ export async function GET(ctx: APIContext) {
   const id = ctx.params.id;
   if (!id) return new Response(null, { status: 400 });
 
-  const signature = await getVisitorSignature(ctx, id);
+  // Allow the current visitor to see their own signature even if unapproved.
+  const isOwn = readVisitorId(ctx) === id;
+  const signature = isOwn
+    ? await getVisitorSignatureOwn(ctx, id)
+    : await getVisitorSignature(ctx, id);
   if (!signature) return new Response(null, { status: 404 });
 
   return new Response(signature, {

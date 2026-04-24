@@ -1,6 +1,8 @@
 import type { APIContext } from "astro";
 import {
+  clearVisitorId,
   createVisitor,
+  deleteOwnVisitor,
   getCurrentVisitor,
   isCardColor,
   updateVisitor,
@@ -95,4 +97,14 @@ export async function POST(ctx: APIContext) {
   });
   writeVisitorId(ctx, visitor.id);
   return Response.json(visitor);
+}
+
+export async function DELETE(ctx: APIContext) {
+  const visitor = await getCurrentVisitor(ctx);
+  if (!visitor) return new Response(null, { status: 404 });
+
+  await deleteOwnVisitor(ctx, visitor.id);
+  clearVisitorId(ctx);
+
+  return new Response(null, { status: 200 });
 }

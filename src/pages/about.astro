@@ -19,7 +19,7 @@ const cursorColor = visitor?.color ?? "pink";
   description="Grew up in sunny Malaysia, now exploring tech and design as a junior at Cornell. Always happy to chat — on the lookout for a full-time job and good conversations :)"
 >
   <div class="flex items-stretch flex-1">
-    <Sidebar active="about" anon={!visitor} />
+    <Sidebar active="about" anon={!visitor} visitorCard={visitor ? { name: visitor.name, color: visitor.color, number: visitor.number, signature: visitor.signature } : null} />
 
     <main class="flex flex-col gap-8 sm:gap-10 p-4 sm:p-6 md:p-10 min-w-0 flex-1">
       <section class="flex flex-col gap-4 about-section" data-about-section>
