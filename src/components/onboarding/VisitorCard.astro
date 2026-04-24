@@ -124,11 +124,6 @@ const { nextNumber, edit = false, existingName, startColor = "pink", existingSig
         <p class="text-[var(--color-ink)]">Welcome, visitor.</p>
         <p class="text-[var(--color-ink-dim)] mt-2">i hope you enjoy your time here.</p>
       )}
-      {!edit && (
-        <p class="text-[var(--color-ink-dim)] mt-3 text-[11px] sm:text-xs tracking-[0.14em]">
-          Your card will appear in the visitor gallery after review.
-        </p>
-      )}
     </header>
 
     <div class="flex items-center gap-3 sm:gap-6 w-full">
@@ -223,13 +218,18 @@ const { nextNumber, edit = false, existingName, startColor = "pink", existingSig
       </div>
     </div>
 
-    <div class="flex flex-col items-center gap-2">
+    <div class="flex flex-col items-center gap-3">
       <button
         type="submit"
         class="btn-springy enter-btn font-[family-name:var(--font-mono)] inline-flex items-center justify-center px-5 py-3 rounded-[14px] bg-[var(--color-ink)] text-[var(--color-ink-inverted)] text-[15px] uppercase leading-none whitespace-nowrap"
       >
         {edit ? "save →" : "enter →"}
       </button>
+      {!edit && (
+        <p class="font-[family-name:var(--font-mono)] text-[length:var(--text-small)] text-[var(--color-ink-mute)] tracking-[0.02em] text-center leading-[var(--text-body--line-height)]">
+          Your card will appear in the visitor gallery after review.
+        </p>
+      )}
       <p
         data-submit-error
         class="font-[family-name:var(--font-mono)] text-[13px] text-[var(--color-pink)] opacity-0 transition-opacity duration-200"
