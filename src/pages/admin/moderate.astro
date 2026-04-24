@@ -25,7 +25,8 @@ export const prerender = false;
     .card-actions button { padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; }
     .btn-approve { background: #22c55e; color: #fff; }
     .btn-reject { background: #ef4444; color: #fff; }
-    .btn-approve:disabled, .btn-reject:disabled { opacity: 0.4; cursor: default; }
+    .btn-approve:disabled, .btn-reject:disabled, .btn-approve-all:disabled { opacity: 0.4; cursor: default; }
+    .btn-approve-all { background: #22c55e; color: #fff; padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; }
     .empty { color: #999; font-style: italic; margin-top: 20px; }
     .badge { display: inline-block; background: #ef4444; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
     .color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle; }
@@ -42,7 +43,10 @@ export const prerender = false;
 
   <div id="app" style="display:none;">
     <h1>Moderation Queue</h1>
-    <p class="count" id="count"></p>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <p class="count" id="count" style="margin:0;"></p>
+      <button type="button" class="btn-approve-all" id="approve-all-btn" style="display:none;">Approve All</button>
+    </div>
     <div class="queue" id="queue"></div>
   </div>
 
@@ -81,9 +85,15 @@ export const prerender = false;
       render(pending);
     }
 
+    function updateApproveAllBtn(count) {
+      const btn = document.getElementById('approve-all-btn');
+      btn.style.display = count >= 2 ? '' : 'none';
+    }
+
     function render(cards) {
       const q = document.getElementById('queue');
       document.getElementById('count').textContent = cards.length + ' pending';
+      updateApproveAllBtn(cards.length);
       if (!cards.length) {
         q.innerHTML = '<p class="empty">Nothing to review.</p>';
         return;
@@ -161,15 +171,42 @@ export const prerender = false;
       if (res.ok) {
         card.style.opacity = '0.3';
         card.style.transition = 'opacity 0.3s';
-        setTimeout(() => card.remove(), 350);
-        const cnt = document.getElementById('count');
-        const remaining = document.querySelectorAll('.card:not([style*="opacity: 0.3"])').length - 1;
-        cnt.textContent = remaining + ' pending';
-        if (remaining <= 0) {
-          document.getElementById('queue').innerHTML = '<p class="empty">Nothing to review.</p>';
-        }
+        setTimeout(() => {
+          card.remove();
+          const remaining = document.querySelectorAll('.card').length;
+          document.getElementById('count').textContent = remaining + ' pending';
+          updateApproveAllBtn(remaining);
+          if (remaining <= 0) {
+            document.getElementById('queue').innerHTML = '<p class="empty">Nothing to review.</p>';
+          }
+        }, 350);
       }
     }
+
+    document.getElementById('approve-all-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('approve-all-btn');
+      btn.disabled = true;
+      btn.textContent = 'Approving…';
+      const res = await fetch('/api/admin/moderate', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'approve-all' }),
+      });
+      if (res.ok) {
+        document.querySelectorAll('.card').forEach(c => {
+          c.style.opacity = '0.3';
+          c.style.transition = 'opacity 0.3s';
+        });
+        setTimeout(() => {
+          document.getElementById('queue').innerHTML = '<p class="empty">Nothing to review.</p>';
+          document.getElementById('count').textContent = '0 pending';
+          btn.style.display = 'none';
+        }, 350);
+      } else {
+        btn.disabled = false;
+        btn.textContent = 'Approve All';
+      }
+    });
 
     document.getElementById('login-btn').addEventListener('click', doLogin);
     document.getElementById('token').addEventListener('keydown', e => {

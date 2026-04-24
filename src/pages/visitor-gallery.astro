@@ -35,7 +35,7 @@ const visitors = [
   ...offsetVisitors,
   ...SEED_VISITORS,
 ].sort((a, b) => b.number - a.number);
-const total = realTotal + seedCount;
+const total = galleryStats.maxNumber + seedCount;
 
 const ordinal = (n: number) => {
   const s = ["th", "st", "nd", "rd"];

@@ -249,11 +249,13 @@ export type GalleryStats = {
   latestIssuedAt: string | null;
   /** Raw issued_at timestamps — grouped by local day on the client. */
   signupTimestamps: string[];
+  /** Highest assigned visitor number (includes unapproved). */
+  maxNumber: number;
 };
 
 export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
   const d = db(ctx);
-  const [colorRows, sigRow, timeRow, dailyRows] = await d.batch([
+  const [colorRows, sigRow, timeRow, dailyRows, maxRow] = await d.batch([
     d.prepare(
       `SELECT color, COUNT(*) AS cnt FROM visitors WHERE approved = 1 GROUP BY color`,
     ),
@@ -265,6 +267,9 @@ export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
     ),
     d.prepare(
       `SELECT issued_at FROM visitors WHERE approved = 1 ORDER BY issued_at`,
+    ),
+    d.prepare(
+      `SELECT COALESCE(MAX(number), 0) AS max_num FROM visitors`,
     ),
   ]);
 
@@ -282,12 +287,15 @@ export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
     (r) => r.issued_at,
   );
 
+  const maxNumber = (maxRow as D1Result<{ max_num: number }>).results[0]?.max_num ?? 0;
+
   return {
     colorCounts,
     withSignature,
     firstIssuedAt: timeResult?.first_at ?? null,
     latestIssuedAt: timeResult?.latest_at ?? null,
     signupTimestamps,
+    maxNumber,
   };
 }
 
@@ -330,6 +338,14 @@ export async function approveVisitor(ctx: APIContext, id: string): Promise<boole
     .bind(id)
     .first();
   return !!row;
+}
+
+/** Approve all pending visitor cards at once. Returns count approved. */
+export async function approveAllVisitors(ctx: APIContext): Promise<number> {
+  const result = await db(ctx)
+    .prepare(`UPDATE visitors SET approved = 1 WHERE approved = 0`)
+    .run();
+  return result.meta.changes ?? 0;
 }
 
 /** Reject (delete) a visitor card permanently. */

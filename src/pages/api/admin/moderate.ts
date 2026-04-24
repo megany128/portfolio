@@ -2,6 +2,7 @@ import type { APIContext } from "astro";
 import {
   listPendingVisitors,
   approveVisitor,
+  approveAllVisitors,
   rejectVisitor,
 } from "../../../lib/visitor-server";
 
@@ -41,6 +42,12 @@ export async function POST(ctx: APIContext) {
   }
 
   const { id, action } = body as { id?: string; action?: string };
+
+  if (action === "approve-all") {
+    const count = await approveAllVisitors(ctx);
+    return Response.json({ ok: true, count });
+  }
+
   if (typeof id !== "string" || !["approve", "reject"].includes(action ?? "")) {
     return new Response("Invalid request", { status: 400 });
   }
