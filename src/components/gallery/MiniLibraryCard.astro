@@ -80,12 +80,20 @@ const {
     Gallery-card scaling — the underlying LibraryCard is fixed 388x252. We
     scale the inner .mini-card via CSS transform and give the wrap a matching
     layout box so flex sees the scaled size (3-4 cards fit per row).
-    Scale factor matches --mini-card-scale below.
+
+    The scale is set via the --mini-card-scale custom property, which is
+    populated by JS (ResizeObserver) in Grid.astro. The CSS trig identity
+    `tan(atan2(100cqi, 388px))` is the fallback, but some mobile browsers
+    fail to evaluate it when combined with cqi units, leaving cards at full
+    388px (which busts the layout on narrow viewports). overflow: hidden on
+    the wrap is a final safety net so any layout breakage is clipped instead
+    of pushing the page sideways.
   */
   .mini-card-wrap {
     container-type: inline-size;
     width: 100%;
     aspect-ratio: 388 / 252;
+    overflow: hidden;
     transition: transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   .mini-card-wrap .mini-card {
@@ -95,15 +103,15 @@ const {
     width: 388px;
     height: 252px;
     transform-origin: top left;
-    /* Derive unitless scale via trig identity: tan(atan2(a, b)) = a / b.
-       100cqi = container's inline size, so the card scales to fill its cell. */
-    transform: scale(tan(atan2(100cqi, 388px)));
+    transform: scale(var(--mini-card-scale, tan(atan2(100cqi, 388px))));
   }
   .mini-card-wrap:hover,
   .mini-card-wrap[data-tilting],
   .mini-card-wrap[data-flying] {
     transform-style: preserve-3d;
     will-change: transform;
+    /* Let the 3D tilt + hover-shadow extend past the cell during interaction. */
+    overflow: visible;
   }
   .mini-card-wrap[data-tilting] {
     transition: none;

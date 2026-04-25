@@ -937,6 +937,31 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
     }
     observeMiniCards();
 
+    /* ---------- card scaling (JS fallback) ----------------------------
+       The CSS `tan(atan2(100cqi, 388px))` trick scales each card to its
+       container width but fails on some mobile browsers, leaving cards at
+       full 388px and busting the layout. We mirror the math here so every
+       wrap reliably gets a numeric --mini-card-scale. */
+    const CARD_BASE_W = 388;
+    function rescaleCard(wrap: HTMLElement) {
+      const w = wrap.clientWidth;
+      if (w <= 0) return;
+      wrap.style.setProperty("--mini-card-scale", String(w / CARD_BASE_W));
+    }
+    const scaleObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) rescaleCard(entry.target as HTMLElement);
+    });
+    function observeCardScales() {
+      grid!.querySelectorAll<HTMLElement>(
+        "[data-mini-card-wrap]:not([data-scale-queued])",
+      ).forEach((wrap) => {
+        wrap.dataset.scaleQueued = "";
+        rescaleCard(wrap);
+        scaleObserver.observe(wrap);
+      });
+    }
+    observeCardScales();
+
     /* ---------- "Load more" pagination ------------------------------- */
     const loadMoreBtn = document.querySelector<HTMLButtonElement>("[data-gallery-load-more]");
     if (loadMoreBtn) {
@@ -977,8 +1002,9 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
           }
           grid.appendChild(frag);
 
-          // Observe new cards for lazy signature loading.
+          // Observe new cards for lazy signature loading + card scaling.
           observeMiniCards();
+          observeCardScales();
 
           // Update offset for next page.
           const newOffset = offset + pageSize;
