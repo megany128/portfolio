@@ -1261,6 +1261,11 @@
 
     let fallSuspended = false; // true during the "hang time" before a ledge fall
     let fallResumeAt = 0;
+    // Cooldown so the pet doesn't immediately re-mount onto a neighboring
+    // ledge mid-flight after falling off one — that creates a quip loop on
+    // dense pages like the visitor gallery.
+    let lastDismountAt = 0;
+    let lastLedgeFallSpokenAt = 0;
 
     function dismountLedge() {
       // Convert current absolute position to ground-relative y so pet
@@ -1268,6 +1273,7 @@
       const oldGroundOffset = ledgeGroundY;
       currentLedge = null;
       ledgeGroundY = 0;
+      lastDismountAt = performance.now();
       const pet = el();
       if (pet) pet.removeAttribute("data-on-clickable");
       // Compute what the new groundOffset will be (footer-based)
@@ -1406,7 +1412,10 @@
           petTopVP < -20 || r.top > window.innerHeight + 10 || r.width === 0 || r.height === 0;
         if (!dragging && offScreen && !isScrolling) {
           const pet = el();
-          if (pet) saySomething(pet, dizzyOr(LEDGE_FALL_PHRASES), 1800);
+          if (pet && performance.now() - lastLedgeFallSpokenAt > 4000) {
+            saySomething(pet, dizzyOr(LEDGE_FALL_PHRASES), 1800);
+            lastLedgeFallSpokenAt = performance.now();
+          }
           dismountLedge();
           groundOffset = footerOffset;
           return;
@@ -1472,7 +1481,10 @@
                 if (neighbor) {
                   jumpToLedge(neighbor, -1);
                 } else if (Math.random() < LEDGE_FALL_CHANCE) {
-                  saySomething(pet, dizzyOr(LEDGE_FALL_PHRASES), 1800);
+                  if (performance.now() - lastLedgeFallSpokenAt > 4000) {
+                    saySomething(pet, dizzyOr(LEDGE_FALL_PHRASES), 1800);
+                    lastLedgeFallSpokenAt = performance.now();
+                  }
                   dismountLedge();
                 }
               } else {
@@ -1488,7 +1500,10 @@
                 if (neighbor) {
                   jumpToLedge(neighbor, 1);
                 } else if (Math.random() < LEDGE_FALL_CHANCE) {
-                  saySomething(pet, dizzyOr(LEDGE_FALL_PHRASES), 1800);
+                  if (performance.now() - lastLedgeFallSpokenAt > 4000) {
+                    saySomething(pet, dizzyOr(LEDGE_FALL_PHRASES), 1800);
+                    lastLedgeFallSpokenAt = performance.now();
+                  }
                   dismountLedge();
                 }
               } else {
@@ -1528,7 +1543,11 @@
           // Throttled to every Nth frame to avoid per-frame querySelectorAll on
           // pages with many ledge candidates (e.g. visitor gallery).
           ledgeScanFrame = (ledgeScanFrame + 1) % LEDGE_SCAN_INTERVAL;
-          if (!currentLedge && yVel < 0 && !dizzy && ledgeScanFrame === 0) {
+          // Skip the catch for ~700ms after a forced dismount so the pet
+          // actually falls instead of grabbing a neighbor and looping
+          // through fall-quips on dense pages.
+          const recentDismount = performance.now() - lastDismountAt < 700;
+          if (!currentLedge && yVel < 0 && !dizzy && !recentDismount && ledgeScanFrame === 0) {
             const petFeetVP = window.innerHeight - groundOffset - y;
             const ledge = findLedgeAtPosition(x, petFeetVP);
             if (ledge) {
