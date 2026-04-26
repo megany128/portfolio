@@ -270,4 +270,77 @@ const subtitle = visitor
     patchGalleryIdentity();
     document.addEventListener("astro:page-load", patchGalleryIdentity);
   </script>
+
+  <script>
+    /*
+      Cross-page deep-scroll: the sidebar visitor-card pill on other routes
+      sets a sessionStorage flag before navigating here. When this page
+      mounts, consume the flag and scroll to the user's card. Runs after the
+      identity-patch script so [data-you-id] is already populated when the
+      cookie is missing.
+    */
+    function scrollToYouIfRequested() {
+      let flag: string | null = null;
+      try {
+        flag = sessionStorage.getItem("gallery:scroll-to-you");
+      } catch {}
+      if (!flag) return;
+      const grid = document.querySelector<HTMLElement>("[data-gallery-grid]");
+      const youId = grid?.dataset.youId;
+      if (!grid || !youId) return;
+      const card = grid.querySelector<HTMLElement>(
+        `[data-mini-card-wrap][data-id="${youId}"]`,
+      );
+      if (!card) return;
+      try {
+        sessionStorage.removeItem("gallery:scroll-to-you");
+      } catch {}
+      const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      const flash = () => {
+        card.classList.add("sidebar-card-flash");
+        window.setTimeout(() => card.classList.remove("sidebar-card-flash"), 1400);
+      };
+      // Defer one frame so layout settles after page transition.
+      requestAnimationFrame(() => {
+        card.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
+        if (reduced) {
+          flash();
+          return;
+        }
+        // Wait for scroll to settle before flashing — otherwise the pulse
+        // plays mid-scroll and the user never sees it. Prefer scrollend
+        // event; fall back to position-stability poll for browsers without
+        // it (Safari < 18) and to a hard timeout as a final safety net.
+        let settled = false;
+        const fire = () => {
+          if (settled) return;
+          settled = true;
+          flash();
+        };
+        if ("onscrollend" in window) {
+          window.addEventListener("scrollend", fire, { once: true });
+          window.setTimeout(fire, 1200); // safety net
+        } else {
+          let lastY = window.scrollY;
+          let stableFrames = 0;
+          const tick = () => {
+            if (settled) return;
+            const y = window.scrollY;
+            if (Math.abs(y - lastY) < 0.5) {
+              stableFrames++;
+              if (stableFrames >= 4) return fire();
+            } else {
+              stableFrames = 0;
+              lastY = y;
+            }
+            requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+          window.setTimeout(fire, 1200);
+        }
+      });
+    }
+    scrollToYouIfRequested();
+    document.addEventListener("astro:page-load", scrollToYouIfRequested);
+  </script>
 </BaseLayout>

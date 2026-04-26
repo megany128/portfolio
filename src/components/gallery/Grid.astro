@@ -833,45 +833,75 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       );
       if (cards.length < 2) return;
 
-      // FIRST — capture original rects.
+      // Only shuffle cards currently in (or near) the viewport. Cards far
+      // off-screen stay in their DOM slot — the user can't see them, animating
+      // them just creates flicker and overlap chaos when there are many.
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const BUFFER = 200;
+      const onscreen = (r: DOMRect) =>
+        r.bottom > -BUFFER && r.top < vh + BUFFER && r.right > -BUFFER && r.left < vw + BUFFER;
+
+      // FIRST — capture original rects (needed for both visibility check and FLIP).
       const first = new Map<HTMLElement, DOMRect>();
       for (const c of cards) first.set(c, c.getBoundingClientRect());
 
+      // Partition: which indices in `cards` are visible.
+      const visibleIdx: number[] = [];
+      for (let i = 0; i < cards.length; i++) {
+        if (onscreen(first.get(cards[i])!)) visibleIdx.push(i);
+      }
+      if (visibleIdx.length < 2) return;
+
+      // Shuffle ONLY the visible subset. Offscreen cards keep their slots.
+      const visibleCards = visibleIdx.map((i) => cards[i]);
+      const shuffledVisible = shuffleWithBias(visibleCards);
+
+      // Build new DOM order: at each visible slot, place next shuffled card;
+      // offscreen cards stay where they are.
+      const next = cards.slice();
+      visibleIdx.forEach((slot, k) => {
+        next[slot] = shuffledVisible[k];
+      });
+
       // Reorder DOM.
-      const next = shuffleWithBias(cards);
       for (const c of next) grid!.appendChild(c);
 
       // LAST — rects after reflow.
       const last = new Map<HTMLElement, DOMRect>();
       for (const c of next) last.set(c, c.getBoundingClientRect());
 
-      // INVERT + PLAY with stagger.
-      // Bound total stagger window so large grids don't drag on for seconds.
-      // Skip offscreen cards (user never sees them) + layer moving cards by
-      // travel distance so long flights paint above short ones.
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const onscreen = (r: DOMRect) =>
-        r.bottom > -100 && r.top < vh + 100 && r.right > -100 && r.left < vw + 100;
-      const STAGGER_WINDOW = reduced ? 0 : isMobile ? 300 : 700;
-      const n = next.length;
-      next.forEach((c, i) => {
+      // INVERT + PLAY. Only animate visible cards that actually moved. Sort
+      // by distance desc so long flights launch first and use unique zIndex.
+      type Flight = { c: HTMLElement; dx: number; dy: number; dist: number };
+      const flights: Flight[] = [];
+      for (const c of shuffledVisible) {
         const f = first.get(c)!;
         const l = last.get(c)!;
         const dx = f.left - l.left;
         const dy = f.top - l.top;
-        if (dx === 0 && dy === 0) return;
-        if (!onscreen(f) && !onscreen(l)) return;
-        const dist = Math.hypot(dx, dy);
+        if (dx === 0 && dy === 0) continue;
+        flights.push({ c, dx, dy, dist: Math.hypot(dx, dy) });
+      }
+      flights.sort((a, b) => b.dist - a.dist);
+
+      const n = flights.length;
+      const baseWindow = reduced ? 0 : isMobile ? 280 : 520;
+      const perCard = reduced ? 0 : isMobile ? 22 : 36;
+      const STAGGER_WINDOW = Math.min(reduced ? 0 : 1100, Math.max(baseWindow, n * perCard));
+      const DUR = reduced ? 0 : isMobile ? 320 : 540;
+
+      flights.forEach((flight, i) => {
+        const { c, dx, dy } = flight;
         c.dataset.flying = "";
-        c.style.zIndex = String(10 + Math.round(dist / 10));
+        c.style.zIndex = String(10 + (n - i));
         const anim = c.animate(
           [
             { transform: `translate(${dx}px, ${dy}px)` },
             { transform: `translate(0, 0)` },
           ],
           {
-            duration: reduced ? 0 : isMobile ? 300 : 560,
+            duration: DUR,
             delay: n > 1 ? (i / (n - 1)) * STAGGER_WINDOW : 0,
             easing: SPRING_EASE,
             fill: "both",

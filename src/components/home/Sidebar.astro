@@ -640,7 +640,14 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
       .forEach((pill) => {
         pill.dataset.wired = "1";
         pill.addEventListener("click", (e) => {
-          if (location.pathname !== "/visitor-gallery") return;
+          // Off-gallery click: leave nav alone, just flag the intent so the
+          // gallery page scrolls to the user's card after it mounts.
+          if (location.pathname !== "/visitor-gallery") {
+            try {
+              sessionStorage.setItem("gallery:scroll-to-you", "1");
+            } catch {}
+            return;
+          }
           const grid = document.querySelector<HTMLElement>("[data-gallery-grid]");
           const youId = grid?.dataset.youId;
           if (!grid || !youId) return;
@@ -649,9 +656,40 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
           );
           if (!card) return;
           e.preventDefault();
-          card.scrollIntoView({ behavior: "smooth", block: "center" });
-          card.classList.add("sidebar-card-flash");
-          window.setTimeout(() => card.classList.remove("sidebar-card-flash"), 1400);
+          const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+          const flash = () => {
+            card.classList.add("sidebar-card-flash");
+            window.setTimeout(() => card.classList.remove("sidebar-card-flash"), 1400);
+          };
+          card.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
+          // Wait for scroll to settle before flashing — pulse plays mid-scroll
+          // otherwise and the user can't see it.
+          if (reduced) {
+            flash();
+          } else {
+            let settled = false;
+            const fire = () => { if (!settled) { settled = true; flash(); } };
+            if ("onscrollend" in window) {
+              window.addEventListener("scrollend", fire, { once: true });
+              window.setTimeout(fire, 1200);
+            } else {
+              let lastY = window.scrollY;
+              let stable = 0;
+              const tick = () => {
+                if (settled) return;
+                const y = window.scrollY;
+                if (Math.abs(y - lastY) < 0.5) {
+                  if (++stable >= 4) return fire();
+                } else {
+                  stable = 0;
+                  lastY = y;
+                }
+                requestAnimationFrame(tick);
+              };
+              requestAnimationFrame(tick);
+              window.setTimeout(fire, 1200);
+            }
+          }
           // Close the mobile sidebar so the card isn't covered.
           document.querySelector<HTMLElement>("[data-sidebar]")?.removeAttribute("data-open");
           document.querySelector<HTMLElement>("[data-sidebar-backdrop]")?.removeAttribute("data-open");
