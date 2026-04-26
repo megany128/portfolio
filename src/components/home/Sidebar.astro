@@ -326,6 +326,32 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
     .sidebar-card-popover { display: none; }
   }
 
+  /* Flash highlight applied to the gallery card we just scrolled to.
+     Uses a global selector so it can target [data-mini-card-wrap] in Grid. */
+  :global(.mini-card-wrap.sidebar-card-flash) {
+    animation: sidebar-card-flash 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes sidebar-card-flash {
+    0% {
+      filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+      transform: scale(1);
+    }
+    20% {
+      filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.7))
+              drop-shadow(0 14px 22px rgba(0, 0, 0, 0.22));
+      transform: scale(1.04);
+    }
+    100% {
+      filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+      transform: scale(1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.mini-card-wrap.sidebar-card-flash) {
+      animation: none;
+    }
+  }
+
   @media (max-width: 1023px) {
     .site-sidebar {
       position: fixed;
@@ -602,9 +628,41 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
       });
   }
 
+  /*
+    Visitor-card pill — when on /visitor-gallery, intercept the click and
+    scroll to the user's own card in the grid instead of re-navigating. The
+    grid exposes the visitor id via [data-gallery-grid][data-you-id], set
+    server-side and patched by the localStorage fallback if needed.
+  */
+  function wireSidebarCard() {
+    document
+      .querySelectorAll<HTMLAnchorElement>("[data-sidebar-card]:not([data-wired])")
+      .forEach((pill) => {
+        pill.dataset.wired = "1";
+        pill.addEventListener("click", (e) => {
+          if (location.pathname !== "/visitor-gallery") return;
+          const grid = document.querySelector<HTMLElement>("[data-gallery-grid]");
+          const youId = grid?.dataset.youId;
+          if (!grid || !youId) return;
+          const card = grid.querySelector<HTMLElement>(
+            `[data-mini-card-wrap][data-id="${youId}"]`,
+          );
+          if (!card) return;
+          e.preventDefault();
+          card.scrollIntoView({ behavior: "smooth", block: "center" });
+          card.classList.add("sidebar-card-flash");
+          window.setTimeout(() => card.classList.remove("sidebar-card-flash"), 1400);
+          // Close the mobile sidebar so the card isn't covered.
+          document.querySelector<HTMLElement>("[data-sidebar]")?.removeAttribute("data-open");
+          document.querySelector<HTMLElement>("[data-sidebar-backdrop]")?.removeAttribute("data-open");
+        });
+      });
+  }
+
   function init() {
     wireSidebar();
     wireLogo();
+    wireSidebarCard();
   }
   init();
   document.addEventListener("astro:page-load", init);

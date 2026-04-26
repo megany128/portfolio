@@ -93,7 +93,13 @@ const {
     container-type: inline-size;
     width: 100%;
     aspect-ratio: 388 / 252;
+    /* `overflow: clip` + `overflow-clip-margin` lets the "That's you!" pill
+       (positioned at -top-3) render past the card's top edge, while still
+       clipping runaway content if the inner card scaling fails. Falls back
+       to overflow: hidden in browsers without overflow-clip-margin support. */
     overflow: hidden;
+    overflow: clip;
+    overflow-clip-margin: 18px;
     transition: transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   .mini-card-wrap .mini-card {
