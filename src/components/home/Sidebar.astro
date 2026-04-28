@@ -145,7 +145,12 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
 <style>
   /* Desktop: static rail, tab and backdrop hidden.
      Sidebar gets a stacking context so ToC hover previews
-     float above main content (which uses transforms/opacity). */
+     float above main content (which uses transforms/opacity).
+
+     Default `overflow: visible` keeps hover previews escaping right.
+     When viewport too short for content, `data-needs-scroll` toggles
+     vertical scroll + horizontal clip and hides the previews (which
+     would otherwise be clipped). JS sets the attribute. */
   .site-sidebar {
     position: sticky;
     top: 0;
@@ -153,6 +158,15 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
     align-self: flex-start;
     z-index: 40;
     overflow: visible;
+  }
+  .site-sidebar[data-needs-scroll] {
+    overflow-y: auto;
+    overflow-x: clip;
+    scrollbar-gutter: stable;
+  }
+  .site-sidebar[data-needs-scroll] :global(.toc-preview),
+  .site-sidebar[data-needs-scroll] .sidebar-card-popover {
+    display: none;
   }
 
   .sidebar-tab,
@@ -558,6 +572,34 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
     if (backdrop && backdrop.dataset.wired !== "1") {
       backdrop.dataset.wired = "1";
       backdrop.addEventListener("click", closeSidebar);
+    }
+
+    // Toggle `data-needs-scroll` when sidebar content exceeds viewport height.
+    // Keeps hover previews unclipped on tall screens; switches to scrollable
+    // mode + hides previews on short screens (where they'd be clipped anyway).
+    if (sidebar && sidebar.dataset.scrollWired !== "1") {
+      sidebar.dataset.scrollWired = "1";
+      let pending = 0;
+      const updateNeedsScroll = () => {
+        if (pending) return;
+        pending = requestAnimationFrame(() => {
+          pending = 0;
+          // Force scroll mode briefly to measure true content height. With
+          // overflow:visible + `mt-auto` on status, auto margins can collapse
+          // (overlap) so scrollHeight==clientHeight even when content doesn't
+          // fit. Switching to scroll mode reveals the real content size.
+          sidebar.setAttribute("data-needs-scroll", "");
+          const overflows = sidebar.scrollHeight > sidebar.clientHeight + 1;
+          if (!overflows) sidebar.removeAttribute("data-needs-scroll");
+        });
+      };
+      updateNeedsScroll();
+      if ("ResizeObserver" in window) {
+        const ro = new ResizeObserver(() => updateNeedsScroll());
+        ro.observe(sidebar);
+        Array.from(sidebar.children).forEach((c) => ro.observe(c as Element));
+      }
+      window.addEventListener("resize", updateNeedsScroll);
     }
   }
 
