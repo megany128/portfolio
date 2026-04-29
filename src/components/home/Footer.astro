@@ -454,22 +454,34 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
 
     const SHOVE_RADIUS = 70;
     const SHOVE_STRENGTH = 10; // small, playful
+    const SETTLE_PX = 0.05;
+
+    // Cache link rects; refresh on resize/scroll only, not every frame.
+    type LinkRect = { el: HTMLAnchorElement; cx: number; cy: number };
+    let linkRects: LinkRect[] = [];
+    function refreshLinkRects() {
+      linkRects = links.map((el) => {
+        const r = el.getBoundingClientRect();
+        return { el, cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
+      });
+    }
+    refreshLinkRects();
+    window.addEventListener("scroll", refreshLinkRects, { passive: true });
+    window.addEventListener("resize", refreshLinkRects, { passive: true });
 
     function tick(now: number) {
       const dt = Math.min(48, now - lastFrame);
       lastFrame = now;
       const dtSec = dt / 1000;
+      let active = false;
 
       // Shove nav links away from cursor.
       if (!reduced) {
-        for (const el of links) {
-          const r = el.getBoundingClientRect();
-          const cx = r.left + r.width / 2;
-          const cy = r.top + r.height / 2;
-          const dx = cx - mx;
-          const dy = cy - my;
+        for (const lr of linkRects) {
+          const dx = lr.cx - mx;
+          const dy = lr.cy - my;
           const dist = Math.hypot(dx, dy) || 1;
-          const t = targets.get(el)!;
+          const t = targets.get(lr.el)!;
           if (dist < SHOVE_RADIUS && hovering) {
             const force = (1 - dist / SHOVE_RADIUS) ** 1.4;
             t.x = (dx / dist) * force * SHOVE_STRENGTH;
@@ -478,10 +490,13 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
             t.x = 0;
             t.y = 0;
           }
-          const c = currents.get(el)!;
+          const c = currents.get(lr.el)!;
           c.x += (t.x - c.x) * 0.18;
           c.y += (t.y - c.y) * 0.18;
-          el.style.transform = `translate3d(${c.x.toFixed(2)}px, ${c.y.toFixed(2)}px, 0)`;
+          if (Math.abs(t.x - c.x) > SETTLE_PX || Math.abs(t.y - c.y) > SETTLE_PX) {
+            active = true;
+          }
+          lr.el.style.transform = `translate3d(${c.x.toFixed(2)}px, ${c.y.toFixed(2)}px, 0)`;
         }
       }
 
@@ -490,6 +505,7 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
         ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
 
         if (particles.length > 0) {
+          active = true;
           ctx.globalCompositeOperation = "lighter";
           const rgbMain = cachedRgbMain;
           const rgbAlt = cachedRgbAlt;
@@ -542,9 +558,23 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
         }
       }
 
-      rafId = requestAnimationFrame(tick);
+      if (active) {
+        rafId = requestAnimationFrame(tick);
+      } else {
+        rafId = 0;
+      }
     }
-    rafId = requestAnimationFrame(tick);
+    function startLoop() {
+      if (rafId === 0) {
+        lastFrame = performance.now();
+        rafId = requestAnimationFrame(tick);
+      }
+    }
+    startLoop();
+    // Wake the loop on input — pointermove sets mx/my, pointerdown spawns particles.
+    footer.addEventListener("pointermove", startLoop, { passive: true });
+    footer.addEventListener("pointerleave", startLoop, { passive: true });
+    footer.addEventListener("pointerdown", startLoop, { passive: true });
 
     // Pause RAF when page is hidden (tab/window switch) — resume on return.
     document.addEventListener("visibilitychange", () => {
@@ -552,8 +582,7 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
         cancelAnimationFrame(rafId);
         rafId = 0;
       } else if (!rafId) {
-        lastFrame = performance.now();
-        rafId = requestAnimationFrame(tick);
+        startLoop();
       }
     });
 
@@ -562,6 +591,8 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
       particles.length = 0;
       colorObserver.disconnect();
       window.removeEventListener("resize", resize);
+      window.removeEventListener("scroll", refreshLinkRects);
+      window.removeEventListener("resize", refreshLinkRects);
     }
     window.addEventListener("pagehide", cleanup, { once: true });
     // If ClientRouter tears this footer out of the DOM, stop its RAF loop so

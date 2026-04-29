@@ -71,7 +71,14 @@ const num = String(number).padStart(2, "0");
 
   {image && (
     <div class="index-card__frame" style={`height: ${imageHeight}px;`}>
-      <div class="index-card__media" style={`background: url(${image}) ${imagePosition}/cover;`} />
+      <img
+        src={image}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        class="index-card__media"
+        style={`object-position: ${imagePosition};`}
+      />
     </div>
   )}
 
@@ -175,6 +182,9 @@ const num = String(number).padStart(2, "0");
   .index-card__media {
     position: absolute;
     inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     transform: translateZ(0);
     transition: transform 480ms var(--ease-out-soft);
   }

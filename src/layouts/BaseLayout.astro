@@ -10,6 +10,9 @@ interface Props {
   bodyClass?: string;
   darkHtml?: boolean;
   showPet?: boolean;
+  /** Override the canonical URL — pass a path (e.g. "/home") when the
+   *  current page should consolidate SEO signals onto a different URL. */
+  canonical?: string;
 }
 
 const {
@@ -19,9 +22,10 @@ const {
   bodyClass = "",
   darkHtml = false,
   showPet = true,
+  canonical,
 } = Astro.props;
 
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+const canonicalUrl = new URL(canonical ?? Astro.url.pathname, Astro.site).href;
 const ogImageUrl = new URL(image, Astro.site).href;
 ---
 

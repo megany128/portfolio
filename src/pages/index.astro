@@ -13,7 +13,11 @@ const visitor = await getCurrentVisitor(Astro);
 const isReturning = visitor !== null;
 ---
 
-<DarkScene title="Welcome — Megan's World" description="Megan Yap's portfolio — designer and developer from Malaysia, studying at Cornell. Currently building Lingofable and Skloňuj.">
+<DarkScene
+  title="Welcome — Megan's World"
+  description="Megan Yap's portfolio — designer and developer from Malaysia, studying at Cornell. Currently building Lingofable and Skloňuj."
+  canonical="/home"
+>
   <Starfield />
   <ShootingStars />
   <WelcomeHero returning={isReturning} />

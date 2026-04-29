@@ -9,6 +9,7 @@ interface Props {
   image?: string;
   showSparkles?: boolean;
   showClock?: boolean;
+  canonical?: string;
 }
 
 const {
@@ -17,10 +18,11 @@ const {
   image,
   showSparkles = true,
   showClock = true,
+  canonical,
 } = Astro.props;
 ---
 
-<BaseLayout title={title} description={description} image={image} bodyClass="bg-[var(--color-ink)] text-[var(--color-ink-inverted)]" darkHtml showPet={false}>
+<BaseLayout title={title} description={description} image={image} canonical={canonical} bodyClass="bg-[var(--color-ink)] text-[var(--color-ink-inverted)]" darkHtml showPet={false}>
   <div class="relative min-h-dvh overflow-hidden">
     {showSparkles && <Sparkles />}
     <slot />

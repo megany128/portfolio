@@ -397,27 +397,40 @@ const cursorColor = visitor?.color ?? "pink";
           link.dataset.wired = "1";
           const preview = link.querySelector<HTMLElement>(".latest-log__preview");
           if (!preview) return;
+          // Defer thumb image fetch until hover/focus — saves a request +
+          // decode on initial /home paint without changing visual behavior.
+          const thumb = preview.querySelector<HTMLElement>(".site-preview__thumb");
+          if (thumb && thumb.style.backgroundImage && thumb.style.backgroundImage !== "none") {
+            thumb.dataset.bg = thumb.style.backgroundImage;
+            thumb.style.backgroundImage = "none";
+          }
+          let pending = 0;
           const place = () => {
-            const r = link.getBoundingClientRect();
-            const anchorX = r.left + r.width / 2;
-            // Clamp so the 240px popup stays 12px inside both viewport edges.
-            const x = Math.max(
-              MARGIN,
-              Math.min(window.innerWidth - PREVIEW_W - MARGIN, anchorX - PREVIEW_W / 2),
-            );
-            // Measure the popup height at its resting size; pad 12px from link top.
-            const ph = preview.offsetHeight || 176;
-            let y = r.top - ph - MARGIN;
-            // If not enough room above, flip below.
-            if (y < MARGIN) y = r.bottom + MARGIN;
-            preview.style.setProperty("--preview-x", `${x}px`);
-            preview.style.setProperty("--preview-y", `${y}px`);
+            if (pending) return;
+            pending = requestAnimationFrame(() => {
+              pending = 0;
+              const r = link.getBoundingClientRect();
+              const anchorX = r.left + r.width / 2;
+              const x = Math.max(
+                MARGIN,
+                Math.min(window.innerWidth - PREVIEW_W - MARGIN, anchorX - PREVIEW_W / 2),
+              );
+              const ph = preview.offsetHeight || 176;
+              let y = r.top - ph - MARGIN;
+              if (y < MARGIN) y = r.bottom + MARGIN;
+              preview.style.setProperty("--preview-x", `${x}px`);
+              preview.style.setProperty("--preview-y", `${y}px`);
+            });
           };
-          link.addEventListener("pointerenter", place);
-          link.addEventListener("focus", place);
-          window.addEventListener("resize", place, { passive: true });
-          window.addEventListener("scroll", place, { passive: true });
-          place();
+          const onEnter = () => {
+            if (thumb && thumb.dataset.bg) {
+              thumb.style.backgroundImage = thumb.dataset.bg;
+              delete thumb.dataset.bg;
+            }
+            place();
+          };
+          link.addEventListener("pointerenter", onEnter);
+          link.addEventListener("focus", onEnter);
         });
     }
     wireSitePreviews();
