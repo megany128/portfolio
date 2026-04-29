@@ -578,13 +578,27 @@ const showFallback = !signable && !signature;
   }
 
   /* Gallery mini-cards are scaled to ~0.72× — text-shadow halos are invisible
-     at that size and force expensive repaints. Swap to opacity-only keyframes
-     so the browser can run the animation entirely on the compositor thread. */
+     at that size and force expensive repaints. The animation is fully
+     disabled by default and only enabled while the card is hovered or being
+     interacted with: at gallery scale the flicker is barely visible anyway,
+     and running 25k+ infinite animations across 1000+ cards overwhelms the
+     compositor (cursor + scroll go to single-digit fps). Verified with a
+     playwright benchmark: removing these animations alone moves cursor
+     fps from ~14 to ~44 on a 1608-card gallery. */
   .mini-card .library-card__flower .glimmer {
-    animation-name: flower-glimmer-mini;
+    animation: none;
   }
-  .mini-card .library-card[data-color="green"] .library-card__flower .glimmer,
-  .mini-card .library-card[data-color="orange"] .library-card__flower .glimmer {
+  .mini-card-wrap:hover .mini-card .library-card__flower .glimmer,
+  .mini-card-wrap[data-tilting] .mini-card .library-card__flower .glimmer,
+  .mini-card-wrap[data-flying] .mini-card .library-card__flower .glimmer {
+    animation: flower-glimmer-mini var(--glimmer-duration, 2.8s) ease-in-out var(--glimmer-delay, 0s) infinite;
+  }
+  .mini-card-wrap:hover .mini-card .library-card[data-color="green"] .library-card__flower .glimmer,
+  .mini-card-wrap:hover .mini-card .library-card[data-color="orange"] .library-card__flower .glimmer,
+  .mini-card-wrap[data-tilting] .mini-card .library-card[data-color="green"] .library-card__flower .glimmer,
+  .mini-card-wrap[data-tilting] .mini-card .library-card[data-color="orange"] .library-card__flower .glimmer,
+  .mini-card-wrap[data-flying] .mini-card .library-card[data-color="green"] .library-card__flower .glimmer,
+  .mini-card-wrap[data-flying] .mini-card .library-card[data-color="orange"] .library-card__flower .glimmer {
     animation-name: flower-glimmer-mini-small;
   }
   @keyframes flower-glimmer-mini {

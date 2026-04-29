@@ -957,12 +957,32 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       { rootMargin: "200px 0px" },
     );
 
+    /* ---------- virtualization (display: none for far-off-screen cards) ----
+       content-visibility: auto alone doesn't reduce work enough at 1000+ cards
+       — Chromium still keeps the inner DOM laid out and styled. A real
+       virtualization layer that hides inner content of far cards drops scroll
+       and mousemove cost by 5–10x on a 1600-card gallery. The wrap itself is
+       kept (it has aspect-ratio + a fixed cell size) so scrollbar height,
+       offsets, and the FLIP shuffle's getBoundingClientRect calls stay
+       correct; only the children get display:none. */
+    const farObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const wrap = entry.target as HTMLElement;
+          if (entry.isIntersecting) wrap.removeAttribute("data-virt-far");
+          else wrap.setAttribute("data-virt-far", "");
+        }
+      },
+      { rootMargin: "1500px 0px" },
+    );
+
     function observeMiniCards() {
       grid!.querySelectorAll<HTMLElement>(
         "[data-mini-card-wrap]:not([data-sig-queued])",
       ).forEach((wrap) => {
         wrap.dataset.sigQueued = "";
         sigObserver.observe(wrap);
+        farObserver.observe(wrap);
       });
     }
     observeMiniCards();

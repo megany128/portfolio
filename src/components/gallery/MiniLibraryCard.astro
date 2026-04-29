@@ -118,6 +118,12 @@ const {
   .mini-card-wrap[data-flying] {
     content-visibility: visible;
   }
+  /* Virtualization: cards more than ~1500px outside the viewport keep their
+     wrap (so layout / scrollbar height stay stable) but hide their children
+     entirely. JS in Grid.astro toggles data-virt-far via IntersectionObserver. */
+  .mini-card-wrap[data-virt-far] > * {
+    display: none;
+  }
   .mini-card-wrap .mini-card {
     position: absolute;
     top: 0;
@@ -152,17 +158,19 @@ const {
       0 8px 18px -6px rgba(0, 0, 0, 0.22);
   }
 
-  /* Glossy cursor-tracked highlight. */
+  /* Glossy cursor-tracked highlight. mix-blend-mode is only enabled on hover —
+     applying it to every card creates 1000+ compositing layers in big galleries
+     and tanks scroll/cursor performance. */
   .mini-gloss {
     background: radial-gradient(
       180px 180px at var(--gloss-x, 50%) var(--gloss-y, 50%),
       rgba(255, 255, 255, 0.35),
       rgba(255, 255, 255, 0) 70%
     );
-    mix-blend-mode: soft-light;
   }
   .mini-card-wrap:hover .mini-gloss {
     opacity: 1;
+    mix-blend-mode: soft-light;
   }
 
   /* "THAT'S YOU!" pill — color matches the card's family. */
