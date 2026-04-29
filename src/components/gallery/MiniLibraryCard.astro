@@ -101,6 +101,22 @@ const {
     overflow: clip;
     overflow-clip-margin: 18px;
     transition: transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* Skip rendering, layout, and animation work for off-screen cards.
+       Critical when the gallery has 1000+ cards: each card has 12-32 infinite
+       glimmer animations, so without this the browser ticks tens of thousands
+       of animations every frame and the cursor + scroll go laggy.
+       contain-intrinsic-size gives layout a placeholder height so scrollbars
+       and page height stay stable while cards are skipped. */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 252px;
+  }
+  /* Disable the optimization while interacting — content-visibility skips
+     rendering for off-screen elements, but FLIP shuffle and hover tilt need
+     the card painted even when partially scrolled away. */
+  .mini-card-wrap:hover,
+  .mini-card-wrap[data-tilting],
+  .mini-card-wrap[data-flying] {
+    content-visibility: visible;
   }
   .mini-card-wrap .mini-card {
     position: absolute;
