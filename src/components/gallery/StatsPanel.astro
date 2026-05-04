@@ -97,7 +97,7 @@ const hatTotal = Object.values(hatCounts).reduce((a, b) => a + b, 0);
           Color Picks
         </h3>
         <div class="flex flex-col gap-2">
-          {displayColors.map((color) => {
+          {[...displayColors].sort((a, b) => mergedCounts[b] - mergedCounts[a]).map((color) => {
             const count = mergedCounts[color];
             const pct = total > 0 ? Math.round((count / total) * 100) : 0;
             const barW = Math.max(2, (count / colorTotal) * 100);
