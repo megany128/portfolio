@@ -1,0 +1,1079 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import CaseStudySidebar from "../../components/casestudy/CaseStudySidebar.astro";
+import Footer from "../../components/home/Footer.astro";
+import CustomCursor from "../../components/home/CustomCursor.astro";
+import Tag from "../../components/ui/Tag.astro";
+import { getCurrentVisitor } from "../../lib/visitor-server";
+
+export const prerender = false;
+
+const visitor = await getCurrentVisitor(Astro);
+const cursorColor = visitor?.color ?? "pink";
+
+const tocSections = [
+  { id: "context", label: "Context" },
+  { id: "problem", label: "Product problem" },
+  { id: "previous", label: "Previous iterations" },
+  { id: "simplifying", label: "Simplifying metrics" },
+  { id: "intuitiveness", label: "Increasing intuitiveness" },
+  { id: "polish", label: "Polish & edge cases" },
+  { id: "final", label: "Final design" },
+];
+
+const beforeAfter = [
+  {
+    label: "Before",
+    title: "Official class roster",
+    points: [
+      "Impossible to know what the class is actually like",
+      "Wordy",
+      "Lots of unnecessary information",
+    ],
+    img: "/images/work/cu-reviews/before-roster.png",
+    alt: "Cornell official class roster page — wall of text",
+  },
+  {
+    label: "After",
+    title: "CU Reviews",
+    points: [
+      "Clear metrics and reviews",
+      "Summarized impressions and content tags",
+      "Student-written content",
+    ],
+    img: "/images/work/cu-reviews/after-cu.png",
+    alt: "CU Reviews course page — clear metrics and reviews",
+  },
+];
+
+const previousAnalysis = {
+  pros: [
+    "Color-coded clarifying descriptors",
+    "Clear separation of overall rating",
+    "Dynamic, modern look",
+  ],
+  cons: [
+    "Overall rating appears twice",
+    "Complex and difficult to parse",
+    "Lack of typographic hierarchy",
+  ],
+};
+
+const iconExplorations = [
+  {
+    num: "01",
+    img: "/images/work/cu-reviews/iteration-01.png",
+    title: "Iteration one",
+    pros: ["Intuitive iconography", "Not cluttered"],
+    cons: ["Unintuitive star color"],
+  },
+  {
+    num: "02",
+    img: "/images/work/cu-reviews/iteration-02.png",
+    title: "Iteration two",
+    pros: ["Intuitive iconography"],
+    cons: ["Slightly cluttered", "Unintuitive star color"],
+  },
+  {
+    num: "03",
+    img: "/images/work/cu-reviews/iteration-03.png",
+    title: "Iteration three",
+    pros: ["Intuitive star color", "Not cluttered"],
+    cons: ["No iconography"],
+  },
+];
+
+const positioningExplorations = [
+  {
+    num: "01",
+    img: "/images/work/cu-reviews/position-01.png",
+    title: "Above + full wording",
+    pros: ["Clear wording"],
+    cons: ["Imbalanced visual weight"],
+  },
+  {
+    num: "02",
+    img: "/images/work/cu-reviews/position-02.png",
+    title: "Below + half wording",
+    pros: ["Balanced visual weight"],
+    cons: ["Unclear wording"],
+  },
+  {
+    num: "03",
+    img: "/images/work/cu-reviews/position-03.png",
+    title: "Below + full wording",
+    pros: ["Clear wording", "Balanced visual weight"],
+    cons: [],
+  },
+];
+
+const reflections = [
+  {
+    title: "Always prioritize the user",
+    body: "At first, it didn\u2019t occur to me that the smiley icons might still not be descriptive enough. After conducting user testing, I realized that the feedback we collected revealed numerous insights I previously hadn\u2019t noticed due to my proximity to the work. It\u2019s crucial to listen to your users.",
+  },
+  {
+    title: "Not everything can be perfect all the time",
+    body: "I was initially fixated on processes to a T despite having a tight deadline. However, I soon learned that sometimes it is necessary to prioritize certain aspects of the design process over others for the sake of being able to deliver high-quality designs in time, even if it doesn\u2019t feel ideal.",
+  },
+  {
+    title: "Responsive design is tricky!",
+    body: "It was my first time completing official handoff, and as the design was implemented, I realized that I had not accounted for different screen aspect ratios or set any breakpoints for resizing. The developers on our team helped me out, but I need to brush up on my responsive design skills!",
+  },
+];
+---
+
+<BaseLayout
+  title="CU Reviews — Megan Yap"
+  description="Redesigned the course metrics display for CU Reviews — Cornell's course review platform — used by 3,000+ students and now live on the website."
+>
+  <div class="flex items-stretch min-h-screen" id="top">
+    <CaseStudySidebar sections={tocSections} active="context" />
+
+    <main class="flex-1 min-w-0 p-4 sm:p-6 md:p-10 flex flex-col gap-8 sm:gap-10">
+      <!-- Hero banner -->
+      <section class="cs-hero-wrap">
+        <div class="cs-hero rounded-[24px] overflow-hidden h-[360px]">
+          <img
+            src="/images/projects/cu-reviews.gif"
+            alt="CU Reviews — Cornell course review platform"
+            loading="eager"
+            class="block w-full h-full object-cover object-center"
+          />
+        </div>
+      </section>
+
+      <!-- Hero meta: tags, title, description -->
+      <section class="flex flex-col gap-3">
+        <div class="flex items-center gap-2">
+          <Tag>UX/UI</Tag>
+          <Tag>Shipped</Tag>
+        </div>
+        <h1
+          class="font-[family-name:var(--font-display)] font-light text-[28px] sm:text-[34px] md:text-[40px] leading-[1.1] text-[var(--color-ink)] flex items-start gap-3"
+        >
+          <img
+            src="/images/work/cu-reviews/hero-star.svg"
+            alt=""
+            aria-hidden="true"
+            class="w-[22px] h-[22px] flex-shrink-0 self-center"
+          />
+          CU Reviews — Cornell course review platform
+        </h1>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+        >
+          Enhanced intuitiveness and efficiency of the Cornell course metrics display for
+          <span class="cs-emph" data-cs-emph>3,000+ students</span>. Now
+          <span class="cs-emph" data-cs-emph>live on the website</span>!
+        </p>
+      </section>
+
+      <!-- Meta grid: role, team, timeline, skills -->
+      <section
+        class="grid grid-cols-2 md:grid-cols-4 gap-[60px] p-4 bg-[var(--color-teal)] rounded-[12px]"
+        data-cursor-bg="teal"
+      >
+        <div class="flex flex-col gap-2">
+          <p class="font-[family-name:var(--font-mono)] text-base uppercase text-white">Role</p>
+          <p
+            class="font-[family-name:var(--font-body)] text-base text-[var(--color-teal-3)] leading-snug"
+          >
+            Product Manager &amp; Product Designer
+          </p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <p class="font-[family-name:var(--font-mono)] text-base uppercase text-white">Team</p>
+          <p
+            class="font-[family-name:var(--font-body)] text-base text-[var(--color-teal-3)] leading-snug"
+          >
+            1 PM, 1 TPM, 1 PMM<br />3 developers, 3 designers
+          </p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <p class="font-[family-name:var(--font-mono)] text-base uppercase text-white">Timeline</p>
+          <p
+            class="font-[family-name:var(--font-body)] text-base text-[var(--color-teal-3)] leading-snug"
+          >
+            Nov 2024<br />(1 month)
+          </p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <p class="font-[family-name:var(--font-mono)] text-base uppercase text-white">Skills</p>
+          <p
+            class="font-[family-name:var(--font-body)] text-base text-[var(--color-teal-3)] leading-snug"
+          >
+            Interaction Design<br />Prototyping<br />Figma
+          </p>
+        </div>
+      </section>
+
+      <!-- 01. Context -->
+      <section id="context" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Context</p>
+        <h2 class="cs-section-heading">A redesign for a Cornell-wide course review platform.</h2>
+        <p class="cs-section-body">
+          CU Reviews, created by the
+          <a
+            href="https://www.cornelldti.org/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="cs-mention text-[var(--color-ink)]">Cornell Digital Tech &amp; Innovation</a
+          >
+          project team, is a course review platform that allows students to share and browse reviews for
+          courses offered at Cornell. With over 17,000 users since its launch in 2019, and currently serving
+          3,000+ active users, CU Reviews enhances the course enrollment process by providing students
+          with the data to make well-informed decisions.
+        </p>
+        <p class="cs-section-body">
+          I worked on the CU Reviews team to redesign an outdated <strong
+            >course metrics display</strong
+          >
+          that would integrate into a recently re-engineered course page layout.
+        </p>
+
+        <div class="flex flex-col gap-2 mt-6">
+          <p class="cs-section-label">The story of CU Reviews</p>
+          <h2 class="cs-section-heading">
+            Choosing courses is overwhelming, time-consuming, and inefficient.
+          </h2>
+          <p class="cs-section-body">
+            With thousands of courses offered at Cornell that change both availability and
+            instructor each semester, it is an extremely daunting task for students to make sense of
+            all the options available to them.
+          </p>
+
+          <div data-cursor-bg="teal" class="cs-callout-pink mt-4">
+            <p class="cs-callout-text">
+              &ldquo;This class looked right up my alley &mdash; but it&rsquo;s actually nothing
+              like what I&rsquo;d thought it&rsquo;d be!&rdquo;
+            </p>
+          </div>
+
+          <p class="cs-section-body mt-4">
+            CU Reviews provides a <strong>much-needed solution</strong> by allowing students to:
+          </p>
+          <ul
+            class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-relaxed list-disc list-inside flex flex-col gap-1"
+          >
+            <li>Browse courses and their reviews</li>
+            <li>Evaluate key metrics</li>
+            <li>Share their own experiences with others</li>
+          </ul>
+        </div>
+
+        <div class="flex flex-col gap-2 mt-6">
+          <p class="cs-section-label">The current system</p>
+          <h2 class="cs-section-heading">
+            There is no easy way to find out relevant information about classes.
+          </h2>
+          <p class="cs-section-body">
+            Relying on the <strong>official class roster</strong>, there is no way to see important
+            information about a class, such as how easy it is, how heavy its workload is, or even
+            just how enjoyable students find it.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 items-stretch">
+            {
+              beforeAfter.map((item) => (
+                <div class="flex flex-col gap-3">
+                  <div class="rounded-[12px] overflow-hidden bg-[var(--color-bg-light)] aspect-[4/3] flex items-center justify-center p-4">
+                    <img
+                      src={item.img}
+                      alt={item.alt}
+                      loading="lazy"
+                      class="max-w-full max-h-full object-contain rounded-[8px]"
+                    />
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <p class="font-[family-name:var(--font-mono)] text-[12px] uppercase text-[var(--color-teal)] tracking-wider">
+                      {item.label}
+                    </p>
+                    <h3 class="font-[family-name:var(--font-display)] font-light text-[18px] text-[var(--color-ink)]">
+                      {item.title}
+                    </h3>
+                    <ul class="flex flex-col gap-1.5">
+                      {item.points.map((p) => (
+                        <li class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                          • {p}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- 02. Product problem -->
+      <section id="problem" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Product problem</p>
+        <h2 class="cs-section-heading">
+          CU Reviews&rsquo; current course metrics are confusing and unintuitive.
+        </h2>
+        <p class="cs-section-body">
+          While Overall is a positive metric (with a higher rating equating to positive sentiment),
+          both Difficulty and Workload are negative metrics (with higher ratings equating to
+          negative sentiment) &mdash; this makes it <strong>unintuitive</strong> to understand side by
+          side, as there is a mismatch between the sentiments of the three gauges.
+        </p>
+
+        <!-- Taking over -->
+        <div class="flex flex-col gap-2 mt-6">
+          <p class="cs-section-label">Taking over design work</p>
+          <p class="cs-section-body">
+            Previously, another designer had been in charge of this redesign. However, due to
+            external circumstances, I unexpectedly had to <strong>take charge</strong> of this task in
+            addition to my work as the <strong>Product Manager</strong> of CU Reviews in order to ensure
+            we kept up with product deadlines and sprint roadmapping. This means I had to pick up where
+            the previous design work was left off.
+          </p>
+        </div>
+      </section>
+
+      <!-- 03. Previous iterations -->
+      <section id="previous" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Understanding previous iterations</p>
+        <h2 class="cs-section-heading">Analyzing the existing design work.</h2>
+        <p class="cs-section-body">
+          The previous designer decided to switch to horizontal bars to match our existing design
+          for submitting a review. Based on <strong>user research</strong>, she also separated
+          Overall Rating from the other metrics to create a more readable display, and added
+          clarifying descriptors to decrease confusion regarding sentiment.
+        </p>
+
+        <div class="flex justify-center mt-4">
+          <img
+            src="/images/work/cu-reviews/previous-design.png"
+            alt="Previous metrics design — overall rating with color-coded difficulty and workload bars"
+            loading="lazy"
+            class="w-full max-w-[640px] h-auto rounded-[12px]"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+          <div class="flex flex-col gap-2">
+            <p
+              class="font-[family-name:var(--font-mono)] text-[12px] uppercase text-[var(--color-teal)] tracking-wider"
+            >
+              Could be improved
+            </p>
+            <ul class="flex flex-col gap-1.5">
+              {
+                previousAnalysis.cons.map((c) => (
+                  <li class="cs-pro-con">
+                    <span class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-orange)]">
+                      -
+                    </span>
+                    <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                      {c}
+                    </span>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+          <div class="flex flex-col gap-2">
+            <p
+              class="font-[family-name:var(--font-mono)] text-[12px] uppercase text-[var(--color-green)] tracking-wider"
+            >
+              Works great!
+            </p>
+            <ul class="flex flex-col gap-1.5">
+              {
+                previousAnalysis.pros.map((p) => (
+                  <li class="cs-pro-con">
+                    <span class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]">
+                      +
+                    </span>
+                    <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                      {p}
+                    </span>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </div>
+
+        <div data-cursor-bg="teal" class="cs-callout-pink mt-6">
+          <p class="cs-callout-label">My goal</p>
+          <p class="cs-callout-text">
+            Increasing readability and intuitiveness so users can quickly and intuitively understand
+            course metrics at a glance.
+          </p>
+        </div>
+      </section>
+
+      <!-- 04. Simplifying metrics -->
+      <section id="simplifying" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Simplifying metrics</p>
+        <h2 class="cs-section-heading">Eliminating clutter.</h2>
+        <p class="cs-section-body">
+          Taking the original redesign, I removed the duplicate Overall Rating and designed a
+          <strong>simplified version</strong> without all of the additional labels and with clearer typographic
+          hierarchy to highlight the numerical scores. I also changed the font to SF Pro to match our
+          design system.
+        </p>
+        <p class="cs-section-body">
+          This made it less cluttered, but upon consulting other designers on the team, we realized
+          that the sentiments of difficulty and workload were <strong>still confusing</strong>.
+        </p>
+
+        <div class="flex justify-center mt-4">
+          <img
+            src="/images/work/cu-reviews/simplified-metrics.png"
+            alt="Simplified metrics — duplicate overall rating removed"
+            loading="lazy"
+            class="w-full max-w-[640px] h-auto rounded-[12px]"
+          />
+        </div>
+
+        <div data-cursor-bg="teal" class="cs-callout-pink mt-6">
+          <p class="cs-callout-label">Problem statement</p>
+          <p class="cs-callout-text">
+            How do we effectively communicate to users what the different ratings mean without
+            creating too much clutter?
+          </p>
+        </div>
+      </section>
+
+      <!-- 05. Increasing intuitiveness -->
+      <section id="intuitiveness" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Iconography and colors</p>
+        <h2 class="cs-section-heading">Increasing intuitiveness.</h2>
+        <p class="cs-section-body">
+          To decrease confusion for users, I played around with adding <strong
+            >colored smileys</strong
+          >
+          and <strong>color-coding</strong> the Overall Satisfaction stars to match the logic behind the
+          Difficulty and Workload colors. I kept the standard colors of red, yellow, and green to represent
+          sentiment being negative, neutral, and positive respectively, as this is intuitive and familiar
+          to users, being widely used in society.
+        </p>
+        <p class="cs-section-body">
+          After talking to the CU Reviews team as well as conducting some user research, I found
+          that adding a color-coded smiley next to the Difficulty and Workload measures was
+          <strong>helpful</strong> &mdash; however, adding one next to the Overall rating felt cluttered,
+          as it was already pretty self-explanatory.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          {
+            iconExplorations.map((exp, idx) => (
+              <div class="cs-iter-tile">
+                <p class="cs-iter-label">{`Iteration ${["one", "two", "three"][idx]}`}</p>
+                <img src={exp.img} alt={exp.title} loading="lazy" class="cs-iter-img" />
+                <ul class="cs-iter-list">
+                  {exp.pros.map((pro) => (
+                    <li class="cs-pro-con">
+                      <span class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]">
+                        +
+                      </span>
+                      <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                        {pro}
+                      </span>
+                    </li>
+                  ))}
+                  {exp.cons.map((con) => (
+                    <li class="cs-pro-con">
+                      <span class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-orange)]">
+                        -
+                      </span>
+                      <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                        {con}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          }
+
+          <!-- Final selection tile (highlighted) -->
+          <div class="cs-iter-tile cs-iter-tile--final">
+            <p class="cs-iter-label cs-iter-label--final">Final selection</p>
+            <img
+              src="/images/work/cu-reviews/iteration-final.png"
+              alt="Final iconography selection"
+              loading="lazy"
+              class="cs-iter-img"
+            />
+            <ul class="cs-iter-list">
+              <li class="cs-pro-con">
+                <span
+                  class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]"
+                  >+</span
+                >
+                <span
+                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug"
+                >
+                  Intuitive iconography
+                </span>
+              </li>
+              <li class="cs-pro-con">
+                <span
+                  class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]"
+                  >+</span
+                >
+                <span
+                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug"
+                >
+                  Intuitive star color
+                </span>
+              </li>
+              <li class="cs-pro-con">
+                <span
+                  class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]"
+                  >+</span
+                >
+                <span
+                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug"
+                >
+                  Not cluttered
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 06. Polish & edge cases -->
+      <section id="polish" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Hover states</p>
+        <h2 class="cs-section-heading">Interaction design — subtle but important.</h2>
+        <p class="cs-section-body">
+          To clear up any potential confusion remaining, I aimed to add <strong
+            >un-intrusive modals</strong
+          > with concise explanations that would pop up when hovering, consistent with the rest of the
+          website. With the help of the other CU Reviews members, I decided on several descriptive phrases,
+          sticking to simple verbiage to ensure accessibility.
+        </p>
+
+        <div class="flex justify-center mt-4">
+          <div class="w-full rounded-[40px] overflow-hidden">
+            <video
+              src="/images/work/cu-reviews/hover-states.mp4"
+              autoplay
+              loop
+              muted
+              playsinline
+              class="block w-full h-auto"></video>
+          </div>
+        </div>
+
+        <!-- Label positioning -->
+        <div class="flex flex-col gap-2 mt-8">
+          <p class="cs-section-label">Label positioning &amp; phrasing</p>
+          <h2 class="cs-section-heading">Positioning and phrasing.</h2>
+          <p class="cs-section-body">
+            Finally, I played around with the positioning and phrasing of the Overall Satisfaction
+            label. I had realized that while not including this label made the metrics display
+            extremely clean, it was <strong>not very clear</strong> what the rating on the left referred
+            to. I knew I had to include some kind of label &mdash; so with this in mind, I explored different
+            iterations of positioning and phrasing.
+          </p>
+
+          <div class="flex flex-col gap-6 mt-4">
+            {
+              positioningExplorations.map((exp) => (
+                <div class="cs-position-row">
+                  <div class="cs-position-img-wrap">
+                    <img src={exp.img} alt={exp.title} loading="lazy" class="cs-position-img" />
+                  </div>
+                  <div class="cs-position-meta">
+                    <p class="font-[family-name:var(--font-mono)] text-[12px] uppercase text-[var(--color-ink-dim)] tracking-wider">
+                      {exp.num}. {exp.title}
+                    </p>
+                    <ul class="flex flex-col gap-1.5 mt-1">
+                      {exp.pros.map((pro) => (
+                        <li class="cs-pro-con">
+                          <span class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]">
+                            +
+                          </span>
+                          <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                            {pro}
+                          </span>
+                        </li>
+                      ))}
+                      {exp.cons.map((con) => (
+                        <li class="cs-pro-con">
+                          <span class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-orange)]">
+                            -
+                          </span>
+                          <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                            {con}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+          <p class="cs-section-body mt-4">
+            I decided to select the <strong>third iteration</strong> as the final modal design, as it
+            not only had the clearest wording, but was also balanced well visually, as opposed to the
+            first iteration, which felt unbalanced.
+          </p>
+        </div>
+
+        <!-- Edge cases -->
+        <div class="flex flex-col gap-2 mt-8">
+          <p class="cs-section-label">Edge cases</p>
+          <h2 class="cs-section-heading">Some courses have no reviews.</h2>
+          <p class="cs-section-body">
+            I designed a separate display to account for <strong>classes without any reviews</strong
+            >. Although it is easy to forget about designing for edge cases, remembering to do so
+            greatly enhances user experience and maintains consistency.
+          </p>
+          <div class="flex justify-center mt-4">
+            <img
+              src="/images/work/cu-reviews/edge-case.png"
+              alt="Empty-state metrics display for classes with no reviews"
+              loading="lazy"
+              class="w-full max-w-[640px] h-auto rounded-[12px]"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- 07. Final design -->
+      <section id="final" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Final design</p>
+        <h2 class="cs-section-heading">An intuitive, easy-to-understand course metrics display.</h2>
+        <p class="cs-section-body">
+          Students can now easily grasp <strong>key metrics</strong> about courses at a glance, and if
+          they are still confused, they are able to hover over the smiley icons to access a concise explanation.
+        </p>
+
+        <div class="flex justify-center mt-4">
+          <div class="w-full rounded-[12px] overflow-hidden">
+            <video
+              src="/images/work/cu-reviews/final-design.mp4"
+              autoplay
+              loop
+              muted
+              playsinline
+              class="block w-full h-auto"
+            ></video>
+          </div>
+        </div>
+
+        <!-- Reflection -->
+        <div class="flex flex-col gap-2 mt-8">
+          <p class="cs-section-label">Reflection</p>
+          <h2 class="cs-section-heading">My first-ever design to go live.</h2>
+          <p class="cs-section-body">
+            As the Product Manager of CU Reviews, I&rsquo;d never previously had the opportunity to
+            contribute design-wise. It was extremely <strong>rewarding and fulfilling</strong> to finally
+            be able to see a design of my own live, as this metrics redesign was implemented and pushed
+            to the website a few weeks after I completed handoff!
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+            {
+              reflections.map((r) => (
+                <article class="cs-reflection-tile bg-[var(--color-bg-light)] rounded-[16px] p-4 flex flex-col gap-2">
+                  <h3 class="font-[family-name:var(--font-body)] font-semibold text-[16px] text-[var(--color-ink)]">
+                    {r.title}
+                  </h3>
+                  <p class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug">
+                    {r.body}
+                  </p>
+                </article>
+              ))
+            }
+          </div>
+        </div>
+
+        <!-- What's next -->
+        <div class="flex flex-col gap-2 mt-8">
+          <p class="cs-section-label">What&rsquo;s next?</p>
+          <h2 class="cs-section-heading">CU Reviews work.</h2>
+          <p class="cs-section-body">
+            Now that my redesign is live, I hope to monitor our platform&rsquo;s Key Performance
+            Indicators (KPIs) to see if the redesign has a positive impact on students using the
+            site more or spending less time trying to understand a course&rsquo;s metrics.
+          </p>
+          <p class="cs-section-body">
+            After this, I would love to explore a redesign of other outdated sections of the CU
+            Reviews website, such as the search results page and its included filters.
+          </p>
+          <p class="cs-section-body">
+            Overall, super happy and grateful to have been able to work with my amazing team on
+            this!
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <figure
+              class="rounded-[16px] overflow-hidden cs-reflection-photo-wrap"
+              data-cursor="photo"
+              data-cursor-label="cu reviews team picnic"
+            >
+              <img
+                src="/images/work/cu-reviews/team-photo-1.png"
+                alt="CU Reviews team picnic"
+                loading="lazy"
+                class="cs-reflection-photo w-full h-[420px] object-cover bg-[var(--color-bg-light)]"
+              />
+            </figure>
+            <figure
+              class="rounded-[16px] overflow-hidden cs-reflection-photo-wrap"
+              data-cursor="photo"
+              data-cursor-label="celebrating with the team"
+            >
+              <img
+                src="/images/work/cu-reviews/team-photo-2.png"
+                alt="CU Reviews team celebrating"
+                loading="lazy"
+                class="cs-reflection-photo w-full h-[420px] object-cover bg-[var(--color-bg-light)]"
+              />
+            </figure>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <Footer color={cursorColor} active="home" />
+
+  <CustomCursor color={cursorColor} />
+</BaseLayout>
+
+<style>
+  /* === Shared section typography (matches splunk pattern) === */
+  .cs-section-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--color-ink-dim);
+    letter-spacing: 0.05em;
+  }
+  .cs-section-heading {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 22px;
+    color: var(--color-ink);
+    line-height: 1.2;
+  }
+  @media (min-width: 640px) {
+    .cs-section-heading {
+      font-size: 26px;
+    }
+  }
+  @media (min-width: 768px) {
+    .cs-section-heading {
+      font-size: 28px;
+      line-height: 1.15;
+    }
+  }
+  .cs-section-body {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-ink);
+    line-height: 1.55;
+  }
+
+  /* === Section entry animation === */
+  .cs-section {
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 400ms var(--ease-out-soft),
+      transform 400ms var(--ease-out-soft);
+  }
+  .cs-section[data-visible] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .cs-hero {
+    box-shadow: 0 14px 38px -22px rgba(36, 36, 36, 0.35);
+  }
+
+  /* === Emphasis underline === */
+  .cs-emph {
+    color: var(--color-ink);
+    background-image: linear-gradient(to right, var(--color-teal-3), var(--color-teal-3));
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 6px;
+    padding-bottom: 1px;
+    transition: background-size var(--duration-base) var(--ease-out-soft);
+  }
+  .cs-emph:hover {
+    background-size: 100% 6px;
+  }
+  .cs-mention {
+    text-decoration: underline;
+    text-decoration-color: var(--color-teal-1);
+    text-underline-offset: 3px;
+    transition: color var(--duration-fast) var(--ease-out-soft);
+  }
+  .cs-mention:hover {
+    color: var(--color-teal);
+  }
+
+  /* === Callout (teal filled) === */
+  .cs-callout-pink {
+    background: var(--color-teal);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .cs-callout-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--color-bg);
+  }
+  .cs-callout-text {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 20px;
+    color: var(--color-bg);
+    text-align: center;
+    max-width: 760px;
+    line-height: 1.3;
+  }
+
+  /* === Exploration card === */
+  .cs-exploration {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  .cs-exploration-img-wrap {
+    flex-shrink: 0;
+    width: 65%;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--color-bg-light);
+    box-shadow: 0 8px 24px -12px rgba(36, 36, 36, 0.18);
+  }
+  .cs-exploration-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+  .cs-exploration-details {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .cs-pro-con {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .cs-pro-con > span:first-child {
+    flex-shrink: 0;
+    width: 12px;
+    text-align: center;
+  }
+
+  /* === Final pick box (teal tinted bg) === */
+  .cs-final-pick {
+    background: rgba(22, 139, 157, 0.18);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* === Positioning row (image left, label/pros/cons right, vertically centered) === */
+  .cs-position-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: center;
+    padding: 16px;
+    border-radius: 12px;
+    background: var(--color-bg-light);
+  }
+  .cs-position-img-wrap {
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--color-bg);
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cs-position-img {
+    display: block;
+    width: 100%;
+    max-width: 520px;
+    height: auto;
+  }
+  .cs-position-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  @media (max-width: 767px) {
+    .cs-position-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* === Iteration tile (2x2 grid) === */
+  .cs-iter-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid transparent;
+  }
+  .cs-iter-tile--final {
+    background: rgba(22, 139, 157, 0.18);
+    border-color: rgba(22, 139, 157, 0.4);
+  }
+  .cs-iter-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-ink);
+  }
+  .cs-iter-label--final {
+    color: var(--color-teal);
+  }
+  .cs-iter-img {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    border-radius: 8px;
+  }
+  .cs-iter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-self: center;
+    width: fit-content;
+  }
+
+  /* === Reflection tiles === */
+  .cs-reflection-tile {
+    transition:
+      transform var(--duration-base) var(--ease-out-soft),
+      background var(--duration-base) var(--ease-out-soft);
+  }
+  .cs-reflection-tile:hover {
+    transform: translateY(-2px);
+    background: var(--color-bg-neutral);
+  }
+
+  /* === Reflection photo === */
+  .cs-reflection-photo-wrap {
+    box-shadow: 0 18px 42px -24px rgba(36, 36, 36, 0.35);
+    transition: transform var(--duration-base) var(--ease-out-soft);
+  }
+  .cs-reflection-photo-wrap:hover {
+    transform: translateY(-2px);
+  }
+  .cs-reflection-photo {
+    transition: transform 600ms var(--ease-out-soft);
+  }
+  .cs-reflection-photo-wrap:hover .cs-reflection-photo {
+    transform: scale(1.02);
+  }
+
+  /* === Responsive: stack explorations on small screens === */
+  @media (max-width: 767px) {
+    .cs-exploration {
+      flex-direction: column;
+    }
+    .cs-exploration-img-wrap {
+      width: 100%;
+    }
+  }
+
+  /* === Reduced motion === */
+  @media (prefers-reduced-motion: reduce) {
+    .cs-section,
+    .cs-emph,
+    .cs-reflection-tile,
+    .cs-reflection-photo-wrap,
+    .cs-reflection-photo {
+      transition: none !important;
+      animation: none !important;
+    }
+    .cs-section {
+      opacity: 1;
+      transform: none;
+    }
+    .cs-reflection-tile:hover,
+    .cs-reflection-photo-wrap:hover,
+    .cs-reflection-photo-wrap:hover .cs-reflection-photo {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  /* Section-entry fade — same pattern as splunk/lingofable */
+  function initCaseStudyEntries() {
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const sections = Array.from(document.querySelectorAll<HTMLElement>(".cs-section"));
+    if (sections.length === 0) return;
+
+    if (reduced) {
+      sections.forEach((s) => s.setAttribute("data-visible", ""));
+      return;
+    }
+
+    let pending: HTMLElement[] = sections.slice();
+    let scheduled = false;
+
+    function check() {
+      scheduled = false;
+      const wh = window.innerHeight;
+      pending = pending.filter((sec) => {
+        const r = sec.getBoundingClientRect();
+        if (r.top < wh - 40 && r.bottom > 0) {
+          sec.setAttribute("data-visible", "");
+          return false;
+        }
+        return true;
+      });
+    }
+    function schedule() {
+      if (scheduled) return;
+      scheduled = true;
+      if (document.visibilityState === "visible") {
+        requestAnimationFrame(check);
+      } else {
+        setTimeout(check, 16);
+      }
+    }
+
+    check();
+    if (pending.length === 0) return;
+
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+
+    setTimeout(() => {
+      pending.forEach((s) => s.setAttribute("data-visible", ""));
+      pending = [];
+    }, 2000);
+  }
+  initCaseStudyEntries();
+  document.addEventListener("astro:page-load", initCaseStudyEntries);
+</script>

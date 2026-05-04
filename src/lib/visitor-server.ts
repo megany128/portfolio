@@ -321,7 +321,7 @@ export type PendingVisitor = VisitorRecord & { reportCount: number };
 /** List visitors awaiting approval, most recent first. */
 export async function listPendingVisitors(
   ctx: APIContext,
-  limit = 100
+  limit = 1000
 ): Promise<PendingVisitor[]> {
   const rows = await db(ctx)
     .prepare(

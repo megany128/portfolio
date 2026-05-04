@@ -28,6 +28,8 @@ interface Props {
   href?: string;
   /** Opens link in new tab + uses external cursor mode. */
   external?: boolean;
+  /** Force "case-study" cursor label even when external. */
+  caseStudyCursor?: boolean;
   /** Small idle rotation so a row of cards reads as a loose stack. */
   tilt?: number;
 }
@@ -46,6 +48,7 @@ const {
   imagePosition = "center",
   href,
   external = false,
+  caseStudyCursor = false,
   tilt = 0,
 } = Astro.props;
 
@@ -57,7 +60,7 @@ const num = String(number).padStart(2, "0");
   href={href}
   target={external ? "_blank" : undefined}
   rel={external ? "noopener noreferrer" : undefined}
-  data-cursor={href ? (external ? "external" : "case-study") : undefined}
+  data-cursor={href ? (external && !caseStudyCursor ? "external" : "case-study") : undefined}
   style={`--card-tilt: ${tilt}deg;`}
   class:list={[
     "index-card group relative flex flex-col",
