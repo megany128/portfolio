@@ -1,0 +1,1030 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import CaseStudySidebar from "../../components/casestudy/CaseStudySidebar.astro";
+import Footer from "../../components/home/Footer.astro";
+import CustomCursor from "../../components/home/CustomCursor.astro";
+import Tag from "../../components/ui/Tag.astro";
+import Button from "../../components/ui/Button.astro";
+import { getCurrentVisitor } from "../../lib/visitor-server";
+
+export const prerender = false;
+
+const visitor = await getCurrentVisitor(Astro);
+const cursorColor = visitor?.color ?? "pink";
+
+const tocSections = [
+  { id: "context", label: "Context" },
+  { id: "spicing", label: "Spicing things up" },
+  { id: "data", label: "Collecting data" },
+  { id: "ideation", label: "GCal wrapping" },
+  { id: "design", label: "Design execution" },
+  { id: "marketing", label: "A myriad of designs" },
+  { id: "launch", label: "Launch & growth" },
+  { id: "reflection", label: "Reflection" },
+];
+
+const ideationCompare = [
+  {
+    img: "/images/work/gcal-wrapped/iter-too-complex.png",
+    label: "Too complex",
+    tone: "negative" as const,
+    caption: "Sheet of paper with scrolling events",
+  },
+  {
+    img: "/images/work/gcal-wrapped/iter-doable.png",
+    label: "Doable",
+    tone: "positive" as const,
+    caption: "Stack of calendar events",
+  },
+];
+
+const reflections = [
+  {
+    title: "Building and shipping fast is fun, but intensive",
+    body: "To be completely honest, the 2.5 weeks were super taxing. Working so fast was definitely exhilarating, but it was really difficult having to balance other commitments with GCal Wrapped at the same time. Next time, I think I\u2019d budget a little more time!",
+  },
+  {
+    title: "Side projects are the most fulfilling to work on",
+    body: "I\u2019ve designed and worked on many tech products, but building something you\u2019re personally interested and invested in is a completely different feeling. This was so fulfilling, and I relished the success even more.",
+  },
+  {
+    title: "The best projects are born out of collaboration",
+    body: "I\u2019ve designed and shipped side projects before, but never with anyone else. Despite the tight timeline and late nights, working with Simon was the most fun I\u2019ve ever had creating something. It\u2019s super awesome being able to bounce ideas off of someone else, and our strengths complemented each other perfectly.",
+  },
+];
+---
+
+<BaseLayout
+  title="GCal Wrapped — Megan Yap"
+  description="A Google Calendar Wrapped for college students. Reached 2K users across 60 universities and 38 countries in 2 weeks after launch."
+>
+  <div class="flex items-stretch min-h-screen" id="top">
+    <CaseStudySidebar sections={tocSections} active="context" />
+
+    <main class="flex-1 min-w-0 p-4 sm:p-6 md:p-10 flex flex-col gap-8 sm:gap-10">
+      <!-- Hero banner -->
+      <section class="cs-hero-wrap">
+        <div class="cs-hero rounded-[24px] overflow-hidden h-[360px]">
+          <img
+            src="/images/work/gcal-wrapped/hero-banner.png"
+            alt="GCal Wrapped — three phone screens previewing the experience"
+            loading="eager"
+            class="block w-full h-full object-cover object-center"
+          />
+        </div>
+      </section>
+
+      <!-- Hero meta: tags, title, description -->
+      <section class="flex flex-col gap-3">
+        <div class="flex items-center gap-2 flex-wrap">
+          <Tag>Side Project</Tag>
+          <Tag>Product Strategy</Tag>
+          <Tag>UX/UI</Tag>
+          <Tag>Shipped</Tag>
+        </div>
+        <h1
+          class="font-[family-name:var(--font-display)] font-light text-[28px] sm:text-[34px] md:text-[40px] leading-[1.1] text-[var(--color-ink)] flex items-start gap-3"
+        >
+          <img
+            src="/images/work/gcal-wrapped/hero-star.svg"
+            alt=""
+            aria-hidden="true"
+            class="w-[22px] h-[22px] flex-shrink-0 self-center"
+          />
+          GCal Wrapped &mdash; Google Calendar Analytics
+        </h1>
+        <p
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+        >
+          Deep dive into Google Calendar analytics, specially built for college students. Gained
+          <span class="cs-emph" data-cs-emph>2K users</span> across
+          <span class="cs-emph" data-cs-emph>60 universities</span> and
+          <span class="cs-emph" data-cs-emph>38 countries</span> in 2 weeks after launch.
+        </p>
+        <Button href="https://gcalwrapped.com" variant="outline" target="_blank" class="cs-fill-btn">
+          <span class="cs-fill-btn-label">Try it out <span aria-hidden="true">→</span></span>
+        </Button>
+      </section>
+
+      <!-- Meta grid: role, team, timeline, skills -->
+      <section
+        class="grid grid-cols-2 md:grid-cols-4 gap-[60px] p-4 bg-[var(--color-green)] rounded-[12px]"
+        data-cursor-bg="green"
+      >
+        <div class="flex flex-col gap-2">
+          <p class="font-[family-name:var(--font-mono)] text-base uppercase text-white">Team</p>
+          <p
+            class="font-[family-name:var(--font-body)] text-base text-[var(--color-green-1)] leading-snug"
+          >
+            1 Developer<br />1 Product Strategist/Designer
+          </p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <p class="font-[family-name:var(--font-mono)] text-base uppercase text-white">Role</p>
+          <p
+            class="font-[family-name:var(--font-body)] text-base text-[var(--color-green-1)] leading-snug"
+          >
+            Product Strategist/Designer
+          </p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <p class="font-[family-name:var(--font-mono)] text-base uppercase text-white">Timeline</p>
+          <p
+            class="font-[family-name:var(--font-body)] text-base text-[var(--color-green-1)] leading-snug"
+          >
+            April 2025 &ndash; May 2025<br />(2.5 weeks)
+          </p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <p class="font-[family-name:var(--font-mono)] text-base uppercase text-white">Skills</p>
+          <p
+            class="font-[family-name:var(--font-body)] text-base text-[var(--color-green-1)] leading-snug"
+          >
+            Web Design<br />Figma
+          </p>
+        </div>
+      </section>
+
+      <!-- 01. Context -->
+      <section id="context" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Context</p>
+        <h2 class="cs-section-heading">A side project born out of GCal addiction.</h2>
+        <p class="cs-section-body">
+          If I had to choose one product to define my college experience, it&rsquo;d be Google
+          Calendar.
+        </p>
+        <p class="cs-section-body">
+          Almost every single hour of my waking life is planned out as a corresponding GCal event,
+          and I have the rather unfortunate habit of going back and adjusting event timings once
+          they&rsquo;re over to maintain maximal accuracy.
+        </p>
+        <p class="cs-section-body">
+          So when
+          <a
+            href="https://simonilincev.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="cs-mention text-[var(--color-ink)]">Simon</a
+          >, SWE and fellow GCal Addict (this affliction is more common in college than you may
+          think), asked me to join him in creating a Google Calendar Wrapped (recap of your semester
+          &mdash; think
+          <a
+            href="https://spotify.com/wrapped"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="cs-mention text-[var(--color-ink)]">Spotify Wrapped</a
+          >), I figured, why not?
+        </p>
+
+        <div class="flex justify-center mt-4">
+          <img
+            src="/images/work/gcal-wrapped/simon-imessage.png"
+            alt="iMessage from Simon: 'Project idea, like Spotify or Message Wrapped but for GCal'"
+            loading="lazy"
+            class="w-full max-w-[320px] h-auto rounded-[12px]"
+          />
+        </div>
+
+        <!-- Sneak peek -->
+        <div class="flex flex-col gap-2 mt-6">
+          <h2 class="cs-section-heading">A sneak peek (watch out &mdash; it goes by fast)!</h2>
+          <div class="flex justify-center mt-2">
+            <div class="cs-sneak-wrap w-full rounded-[16px] overflow-hidden relative">
+              <video
+                data-sneak-video
+                src="/images/work/gcal-wrapped/sneak-peek.mp4"
+                autoplay
+                loop
+                muted
+                playsinline
+                class="block w-full h-auto"></video>
+              <button
+                type="button"
+                data-sneak-unmute
+                aria-label="Unmute video"
+                class="cs-sneak-unmute"
+              >
+                <svg
+                  data-sneak-icon-muted
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <polygon
+                    points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"
+                    fill="currentColor"
+                    stroke="none"></polygon>
+                  <line x1="22" y1="9" x2="16" y2="15"></line>
+                  <line x1="16" y1="9" x2="22" y2="15"></line>
+                </svg>
+                <svg
+                  data-sneak-icon-unmuted
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  class="hidden"
+                >
+                  <polygon
+                    points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"
+                    fill="currentColor"
+                    stroke="none"></polygon>
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02. Spicing things up -->
+      <section id="spicing" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Spicing things up</p>
+        <h2 class="cs-section-heading">Calendar analytics for college students&hellip;</h2>
+        <p class="cs-section-body">&hellip; sounds rather dull, right?</p>
+        <p class="cs-section-body">
+          When Simon and I started brainstorming, all we knew was that we were going to create a
+          data-powered Wrapped for students&rsquo; calendars. But realistically, how many college
+          students actually care about the number of hours planned on their GCal, or how many coffee
+          chats they&rsquo;ve had on a particular Thursday afternoon on the Engineering Quad?
+        </p>
+        <p class="cs-section-body">The answer is probably close to zero.</p>
+        <p class="cs-section-body">So we knew we had to do something a little different.</p>
+
+        <div data-cursor-bg="green" class="cs-callout-pink mt-4">
+          <p class="cs-callout-label">Problem statement</p>
+          <p class="cs-callout-text">
+            How might we highlight students&rsquo; <strong>college memories</strong> in a
+            <strong>fun, engaging way</strong> that they can <strong>laugh over with friends</strong
+            >?
+          </p>
+        </div>
+      </section>
+
+      <!-- 03. Collecting data -->
+      <section id="data" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Collecting data</p>
+        <h2 class="cs-section-heading">Assumptions vs reality.</h2>
+        <p class="cs-section-body">
+          This is my Google Calendar. A bit insane, right? (Btw please don&rsquo;t judge the number
+          of classes I skipped that week. Recruiting season was tough <span aria-hidden="true"
+            >😅</span
+          >)
+        </p>
+
+        <div class="flex justify-center mt-4">
+          <img
+            src="/images/work/gcal-wrapped/gcal-screenshot.png"
+            alt="Megan's Google Calendar — week of March 10 packed with events"
+            loading="lazy"
+            class="w-full max-w-[760px] h-auto rounded-[12px]"
+          />
+        </div>
+
+        <p class="cs-section-body mt-4">
+          For some reason, Simon and I thought that most people might have GCals a little similar to
+          this (even if not so extreme). Because of this, we figured it&rsquo;d be easy enough to
+          find some interesting insights from the average GCal.
+        </p>
+        <p class="cs-section-body">
+          But in reality, there was a huge disparity in how people used Google Calendar. After
+          talking to and obtaining calendar screenshots from 10+ students, we realized that some
+          people scheduled their every waking minute (showers and lunches too!), while others had
+          nothing on their calendars apart from their weekly class schedule.
+        </p>
+
+        <div class="flex flex-col gap-2 mt-6">
+          <p class="cs-section-label">Uh oh &mdash; was GCal Wrapped doomed?</p>
+          <p class="cs-section-body">
+            If some people didn&rsquo;t even add non-class activities to their GCals, how on earth
+            would we be able to extract any kind of vaguely interesting insight?!?
+          </p>
+          <p class="cs-section-body">
+            GCal Wrapped needed to be something that could be generalized across calendars, but it
+            seemed like there were barely any common points apart from classes (and that would not
+            be fun or engaging at all).
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-2 mt-6">
+          <p class="cs-section-label">Crisis averted</p>
+          <h2 class="cs-section-heading">Solving our first dilemma through user analysis.</h2>
+          <p class="cs-section-body">
+            That&rsquo;s when it struck us &mdash; if someone barely used their GCal, would they
+            really be using a website called GCal Wrapped?
+          </p>
+          <p class="cs-section-body">
+            I mean, it was pretty self-evident that our product was for GCal users, so it could
+            pretty much be assumed that anyone who tried to generate a Wrapped would have sufficient
+            data for us to pull from, and if they didn&rsquo;t, they should have expected that from
+            the start anyway.
+          </p>
+          <p class="cs-section-body">
+            Our users were a self-selecting crowd, and so we didn&rsquo;t have to worry about
+            catering to those who didn&rsquo;t fit into this category.
+          </p>
+        </div>
+      </section>
+
+      <!-- 04. GCal wrapping ideation -->
+      <section id="ideation" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">GCal wrapping</p>
+        <h2 class="cs-section-heading">What do college students actually find relatable?</h2>
+        <p class="cs-section-body">
+          I knew that in order for this to truly succeed, it had to be relatable, funny, and
+          something that students would naturally want to share with their friends &mdash; forget
+          about stats like productivity and # of hours in meetings.
+        </p>
+        <p class="cs-section-body">
+          But at the same time, there was obviously a limit on what could be figured out solely from
+          someone&rsquo;s calendar. Although some ideas were pretty cool, they weren&rsquo;t
+          technically feasible.
+        </p>
+
+        <div class="cs-pare flex flex-col items-center gap-4 mt-4" data-pare>
+          <div class="cs-pare-frame" data-pare-frame>
+            <img
+              src="/images/work/gcal-wrapped/ideation-list.png"
+              alt="Initial brainstorm list of GCal insight ideas"
+              loading="lazy"
+              data-pare-img="initial"
+              class="cs-pare-img is-active"
+            />
+            <img
+              src="/images/work/gcal-wrapped/ideation-list-pared.png"
+              alt="Pared-down list of feasible, funny insights"
+              loading="lazy"
+              data-pare-img="pared"
+              class="cs-pare-img"
+            />
+          </div>
+          <button type="button" data-pare-toggle class="cs-pare-btn">
+            <span data-pare-btn-label>Pare it down →</span>
+          </button>
+          <p class="cs-section-body text-center max-w-[560px]">
+            We cut down our initial brain dump to a smaller subset of ideas that were both feasible
+            and had the potential to be funny.
+          </p>
+        </div>
+      </section>
+
+      <!-- 05. Design execution -->
+      <section id="design" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Lowfi ideation</p>
+        <h2 class="cs-section-heading">Exploring with the help of v0.</h2>
+        <p class="cs-section-body">
+          I&rsquo;d always wanted to try v0, and this was the perfect time to explore!
+        </p>
+        <p class="cs-section-body">
+          I threw my thoughts into the editor, and it spat out&hellip; well&hellip; a pretty ugly
+          prototype to be honest, but 8 or so rounds of prompting later, it had come up with some
+          decently good ideas I hadn&rsquo;t thought of.
+        </p>
+
+        <div class="flex justify-center mt-4">
+          <img
+            src="/images/work/gcal-wrapped/v0-prototype.png"
+            alt="v0 prototype — busiest week card with hell-week highlights"
+            loading="lazy"
+            class="w-full max-w-[720px] h-auto rounded-[12px]"
+          />
+        </div>
+
+        <!-- Sketches -->
+        <div class="flex flex-col gap-2 mt-8">
+          <p class="cs-section-body">
+            With that, I got straight to work with the lowfis. The backend was being built by Simon
+            at the same time, so I had to be speedy with my designs. Our goal was to launch in two
+            weeks, since right after that was finals season <span aria-hidden="true">😅</span>
+          </p>
+          <div class="flex justify-center mt-4">
+            <img
+              src="/images/work/gcal-wrapped/sketches.png"
+              alt="Hand-drawn sketches of GCal Wrapped screens"
+              loading="lazy"
+              class="w-full max-w-[720px] h-auto rounded-[12px]"
+            />
+          </div>
+        </div>
+
+        <!-- Tick tock -->
+        <div class="flex flex-col gap-2 mt-8">
+          <p class="cs-section-label">Tick tock tick tock&hellip;</p>
+          <h2 class="cs-section-heading">Time to get started!</h2>
+          <p class="cs-section-body">
+            The clock was ticking, and I had to leave enough time for Simon to finish implementing
+            my designs. Because of that, I decided to focus on designing interfaces and animations
+            that were simple enough to speedily execute.
+          </p>
+          <p class="cs-section-body">
+            The goal wasn&rsquo;t visual perfection, but rather a compromise between a fun user
+            experience and technical feasibility.
+          </p>
+          <p class="cs-section-body">
+            That&rsquo;s why, when I had the idea for a sheet of paper with scrolling events to
+            visually communicate the length of one&rsquo;s GCal, I discarded that idea and returned
+            to what was actually realistic &mdash; a much simpler, but still cool looking, stack of
+            calendar events.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mt-4 max-w-[760px] mx-auto">
+            {
+              ideationCompare.map((item) => (
+                <div class="flex flex-col gap-3 items-center">
+                  <div class="rounded-[16px] overflow-hidden bg-[var(--color-bg-light)] w-full max-w-[280px]">
+                    <img src={item.img} alt={item.label} loading="lazy" class="w-full h-auto" />
+                  </div>
+                  <p
+                    class:list={[
+                      "font-[family-name:var(--font-mono)] text-[14px] uppercase",
+                      item.tone === "negative"
+                        ? "text-[var(--color-orange)]"
+                        : "text-[var(--color-green)]",
+                    ]}
+                  >
+                    {item.tone === "negative" ? "\u2716" : "\u2713"} {item.label}!
+                  </p>
+                  <p class="font-[family-name:var(--font-body)] text-[13px] text-[var(--color-ink-dim)] text-center leading-snug">
+                    {item.caption}
+                  </p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- 06. Marketing & myriad of designs -->
+      <section id="marketing" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">A myriad of designs</p>
+        <h2 class="cs-section-heading">Designing every surface of the launch.</h2>
+        <p class="cs-section-body">
+          Next on the list was a landing page. In the same way that I designed the Wrapped
+          experience, I prioritized interactivity and crafting an experience that would make people
+          want to stay and explore.
+        </p>
+
+        <div class="flex justify-center mt-4">
+          <img
+            src="/images/work/gcal-wrapped/landing-page.png"
+            alt="Landing page — craziest GCal events submission CTA"
+            loading="lazy"
+            class="w-full max-w-[720px] h-auto rounded-[16px]"
+          />
+        </div>
+
+        <p class="cs-section-body mt-6">
+          In addition to that, I figured, why not create some limited-edition stickers as a
+          throwback to my sticker design days? Everyone loves laptop stickers, after all!
+        </p>
+
+        <div class="flex justify-center mt-4">
+          <img
+            src="/images/work/gcal-wrapped/stickers.png"
+            alt="Locked-in and need-a-nap GCal mascot stickers"
+            loading="lazy"
+            class="w-full max-w-[480px] h-auto"
+          />
+        </div>
+
+        <p class="cs-section-body mt-6">
+          And last but not least, some poster designs &mdash; I decided to do some impromptu A/B
+          testing and create different QR codes for each poster. Take a guess which one was the most
+          effective <span aria-hidden="true">👀</span> (it was the toilet one).
+        </p>
+
+        <div class="flex justify-center mt-4">
+          <img
+            src="/images/work/gcal-wrapped/posters.png"
+            alt="Three GCal Wrapped poster variants — toilet, primary, and bathroom-stall"
+            loading="lazy"
+            class="w-full h-auto rounded-[12px]"
+          />
+        </div>
+      </section>
+
+      <!-- 07. Launch & growth -->
+      <section id="launch" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">The SF spirit</p>
+        <h2 class="cs-section-heading">Launching in the middle of Figma Config!</h2>
+        <p class="cs-section-body">
+          In true SF spirit, Simon and I decided to launch GCal Wrapped during Figma Config (and
+          inadvertently missed almost a quarter of the conference as we rushed to make the finishing
+          touches). We had originally planned to finish up when we returned back to campus, but
+          there was just something about the environment there.
+        </p>
+        <p class="cs-section-body">
+          It was a pretty quiet launch &mdash; just a couple of posts to the Slack channels we were
+          part of.
+        </p>
+
+        <div class="flex justify-center mt-4">
+          <img
+            src="/images/work/gcal-wrapped/launch-post.png"
+            alt="Slack launch post announcing GCal Wrapped"
+            loading="lazy"
+            class="w-full max-w-[560px] h-auto rounded-[12px]"
+          />
+        </div>
+
+        <p class="cs-section-body mt-4">
+          But after Config, as Simon and I dug into some yummy waffles at a nearby café, we watched
+          the number of live users climb. It was exhilarating and rewarding, and we knew we had to
+          keep the momentum.
+        </p>
+
+        <!-- Network effects -->
+        <div class="flex flex-col gap-2 mt-8">
+          <p class="cs-section-label">Hitting a plateau&hellip;</p>
+          <h2 class="cs-section-heading">Taking advantage of network effects.</h2>
+          <p class="cs-section-body">
+            Each time a new user generated a Wrapped, they opened up a whole new group of friends
+            they could potentially share to. At first, this worked amazingly at Cornell &mdash;
+            after all we had started off with our organizations of 100+ members, all of whom were
+            more likely to share GCal Wrapped since they knew us personally.
+          </p>
+          <p class="cs-section-body">
+            But eventually, our growth slowed down. Although GCal Wrapped was spreading organically
+            at Cornell, progress was becoming slower and slower at other universities. We
+            hadn&rsquo;t managed to hit critical mass there before momentum died off.
+          </p>
+          <p class="cs-section-body">
+            So to boost our reach, we introduced a referral program to the beginning of the flow,
+            promising our exclusive stickers to anyone who referred a certain number of friends to
+            our website. But there was a catch: they had to refer the website to non-Cornellians.
+          </p>
+          <p class="cs-section-body">
+            This worked pretty well, but we soon realized we had implemented this too late. Although
+            our analytics showed that the referral program had kicked off some new growth at
+            previously stagnant universities, it still wasn&rsquo;t enough. If this had been in
+            place before the bulk of our users had used our product, we would likely have benefited
+            a lot more from this strategy.
+          </p>
+        </div>
+
+        <!-- Final result -->
+        <div class="cs-final-block flex flex-col gap-2 mt-10">
+          <p class="cs-section-label">The final result</p>
+          <h2 class="cs-section-heading">A fun, engaging recap of the school semester.</h2>
+          <p class="cs-section-body">
+            Students are able to dive into their Google Calendar insights in a fun, Wrapped-style
+            medium, highlighting their most memorable moments throughout the semester and urging
+            them to share with friends.
+          </p>
+          <div class="flex justify-center mt-4">
+            <img
+              src="/images/work/gcal-wrapped/final-phones.png"
+              alt="Four GCal Wrapped phone screens showing the final experience"
+              loading="lazy"
+              class="w-full max-w-[860px] h-auto rounded-[16px]"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- 08. Reflection -->
+      <section id="reflection" data-cs-section class="flex flex-col gap-2 cs-section">
+        <p class="cs-section-label">Reflection</p>
+        <h2 class="cs-section-heading">
+          10,000 users, 200 universities, 90 countries, and 2 happy builders.
+        </h2>
+        <p class="cs-section-body">
+          When Simon and I first started this project, we hoped that it would do well, but we had no
+          idea just how fulfilling and rewarding it would be to see so many people across not only
+          Cornell, but also the country, use GCal Wrapped.
+        </p>
+        <p class="cs-section-body">
+          This has undoubtedly been the most fun I&rsquo;ve ever had working on something, and I
+          learned an incredible amount from this process.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          {
+            reflections.map((r) => (
+              <article class="cs-reflection-tile bg-[var(--color-bg-light)] rounded-[16px] p-4 flex flex-col gap-2">
+                <h3 class="font-[family-name:var(--font-body)] font-semibold text-[16px] text-[var(--color-ink)]">
+                  {r.title}
+                </h3>
+                <p class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug">
+                  {r.body}
+                </p>
+              </article>
+            ))
+          }
+        </div>
+
+        <div class="flex flex-col gap-2 mt-8">
+          <p class="cs-section-label">What&rsquo;s next?</p>
+          <h2 class="cs-section-heading">Round 2: next semester!</h2>
+          <p class="cs-section-body">
+            Next semester, we plan to boost engagement and virality by taking advantage of the
+            competitive nature of university students, as well as school loyalty! In the works is a
+            school leaderboard as well as personalized school insights, and an unlock system based
+            on the number of users from each university.
+          </p>
+          <p class="cs-section-body">
+            I also plan to redesign and polish many of the screens, especially now that we have much
+            longer than 2.5 weeks. And perhaps&hellip; some new crazy insights?
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <figure
+              class="rounded-[16px] overflow-hidden cs-reflection-photo-wrap"
+              data-cursor="photo"
+              data-cursor-label="bug fixing on the streets of sf"
+            >
+              <img
+                src="/images/work/gcal-wrapped/sf-streets.JPG"
+                alt="Bug fixing on the streets of San Francisco"
+                loading="lazy"
+                class="cs-reflection-photo w-full h-[420px] object-cover bg-[var(--color-bg-light)]"
+              />
+            </figure>
+            <figure
+              class="rounded-[16px] overflow-hidden cs-reflection-photo-wrap"
+              data-cursor="photo"
+              data-cursor-label="working on the ferry to alcatraz"
+            >
+              <img
+                src="/images/work/gcal-wrapped/alcatraz-ferry.JPG"
+                alt="Working on the ferry to Alcatraz"
+                loading="lazy"
+                class="cs-reflection-photo w-full h-[420px] object-cover bg-[var(--color-bg-light)]"
+              />
+            </figure>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <Footer color={cursorColor} active="home" />
+
+  <CustomCursor color={cursorColor} />
+</BaseLayout>
+
+<style>
+  /* === Shared section typography === */
+  .cs-section-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--color-ink-dim);
+    letter-spacing: 0.05em;
+  }
+  .cs-section-heading {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 22px;
+    color: var(--color-ink);
+    line-height: 1.2;
+  }
+  @media (min-width: 640px) {
+    .cs-section-heading {
+      font-size: 26px;
+    }
+  }
+  @media (min-width: 768px) {
+    .cs-section-heading {
+      font-size: 28px;
+      line-height: 1.15;
+    }
+  }
+  .cs-section-body {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-ink);
+    line-height: 1.55;
+  }
+
+  /* Section entry */
+  .cs-section {
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 400ms var(--ease-out-soft),
+      transform 400ms var(--ease-out-soft);
+  }
+  .cs-section[data-visible] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .cs-hero {
+    box-shadow: 0 14px 38px -22px rgba(36, 36, 36, 0.35);
+  }
+
+  /* Emphasis underline (green) */
+  .cs-emph {
+    color: var(--color-ink);
+    background-image: linear-gradient(to right, var(--color-green-1), var(--color-green-1));
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 6px;
+    padding-bottom: 1px;
+    transition: background-size var(--duration-base) var(--ease-out-soft);
+  }
+  .cs-emph:hover {
+    background-size: 100% 6px;
+  }
+  .cs-mention {
+    text-decoration: underline;
+    text-decoration-color: var(--color-green-1);
+    text-underline-offset: 3px;
+    transition: color var(--duration-fast) var(--ease-out-soft);
+  }
+  .cs-mention:hover {
+    color: var(--color-green);
+  }
+
+  /* Callout (green filled) */
+  /* Ideation pare-down toggle */
+  .cs-pare-frame {
+    position: relative;
+    width: 100%;
+    height: 460px;
+  }
+  .cs-pare-img {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: 12px;
+    opacity: 0;
+    transition: opacity 350ms var(--ease-out-soft);
+  }
+  .cs-pare-img.is-active {
+    opacity: 1;
+  }
+  .cs-pare-btn {
+    appearance: none;
+    border: 1px solid var(--color-ink);
+    background: transparent;
+    color: var(--color-ink);
+    border-radius: 9999px;
+    padding: 8px 16px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition:
+      background var(--duration-fast) var(--ease-out-soft),
+      color var(--duration-fast) var(--ease-out-soft),
+      transform var(--duration-fast) var(--ease-out-soft);
+  }
+  .cs-pare-btn:hover {
+    background: var(--color-ink);
+    color: var(--color-bg);
+    transform: translateY(-1px);
+  }
+
+  /* Sneak peek unmute button */
+  .cs-sneak-unmute {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    z-index: 2;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 9999px;
+    background: rgba(0, 0, 0, 0.55);
+    color: white;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+    transition:
+      background var(--duration-fast) var(--ease-out-soft),
+      transform var(--duration-fast) var(--ease-out-soft);
+  }
+  .cs-sneak-unmute:hover {
+    background: rgba(0, 0, 0, 0.75);
+    transform: scale(1.05);
+  }
+  .cs-sneak-unmute .hidden {
+    display: none;
+  }
+
+  .cs-callout-pink {
+    background: var(--color-green);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .cs-callout-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--color-bg);
+  }
+  .cs-callout-text {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 20px;
+    color: var(--color-bg);
+    text-align: center;
+    max-width: 760px;
+    line-height: 1.3;
+  }
+
+  /* Try it out fill-on-hover button */
+  .cs-fill-btn {
+    background-image: linear-gradient(to right, var(--color-green), var(--color-green));
+    background-repeat: no-repeat;
+    background-size: 0% 100%;
+    background-position: left center;
+    transition:
+      background-size 380ms var(--ease-out-soft),
+      color var(--duration-base) var(--ease-out-soft),
+      border-color var(--duration-base) var(--ease-out-soft),
+      transform var(--duration-base) var(--ease-out-soft) !important;
+  }
+  .cs-fill-btn:hover {
+    background-size: 100% 100% !important;
+    color: white !important;
+    border-color: var(--color-green) !important;
+    transform: translateY(-1px);
+  }
+  .cs-fill-btn-label {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Final result block (green tinted) */
+  .cs-final-block {
+    background: var(--color-bg-light);
+    border-radius: 16px;
+    padding: 32px 24px;
+  }
+
+  /* Reflection photos */
+  .cs-reflection-photo-wrap {
+    box-shadow: 0 18px 42px -24px rgba(36, 36, 36, 0.35);
+    transition: transform var(--duration-base) var(--ease-out-soft);
+  }
+  .cs-reflection-photo-wrap:hover {
+    transform: translateY(-2px);
+  }
+  .cs-reflection-photo {
+    transition: transform 600ms var(--ease-out-soft);
+  }
+  .cs-reflection-photo-wrap:hover .cs-reflection-photo {
+    transform: scale(1.02);
+  }
+
+  /* Reflection tiles */
+  .cs-reflection-tile {
+    transition:
+      transform var(--duration-base) var(--ease-out-soft),
+      background var(--duration-base) var(--ease-out-soft);
+  }
+  .cs-reflection-tile:hover {
+    transform: translateY(-2px);
+    background: var(--color-bg-neutral);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cs-section,
+    .cs-emph,
+    .cs-reflection-tile {
+      transition: none !important;
+      animation: none !important;
+    }
+    .cs-section {
+      opacity: 1;
+      transform: none;
+    }
+    .cs-reflection-tile:hover {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  /* Section-entry fade — same pattern as splunk/lingofable */
+  function initCaseStudyEntries() {
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const sections = Array.from(document.querySelectorAll<HTMLElement>(".cs-section"));
+    if (sections.length === 0) return;
+
+    if (reduced) {
+      sections.forEach((s) => s.setAttribute("data-visible", ""));
+      return;
+    }
+
+    let pending: HTMLElement[] = sections.slice();
+    let scheduled = false;
+
+    function check() {
+      scheduled = false;
+      const wh = window.innerHeight;
+      pending = pending.filter((sec) => {
+        const r = sec.getBoundingClientRect();
+        if (r.top < wh - 40 && r.bottom > 0) {
+          sec.setAttribute("data-visible", "");
+          return false;
+        }
+        return true;
+      });
+    }
+    function schedule() {
+      if (scheduled) return;
+      scheduled = true;
+      if (document.visibilityState === "visible") {
+        requestAnimationFrame(check);
+      } else {
+        setTimeout(check, 16);
+      }
+    }
+
+    check();
+    if (pending.length === 0) return;
+
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+
+    setTimeout(() => {
+      pending.forEach((s) => s.setAttribute("data-visible", ""));
+      pending = [];
+    }, 2000);
+  }
+  initCaseStudyEntries();
+  document.addEventListener("astro:page-load", initCaseStudyEntries);
+
+  /* Sneak peek unmute toggle */
+  function initSneakUnmute() {
+    const btn = document.querySelector<HTMLButtonElement>("[data-sneak-unmute]:not([data-wired])");
+    const video = document.querySelector<HTMLVideoElement>("[data-sneak-video]");
+    if (!btn || !video) return;
+    btn.setAttribute("data-wired", "1");
+    const iconMuted = btn.querySelector<HTMLElement>("[data-sneak-icon-muted]");
+    const iconUnmuted = btn.querySelector<HTMLElement>("[data-sneak-icon-unmuted]");
+
+    function syncIcons() {
+      iconMuted?.classList.toggle("hidden", !video!.muted);
+      iconUnmuted?.classList.toggle("hidden", video!.muted);
+      btn!.setAttribute("aria-label", video!.muted ? "Unmute video" : "Mute video");
+    }
+
+    btn.addEventListener("click", () => {
+      video.muted = !video.muted;
+      video.play().catch(() => {});
+      syncIcons();
+    });
+    syncIcons();
+  }
+  initSneakUnmute();
+  document.addEventListener("astro:page-load", initSneakUnmute);
+
+  /* Ideation pare-down toggle */
+  function initPareToggle() {
+    const wrap = document.querySelector<HTMLElement>("[data-pare]:not([data-wired])");
+    if (!wrap) return;
+    wrap.setAttribute("data-wired", "1");
+
+    const frame = wrap.querySelector<HTMLElement>("[data-pare-frame]");
+    const imgs = Array.from(wrap.querySelectorAll<HTMLImageElement>("[data-pare-img]"));
+    const btn = wrap.querySelector<HTMLButtonElement>("[data-pare-toggle]");
+    const btnLabel = wrap.querySelector<HTMLElement>("[data-pare-btn-label]");
+    if (!frame || imgs.length < 2 || !btn || !btnLabel) return;
+
+    let pared = false;
+    btn.addEventListener("click", () => {
+      pared = !pared;
+      imgs.forEach((img) => {
+        img.classList.toggle("is-active", img.dataset.pareImg === (pared ? "pared" : "initial"));
+      });
+      btnLabel.textContent = pared ? "← Show original" : "Pare it down →";
+    });
+  }
+  initPareToggle();
+  document.addEventListener("astro:page-load", initPareToggle);
+</script>
