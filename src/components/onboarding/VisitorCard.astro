@@ -634,10 +634,19 @@ const { nextNumber, edit = false, existingName, startColor = "pink", existingSig
         // send a data URL when the canvas actually has ink (SignaturePad sets
         // [data-has-ink] on the wrap) — otherwise store null so the gallery
         // shows the empty x-line instead of a transparent PNG.
+        //
+        // Edit mode: if the user hasn't touched the pad, reuse the original
+        // PNG bytes. Re-encoding via toDataURL at the canvas's high backing
+        // store DPR inflates byte size enough to trip the 60KB API cap, even
+        // when nothing changed (drawImage upscale + PNG re-encode).
         const sigWrap = card.querySelector<HTMLElement>("[data-signature-wrap]");
         const sigPad = card.querySelector<HTMLCanvasElement>("[data-signature-pad]");
+        const sigDirty = sigWrap?.getAttribute("data-sig-dirty") === "1";
+        const existingSig = sigWrap?.dataset.existingSignature ?? null;
         let signature: string | null = null;
-        if (sigWrap?.hasAttribute("data-has-ink") && sigPad && sigPad.width && sigPad.height) {
+        if (!sigDirty && existingSig) {
+          signature = existingSig;
+        } else if (sigWrap?.hasAttribute("data-has-ink") && sigPad && sigPad.width && sigPad.height) {
           try {
             signature = sigPad.toDataURL("image/png");
           } catch {

@@ -216,6 +216,9 @@ const { existingSignature = null } = Astro.props;
       ctx!.lineTo(x, y);
       ctx!.stroke();
       if (tool === "pen") setHasInk(true);
+      // Mark the pad as user-modified so the submit handler knows to
+      // re-encode the canvas instead of reusing the original PNG bytes.
+      wrap.setAttribute("data-sig-dirty", "1");
       // Eraser strokes may clear the last ink — defer a check until the stroke ends.
     }
 
@@ -353,6 +356,9 @@ const { existingSignature = null } = Astro.props;
       drawing = false;
       last = null;
       setHasInk(false);
+      // Clearing counts as a user edit — submit should send null, not the
+      // original PNG bytes.
+      wrap.setAttribute("data-sig-dirty", "1");
     }
 
     clearBtn?.addEventListener("click", (e) => {
