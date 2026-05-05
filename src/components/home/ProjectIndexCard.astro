@@ -73,10 +73,7 @@ const num = String(number).padStart(2, "0");
   </div>
 
   {image && (
-    <div
-      class="index-card__frame"
-      style={`aspect-ratio: 340 / ${imageHeight};`}
-    >
+    <div class="index-card__frame" style={`height: ${imageHeight}px;`}>
       <img
         src={image}
         alt=""
