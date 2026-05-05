@@ -129,7 +129,12 @@ const isReturning = visitor !== null;
         document.documentElement.setAttribute("data-sunrise-play", "");
 
         // Audio + visual start together, from the same click gesture.
-        playSunrise();
+        // Defer audio scheduling out of the input→paint critical path so
+        // INP stays under 200ms on mobile. setTimeout(0) yields after the
+        // current task so the disc paints first; transient user activation
+        // from the click is still valid for AudioContext.resume() inside
+        // this short window on Chromium/Safari.
+        setTimeout(() => playSunrise(), 0);
 
         const disc = buildDisc(cx, cy);
         document.documentElement.appendChild(disc);
