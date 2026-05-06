@@ -710,16 +710,25 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
     /* ---------- report button ----------------------------------------- */
     const reportBtn = detail.querySelector<HTMLButtonElement>("[data-gallery-report]");
     const REPORT_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>`;
+    let reportConfirming = false;
     function resetReportBtn() {
       if (!reportBtn) return;
+      reportConfirming = false;
       reportBtn.disabled = false;
       reportBtn.innerHTML = `${REPORT_SVG} Report`;
+      reportBtn.classList.remove("!bg-red-100", "!text-red-600");
     }
 
     reportBtn?.addEventListener("click", async () => {
       if (!open) return;
       const cardId = open.source.dataset.id;
       if (!cardId) return;
+      if (!reportConfirming) {
+        reportConfirming = true;
+        reportBtn.innerHTML = `${REPORT_SVG} Confirm report?`;
+        reportBtn.classList.add("!bg-red-100", "!text-red-600");
+        return;
+      }
       reportBtn.disabled = true;
       reportBtn.textContent = "Reporting\u2026";
       try {
