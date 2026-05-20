@@ -5,6 +5,7 @@
  */
 
 import type { APIContext } from "astro";
+import { isGeneratedVisitorName } from "./visitor-name";
 
 export const VISITOR_ID_COOKIE = "mp_vid";
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
@@ -105,15 +106,18 @@ export async function createVisitor(
   const id = crypto.randomUUID();
   const issuedAt = new Date().toISOString();
   const signature = input.signature ?? null;
+  // Auto-approve cards that kept the generator's default name and skipped
+  // drawing — no user-supplied content to moderate.
+  const autoApprove = signature === null && isGeneratedVisitorName(input.name);
 
   // INSERT ... SELECT to atomically allocate the next number.
   const result = await db(ctx)
     .prepare(
-      `INSERT INTO visitors (id, number, name, color, issued_at, signature_png)
-       SELECT ?, COALESCE((SELECT MAX(number) FROM visitors), 0) + 1, ?, ?, ?, ?
+      `INSERT INTO visitors (id, number, name, color, issued_at, signature_png, approved)
+       SELECT ?, COALESCE((SELECT MAX(number) FROM visitors), 0) + 1, ?, ?, ?, ?, ?
        RETURNING number`
     )
-    .bind(id, input.name, input.color, issuedAt, signature)
+    .bind(id, input.name, input.color, issuedAt, signature, autoApprove ? 1 : 0)
     .first<{ number: number }>();
 
   if (!result) throw new Error("Failed to insert visitor");
@@ -139,21 +143,30 @@ export async function updateVisitor(
   input: { name: string; color: CardColor; signature?: string | null }
 ): Promise<VisitorRecord | null> {
   const hasSignature = Object.prototype.hasOwnProperty.call(input, "signature");
+  const nameIsDefault = isGeneratedVisitorName(input.name);
 
-  // Reset approval on edit — name/signature may have changed.
+  // Reset approval on edit — name/signature may have changed. Auto-approve
+  // when the edited card kept the default name and has no signature (either
+  // explicitly cleared this edit, or preserved-empty from before).
   const stmt = hasSignature
-    ? db(ctx)
-        .prepare(
-          `UPDATE visitors SET name = ?, color = ?, signature_png = ?, approved = 0 WHERE id = ?
-           RETURNING id, number, name, color, issued_at, signature_png AS signature`
-        )
-        .bind(input.name, input.color, input.signature ?? null, id)
+    ? (() => {
+        const autoApprove = nameIsDefault && (input.signature ?? null) === null;
+        return db(ctx)
+          .prepare(
+            `UPDATE visitors SET name = ?, color = ?, signature_png = ?, approved = ? WHERE id = ?
+             RETURNING id, number, name, color, issued_at, signature_png AS signature`
+          )
+          .bind(input.name, input.color, input.signature ?? null, autoApprove ? 1 : 0, id);
+      })()
     : db(ctx)
         .prepare(
-          `UPDATE visitors SET name = ?, color = ?, approved = 0 WHERE id = ?
+          // Auto-approve only when name is default AND no existing signature.
+          `UPDATE visitors SET name = ?, color = ?,
+                  approved = CASE WHEN ? = 1 AND signature_png IS NULL THEN 1 ELSE 0 END
+           WHERE id = ?
            RETURNING id, number, name, color, issued_at, signature_png AS signature`
         )
-        .bind(input.name, input.color, id);
+        .bind(input.name, input.color, nameIsDefault ? 1 : 0, id);
 
   const row = await stmt.first<VisitorRow>();
 

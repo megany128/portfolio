@@ -166,6 +166,20 @@ const blockedPairs = new Set<string>([
   "pearl harbor",
 ]);
 
+const adjectiveSet = new Set<string>(adjectives);
+const nounSet = new Set<string>(nouns);
+
+/**
+ * True when `name` looks like an unedited output of `generateVisitorName`:
+ * exactly two lowercase words, both from the generator's word lists.
+ * Used server-side to auto-approve cards that kept the default name.
+ */
+export function isGeneratedVisitorName(name: string): boolean {
+  const parts = name.split(" ");
+  if (parts.length !== 2) return false;
+  return adjectiveSet.has(parts[0]) && nounSet.has(parts[1]);
+}
+
 export function generateVisitorName(): string {
   for (let i = 0; i < 8; i++) {
     const name = `${pick(adjectives)} ${pick(nouns)}`;
