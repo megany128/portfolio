@@ -6,7 +6,12 @@ import type { CardColor } from "../../lib/visitor";
 interface Props {
   active?: "work" | "about" | "playground" | "gallery";
   anon?: boolean;
-  visitorCard?: { name: string; color: CardColor; number: number; signature?: string | null } | null;
+  visitorCard?: {
+    name: string;
+    color: CardColor;
+    number: number;
+    signature?: string | null;
+  } | null;
 }
 
 const { active = "work", anon = false, visitorCard = null } = Astro.props;
@@ -37,12 +42,7 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
   transition:animate="none"
   class="site-sidebar bg-[var(--color-bg-light)] flex flex-col gap-6 p-10 w-[303px] flex-shrink-0"
 >
-  <button
-    type="button"
-    data-sidebar-close
-    aria-label="Close sidebar"
-    class="sidebar-close"
-  >
+  <button type="button" data-sidebar-close aria-label="Close sidebar" class="sidebar-close">
     <span aria-hidden="true">×</span>
   </button>
 
@@ -56,19 +56,34 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
       <span data-logo-spin class="sidebar-logo-spin inline-block">
         <Logo class="mb-1" />
       </span>
-      <span data-logo-sparks aria-hidden="true" class="sidebar-logo-sparks pointer-events-none absolute inset-0"></span>
+      <span
+        data-logo-sparks
+        aria-hidden="true"
+        class="sidebar-logo-sparks pointer-events-none absolute inset-0"></span>
     </a>
-    <h1 class="font-[family-name:var(--font-display)] font-light text-[36px] leading-none text-[var(--color-ink)]">
+    <h1
+      class="font-[family-name:var(--font-display)] font-light text-[36px] leading-none text-[var(--color-ink)]"
+    >
       Megan Yap
     </h1>
-    <p class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)] leading-snug">
+    <p
+      class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)] leading-snug"
+    >
       CS &amp; Linguistics @ Cornell
     </p>
-    <p class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-snug">
+    <p
+      class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-snug"
+    >
       I am a designer who loves building delightful software that solves real problems.
     </p>
-    <p class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-snug">
-      Interning <span class="text-[var(--color-ink)]">@Google</span>, previously at <span class="text-[var(--color-ink)]">@Splunk</span>, <span class="text-[var(--color-ink)]">@RxPost</span>, and <span class="text-[var(--color-ink)]">@Clear</span> (YC W21).
+    <p
+      class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-snug"
+    >
+      Interning <span class="text-[var(--color-ink)]">@Google</span>, previously at <span
+        class="text-[var(--color-ink)]">@Splunk</span
+      >, <span class="text-[var(--color-ink)]">@RxPost</span>, and <span
+        class="text-[var(--color-ink)]">@Clear</span
+      > (YC W21).
     </p>
   </div>
 
@@ -76,66 +91,98 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
 
   <div class="flex flex-col gap-0.5">
     <p class="font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink)]">
-      Elsewhere
+      Outbound
     </p>
     <p class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)]">
-      <a href="mailto:may52@cornell.edu" class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline">Email</a>,
-      <a href="https://www.linkedin.com/in/megan-qz-yap/" class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline">LinkedIn</a>,
-      <a href="https://github.com/megany128" class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline">GitHub</a>,
-      <a href="https://x.com/maqzyap" class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline">X</a>,
-      <a href="https://drive.google.com/file/d/1P7hNfuNp0-RYu6j4RtvulAVfVpvHy9-1/view?usp=sharing" target="_blank" rel="noopener" class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline">Resume</a>
+      <a
+        href="mailto:may52@cornell.edu"
+        class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline"
+        >Email</a
+      >,
+      <a
+        href="https://www.linkedin.com/in/megan-qz-yap/"
+        class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline"
+        >LinkedIn</a
+      >,
+      <a
+        href="https://github.com/megany128"
+        class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline"
+        >GitHub</a
+      >,
+      <a
+        href="https://x.com/maqzyap"
+        class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline"
+        >X</a
+      >,
+      <a
+        href="https://drive.google.com/file/d/1P7hNfuNp0-RYu6j4RtvulAVfVpvHy9-1/view?usp=sharing"
+        target="_blank"
+        rel="noopener"
+        class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline"
+        >Resume</a
+      >
     </p>
   </div>
 
-  {visitorCard && (
-    <div class="sidebar-visitor-card-wrap" data-color={visitorCard.color}>
-      <a
-        href="/visitor-gallery"
-        data-sidebar-card
-        data-cursor-bg={visitorCard.color}
-        class="sidebar-card-pill"
-        aria-label="Your visitor card — view gallery"
-      >
-        <span class="sidebar-card-pill__dot"></span>
-        <span class="sidebar-card-pill__label">My visitor card</span>
-      </a>
-      <div class="sidebar-card-popover">
-        <a href="/visitor-gallery" class="sidebar-card-popover__link" data-cursor-bg={visitorCard.color}>
-          <pre class="sidebar-card__art" aria-hidden="true">{
-            visitorCard.color === "teal"
-              ? "⠀⠀⠀⢸⣦⡀⠀⠀⠀⠀⢀⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⢸⣏⠻⣶⣤⡶⢾⡿⠁⠀⢠⣄⡀⢀⣴⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⣀⣼⠷⠀⠀⠁⢀⣿⠃⠀⠀⢀⣿⣿⣿⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠴⣾⣯⣅⣀⠀⠀⠀⠈⢻⣦⡀⠒⠻⠿⣿⡿⠿⠓⠂⠀⠀⢀⡇⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠉⢻⡇⣤⣾⣿⣷⣿⣿⣤⠀⠀⣿⠁⠀⠀⠀⢀⣴⣿⣿⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠸⣿⡿⠏⠀⢀⠀⠀⠿⣶⣤⣤⣤⣄⣀⣴⣿⡿⢻⣿⡆⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠟⠁⠀⢀⣼⠀⠀⠀⠹⣿⣟⠿⠿⠿⡿⠋⠀⠘⣿⣇⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⢳⣶⣶⣿⣿⣇⣀⠀⠀⠙⣿⣆⠀⠀⠀⠀⠀⠀⠛⠿⣿⣦⣤⣀⠀⠀\n⠀⠀⠀⠀⠀⠀⣹⣿⣿⣿⣿⠿⠋⠁⠀⣹⣿⠳⠀⠀⠀⠀⠀⠀⢀⣠⣽⣿⡿⠟⠃\n⠀⠀⠀⠀⠀⢰⠿⠛⠻⢿⡇⠀⠀⠀⣰⣿⠏⠀⠀⢀⠀⠀⠀⣾⣿⠟⠋⠁⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠋⠀⠀⣰⣿⣿⣾⣿⠿⢿⣷⣀⢀⣿⡇⠁⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠋⠉⠁⠀⠀⠀⠀⠙⢿⣿⣿⠇⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀"
-              : visitorCard.color === "green"
-                ? "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⢾⣛⡆⠈⡏⠰⠶⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢦⣿⣄⣉⣁⣤⠽⣦⣤⡶⠶⣤⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠚⠹⡉⢃⣴⠟⠉⠀⠀⠀⠀⠉⠻⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⢡⡿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠈⢷⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡂⣿⡇⠀⠀⠀⠀⣠⣤⣀⠀⠀⠀⠘⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⢻⣷⠀⠀⠀⠀⢯⡉⣿⡆⠀⠀⣰⡇⠀⢀⣀⢤⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣧⣀⠀⠀⢀⣴⡟⠀⠀⣰⣿⡷⢏⡭⠔⠹⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠛⠿⠿⠟⠋⠀⢀⣼⣿⣿⣿⠿⣭⡉⢛⡃⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⣀⣤⠶⠿⣟⣟⣝⡷⣲⢤⣀⠀⠀⠀⠀⠀⠀⢠⠀⠀⠀⠀⠀⠀⣠⣾⡿⠃⠹⡟⢖⠢⠽⠦⠁⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⢀⣴⠞⠁⠀⠀⠀⠀⠀⠉⠙⢦⣕⡯⣷⣄⠀⠀⠠⣴⠋⢓⡶⠂⠀⢀⣼⣿⠟⠁⠀⠀⠈⠺⡄⠋⣀⣰⣀⠀⠀⠀⠀⠀⠀\n⠀⣠⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢯⣒⢭⣦⠀⠀⢸⠕⠦⠇⠀⣤⣿⡿⠃⣠⠴⠶⠶⣤⡀⠀⠀⠼⠿⡏⠀⠀⠀⠀⠀⠀\n⢀⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣝⡫⢧⠀⠀⠀⠀⣠⣾⡿⠉⠀⢸⠁⢀⣀⠀⠈⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⣼⠁⠀⠀⠀⠀⣠⣶⣿⣿⣷⣦⡀⠀⠀⠀⠀⠙⡮⣛⡆⠀⠀⣰⣿⡏⢐⡀⠀⠸⣦⣀⣨⠇⠒⣸⣀⣀⣄⣀⡀⠀⠀⠀⠀⠀⠀\n⢹⠆⠀⠀⠀⢠⣿⡿⠃⠀⠀⠉⢻⡄⠀⠀⠀⠀⠙⣗⢿⠀⣸⡟⡙⢷⡈⢠⠀⡀⠈⠉⣁⠘⣠⠟⠉⠉⠙⢿⣿⡆⠀⠀⠀⠀⠀\n⠘⣇⠀⠀⠀⠈⢿⡇⠀⢲⠀⠀⠀⢻⡀⠀⢤⣴⡀⠹⣽⣴⡿⣁⠀⠈⠻⣦⣤⣥⣌⣡⡤⠞⠁⠀⣰⠛⠆⣸⣿⡇⠀⠀⠀⠀⠀"
-                : visitorCard.color === "orange"
-                  ? "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣤⣴⣦⣦⡄⠀⠀⠀⠀\n⠀⠀⠀⣀⣤⣤⣤⣤⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣶⣿⣿⣿⣿⣿⣿⣿⣷⣄⠀⠀\n⠀⣰⣿⣿⠿⢿⣿⣿⣿⣿⣿⣷⣦⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⣿⣿⠿⠛⠉⠉⠁⠉⠉⠙⠻⣧⠀\n⣰⣿⣿⡟⠀⠀⠈⠙⠛⠿⣿⣿⣿⣿⣿⣶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⡿⠟⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡆\n⣿⣿⣿⠁⠀⠀⠀⠀⠀⠀⠀⠈⠙⠛⠿⢿⣿⣿⣦⣀⠀⠀⠀⠀⠀⠀⢀⣴⣿⡿⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣽⣧\n⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⢀⠈⠙⠻⣿⣷⣄⣤⣤⣤⣦⣾⡿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⣿⡿\n⣿⣿⣿⣷⣄⣀⣀⣀⣀⣠⣤⣶⣾⣿⣿⣿⣿⣿⣿⣷⣾⣿⣿⣿⣿⣿⣿⣶⣶⣿⣶⣶⣤⣀⠀⠀⢀⠀⠀⠀⠀⣀⣠⣾⣿⣿⠃\n⠘⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠟⠛⠋⠉⠉⣴⣾⣿⣿⣿⣿⣿⣿⣯⣍⠉⠛⠻⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠃⠀\n⠀⠀⠉⠛⠻⠿⠿⠿⠿⠿⠿⠛⠋⠀⠀⠀⠀⢠⣾⣿⣿⠟⠁⠁⠀⠈⠻⣿⣿⣷⡀⠀⠀⠉⠛⠻⠿⠿⠻⠿⠿⠟⠋⠁⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣿⣿⠃⠀⠀⠀⠀⠀⠀⠹⣿⣿⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣿⡏⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣿⣿⣿⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⣀⣠⣤⣴⣶⣶⣾⣿⣿⣿⣿⠟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⣧⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⣠⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⣿⣷⣦⣤⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⣴⣿⣿⣿⠟⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⢿⣿⣿⣿⣿⣿⣿⣷⣤⡀⠀⠀⠀⠀⠀\n⠀⣸⣿⣿⡿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠛⠻⣿⣿⣿⣧⡀⠀⠀⠀\n⢀⣿⣿⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣿⣿⣧⠀⠀⠀\n⠸⣿⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣿⣿⡆⠀⠀\n⠀⠹⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⣿⡧⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⠏⠀⠀"
-                  : "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⢔⣶⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡼⠗⡿⣾⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡼⠓⡞⢩⣯⡀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠰⡹⠁⢰⠃⣩⣿⡇⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢷⣿⠿⣉⣩⠛⠲⢶⡠⢄⠐⣣⠃⣰⠗⠋⢀⣯⠁⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣯⣠⠬⠦⢤⣀⠈⠓⢽⣾⢔⣡⡴⠞⠻⠙⢳⡄\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣵⣳⠖⠉⠉⢉⣩⣵⣿⣿⣒⢤⣴⠤⠽⣬⡇\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⢻⣟⠟⠋⢡⡎⢿⢿⠳⡕⢤⡉⡷⡽⠁\n⣧⢮⢭⠛⢲⣦⣀⠀⠀⠀⠠⡀⠀⠀⠀⡾⣥⣏⣖⡟⠸⢺⠀⠀⠈⠙⠋⠁⠀⠀\n⠈⠻⣶⡛⠲⣄⠀⠙⠢⣀⠀⢇⠀⠀⠀⠘⠿⣯⣮⢦⠶⠃⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⢻⣿⣥⡬⠽⠶⠤⣌⣣⣼⡔⠊⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⢠⣿⣧⣤⡴⢤⡴⣶⣿⣟⢯⡙⠒⠤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠘⣗⣞⣢⡟⢋⢜⣿⠛⡿⡄⢻⡮⣄⠈⠳⢦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠈⠻⠮⠴⠵⢋⣇⡇⣷⢳⡀⢱⡈⢋⠛⣄⣹⣲⡀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣱⡇⣦⢾⣾⠿⠟⠿⠷⠷⣻⠧⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠻⠽⠞⠊⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"
-          }</pre>
-          <span class="sidebar-card__title">Megan&rsquo;s World</span>
-          <dl class="sidebar-card__fields">
-            <div>
-              <dt>Visitor</dt>
-              <dd>{visitorCard.name}</dd>
-            </div>
-          </dl>
-          {visitorCard.signature && (
-            <img
-              src={visitorCard.signature}
-              alt=""
-              class="sidebar-card__signature"
-              loading="lazy"
-              decoding="async"
-            />
-          )}
-          <div class="sidebar-card__footer">
-            <span class="sidebar-card__number">No. {visitorCard.number}</span>
-            <span class="sidebar-card__sig">x <span class="sidebar-card__sigline"></span></span>
-          </div>
+  {
+    visitorCard && (
+      <div class="sidebar-visitor-card-wrap" data-color={visitorCard.color}>
+        <a
+          href="/visitor-gallery"
+          data-sidebar-card
+          data-cursor-bg={visitorCard.color}
+          class="sidebar-card-pill"
+          aria-label="Your visitor card — view gallery"
+        >
+          <span class="sidebar-card-pill__dot" />
+          <span class="sidebar-card-pill__label">My visitor card</span>
         </a>
+        <div class="sidebar-card-popover">
+          <a
+            href="/visitor-gallery"
+            class="sidebar-card-popover__link"
+            data-cursor-bg={visitorCard.color}
+          >
+            <pre class="sidebar-card__art" aria-hidden="true">
+              {visitorCard.color === "teal"
+                ? "⠀⠀⠀⢸⣦⡀⠀⠀⠀⠀⢀⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⢸⣏⠻⣶⣤⡶⢾⡿⠁⠀⢠⣄⡀⢀⣴⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⣀⣼⠷⠀⠀⠁⢀⣿⠃⠀⠀⢀⣿⣿⣿⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠴⣾⣯⣅⣀⠀⠀⠀⠈⢻⣦⡀⠒⠻⠿⣿⡿⠿⠓⠂⠀⠀⢀⡇⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠉⢻⡇⣤⣾⣿⣷⣿⣿⣤⠀⠀⣿⠁⠀⠀⠀⢀⣴⣿⣿⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠸⣿⡿⠏⠀⢀⠀⠀⠿⣶⣤⣤⣤⣄⣀⣴⣿⡿⢻⣿⡆⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠟⠁⠀⢀⣼⠀⠀⠀⠹⣿⣟⠿⠿⠿⡿⠋⠀⠘⣿⣇⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⢳⣶⣶⣿⣿⣇⣀⠀⠀⠙⣿⣆⠀⠀⠀⠀⠀⠀⠛⠿⣿⣦⣤⣀⠀⠀\n⠀⠀⠀⠀⠀⠀⣹⣿⣿⣿⣿⠿⠋⠁⠀⣹⣿⠳⠀⠀⠀⠀⠀⠀⢀⣠⣽⣿⡿⠟⠃\n⠀⠀⠀⠀⠀⢰⠿⠛⠻⢿⡇⠀⠀⠀⣰⣿⠏⠀⠀⢀⠀⠀⠀⣾⣿⠟⠋⠁⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠋⠀⠀⣰⣿⣿⣾⣿⠿⢿⣷⣀⢀⣿⡇⠁⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠋⠉⠁⠀⠀⠀⠀⠙⢿⣿⣿⠇⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀"
+                : visitorCard.color === "green"
+                  ? "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⢾⣛⡆⠈⡏⠰⠶⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢦⣿⣄⣉⣁⣤⠽⣦⣤⡶⠶⣤⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠚⠹⡉⢃⣴⠟⠉⠀⠀⠀⠀⠉⠻⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⢡⡿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠈⢷⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡂⣿⡇⠀⠀⠀⠀⣠⣤⣀⠀⠀⠀⠘⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⢻⣷⠀⠀⠀⠀⢯⡉⣿⡆⠀⠀⣰⡇⠀⢀⣀⢤⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣧⣀⠀⠀⢀⣴⡟⠀⠀⣰⣿⡷⢏⡭⠔⠹⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠛⠿⠿⠟⠋⠀⢀⣼⣿⣿⣿⠿⣭⡉⢛⡃⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⣀⣤⠶⠿⣟⣟⣝⡷⣲⢤⣀⠀⠀⠀⠀⠀⠀⢠⠀⠀⠀⠀⠀⠀⣠⣾⡿⠃⠹⡟⢖⠢⠽⠦⠁⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⢀⣴⠞⠁⠀⠀⠀⠀⠀⠉⠙⢦⣕⡯⣷⣄⠀⠀⠠⣴⠋⢓⡶⠂⠀⢀⣼⣿⠟⠁⠀⠀⠈⠺⡄⠋⣀⣰⣀⠀⠀⠀⠀⠀⠀\n⠀⣠⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢯⣒⢭⣦⠀⠀⢸⠕⠦⠇⠀⣤⣿⡿⠃⣠⠴⠶⠶⣤⡀⠀⠀⠼⠿⡏⠀⠀⠀⠀⠀⠀\n⢀⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣝⡫⢧⠀⠀⠀⠀⣠⣾⡿⠉⠀⢸⠁⢀⣀⠀⠈⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⣼⠁⠀⠀⠀⠀⣠⣶⣿⣿⣷⣦⡀⠀⠀⠀⠀⠙⡮⣛⡆⠀⠀⣰⣿⡏⢐⡀⠀⠸⣦⣀⣨⠇⠒⣸⣀⣀⣄⣀⡀⠀⠀⠀⠀⠀⠀\n⢹⠆⠀⠀⠀⢠⣿⡿⠃⠀⠀⠉⢻⡄⠀⠀⠀⠀⠙⣗⢿⠀⣸⡟⡙⢷⡈⢠⠀⡀⠈⠉⣁⠘⣠⠟⠉⠉⠙⢿⣿⡆⠀⠀⠀⠀⠀\n⠘⣇⠀⠀⠀⠈⢿⡇⠀⢲⠀⠀⠀⢻⡀⠀⢤⣴⡀⠹⣽⣴⡿⣁⠀⠈⠻⣦⣤⣥⣌⣡⡤⠞⠁⠀⣰⠛⠆⣸⣿⡇⠀⠀⠀⠀⠀"
+                  : visitorCard.color === "orange"
+                    ? "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣤⣴⣦⣦⡄⠀⠀⠀⠀\n⠀⠀⠀⣀⣤⣤⣤⣤⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣶⣿⣿⣿⣿⣿⣿⣿⣷⣄⠀⠀\n⠀⣰⣿⣿⠿⢿⣿⣿⣿⣿⣿⣷⣦⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⣿⣿⠿⠛⠉⠉⠁⠉⠉⠙⠻⣧⠀\n⣰⣿⣿⡟⠀⠀⠈⠙⠛⠿⣿⣿⣿⣿⣿⣶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⡿⠟⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡆\n⣿⣿⣿⠁⠀⠀⠀⠀⠀⠀⠀⠈⠙⠛⠿⢿⣿⣿⣦⣀⠀⠀⠀⠀⠀⠀⢀⣴⣿⡿⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣽⣧\n⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⢀⠈⠙⠻⣿⣷⣄⣤⣤⣤⣦⣾⡿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⣿⡿\n⣿⣿⣿⣷⣄⣀⣀⣀⣀⣠⣤⣶⣾⣿⣿⣿⣿⣿⣿⣷⣾⣿⣿⣿⣿⣿⣿⣶⣶⣿⣶⣶⣤⣀⠀⠀⢀⠀⠀⠀⠀⣀⣠⣾⣿⣿⠃\n⠘⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠟⠛⠋⠉⠉⣴⣾⣿⣿⣿⣿⣿⣿⣯⣍⠉⠛⠻⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠃⠀\n⠀⠀⠉⠛⠻⠿⠿⠿⠿⠿⠿⠛⠋⠀⠀⠀⠀⢠⣾⣿⣿⠟⠁⠁⠀⠈⠻⣿⣿⣷⡀⠀⠀⠉⠛⠻⠿⠿⠻⠿⠿⠟⠋⠁⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣿⣿⠃⠀⠀⠀⠀⠀⠀⠹⣿⣿⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣿⡏⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣿⣿⣿⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⣀⣠⣤⣴⣶⣶⣾⣿⣿⣿⣿⠟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⣧⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⣠⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⣿⣷⣦⣤⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⣴⣿⣿⣿⠟⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⢿⣿⣿⣿⣿⣿⣿⣷⣤⡀⠀⠀⠀⠀⠀\n⠀⣸⣿⣿⡿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠛⠻⣿⣿⣿⣧⡀⠀⠀⠀\n⢀⣿⣿⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣿⣿⣧⠀⠀⠀\n⠸⣿⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣿⣿⡆⠀⠀\n⠀⠹⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⣿⡧⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⠏⠀⠀"
+                    : "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⢔⣶⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡼⠗⡿⣾⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡼⠓⡞⢩⣯⡀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠰⡹⠁⢰⠃⣩⣿⡇⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢷⣿⠿⣉⣩⠛⠲⢶⡠⢄⠐⣣⠃⣰⠗⠋⢀⣯⠁⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣯⣠⠬⠦⢤⣀⠈⠓⢽⣾⢔⣡⡴⠞⠻⠙⢳⡄\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣵⣳⠖⠉⠉⢉⣩⣵⣿⣿⣒⢤⣴⠤⠽⣬⡇\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⢻⣟⠟⠋⢡⡎⢿⢿⠳⡕⢤⡉⡷⡽⠁\n⣧⢮⢭⠛⢲⣦⣀⠀⠀⠀⠠⡀⠀⠀⠀⡾⣥⣏⣖⡟⠸⢺⠀⠀⠈⠙⠋⠁⠀⠀\n⠈⠻⣶⡛⠲⣄⠀⠙⠢⣀⠀⢇⠀⠀⠀⠘⠿⣯⣮⢦⠶⠃⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⢻⣿⣥⡬⠽⠶⠤⣌⣣⣼⡔⠊⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⢠⣿⣧⣤⡴⢤⡴⣶⣿⣟⢯⡙⠒⠤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠘⣗⣞⣢⡟⢋⢜⣿⠛⡿⡄⢻⡮⣄⠈⠳⢦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠈⠻⠮⠴⠵⢋⣇⡇⣷⢳⡀⢱⡈⢋⠛⣄⣹⣲⡀⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣱⡇⣦⢾⣾⠿⠟⠿⠷⠷⣻⠧⠀⠀⠀⠀⠀⠀⠀⠀\n⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠻⠽⠞⠊⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"}
+            </pre>
+            <span class="sidebar-card__title">Megan&rsquo;s World</span>
+            <dl class="sidebar-card__fields">
+              <div>
+                <dt>Visitor</dt>
+                <dd>{visitorCard.name}</dd>
+              </div>
+            </dl>
+            {visitorCard.signature && (
+              <img
+                src={visitorCard.signature}
+                alt=""
+                class="sidebar-card__signature"
+                loading="lazy"
+                decoding="async"
+              />
+            )}
+            <div class="sidebar-card__footer">
+              <span class="sidebar-card__number">No. {visitorCard.number}</span>
+              <span class="sidebar-card__sig">
+                x <span class="sidebar-card__sigline" />
+              </span>
+            </div>
+          </a>
+        </div>
       </div>
-    </div>
-  )}
+    )
+  }
 
-  <div class="sidebar-status mt-auto font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)] leading-snug">
+  <div
+    class="sidebar-status mt-auto font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)] leading-snug"
+  >
     <p data-sidebar-clock>--:--:-- --</p>
     <p>
       <span class="sidebar-status-dot" aria-hidden="true"></span>all systems operational
@@ -193,7 +240,9 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
     text-decoration: none;
     color: var(--color-ink-dim);
     background: var(--color-bg-neutral-2);
-    transition: background var(--duration-fast) var(--ease-out-soft), color var(--duration-fast) var(--ease-out-soft);
+    transition:
+      background var(--duration-fast) var(--ease-out-soft),
+      color var(--duration-fast) var(--ease-out-soft);
   }
   .sidebar-card-pill:hover {
     color: var(--color-ink);
@@ -205,11 +254,21 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
     border-radius: 50%;
     flex-shrink: 0;
   }
-  [data-color="pink"] .sidebar-card-pill__dot { background: var(--color-pink); }
-  [data-color="teal"] .sidebar-card-pill__dot { background: var(--color-teal); }
-  [data-color="green"] .sidebar-card-pill__dot { background: var(--color-green); }
-  [data-color="orange"] .sidebar-card-pill__dot { background: var(--color-orange); }
-  [data-color="neutral"] .sidebar-card-pill__dot { background: var(--color-fg-neutral); }
+  [data-color="pink"] .sidebar-card-pill__dot {
+    background: var(--color-pink);
+  }
+  [data-color="teal"] .sidebar-card-pill__dot {
+    background: var(--color-teal);
+  }
+  [data-color="green"] .sidebar-card-pill__dot {
+    background: var(--color-green);
+  }
+  [data-color="orange"] .sidebar-card-pill__dot {
+    background: var(--color-orange);
+  }
+  [data-color="neutral"] .sidebar-card-pill__dot {
+    background: var(--color-fg-neutral);
+  }
 
   /* Popover card — floats to the right on hover, like ToC previews. */
   .sidebar-card-popover {
@@ -219,7 +278,9 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
     transform: translateY(-50%) translateX(-8px);
     opacity: 0;
     pointer-events: none;
-    transition: opacity 220ms var(--ease-out-soft), transform 280ms var(--ease-out-soft);
+    transition:
+      opacity 220ms var(--ease-out-soft),
+      transform 280ms var(--ease-out-soft);
     z-index: 50;
   }
   .sidebar-visitor-card-wrap:hover .sidebar-card-popover {
@@ -243,10 +304,18 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
       0 18px 36px -16px rgba(36, 36, 36, 0.35),
       0 4px 10px -4px rgba(36, 36, 36, 0.2);
   }
-  [data-color="pink"] .sidebar-card-popover__link { background: var(--color-pink); }
-  [data-color="teal"] .sidebar-card-popover__link { background: var(--color-teal); }
-  [data-color="green"] .sidebar-card-popover__link { background: var(--color-green); }
-  [data-color="orange"] .sidebar-card-popover__link { background: var(--color-orange); }
+  [data-color="pink"] .sidebar-card-popover__link {
+    background: var(--color-pink);
+  }
+  [data-color="teal"] .sidebar-card-popover__link {
+    background: var(--color-teal);
+  }
+  [data-color="green"] .sidebar-card-popover__link {
+    background: var(--color-green);
+  }
+  [data-color="orange"] .sidebar-card-popover__link {
+    background: var(--color-orange);
+  }
   [data-color="neutral"] .sidebar-card-popover__link {
     background: var(--color-bg-neutral-2);
     color: var(--color-ink);
@@ -338,7 +407,9 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
     filter: brightness(0) invert(1);
   }
   @media (max-width: 1023px) {
-    .sidebar-card-popover { display: none; }
+    .sidebar-card-popover {
+      display: none;
+    }
   }
 
   /* Flash highlight applied to the gallery card we just scrolled to.
@@ -353,7 +424,7 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
     }
     20% {
       filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.7))
-              drop-shadow(0 14px 22px rgba(0, 0, 0, 0.22));
+        drop-shadow(0 14px 22px rgba(0, 0, 0, 0.22));
       transform: scale(1.04);
     }
     100% {
@@ -414,7 +485,9 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
       box-shadow: 2px 0 12px -4px rgba(36, 36, 36, 0.15);
       cursor: pointer;
       transform: translateY(-50%);
-      transition: transform var(--duration-fast) var(--ease-out-soft), background var(--duration-fast) var(--ease-out-soft);
+      transition:
+        transform var(--duration-fast) var(--ease-out-soft),
+        background var(--duration-fast) var(--ease-out-soft);
     }
     .sidebar-tab:hover {
       transform: translate(3px, -50%);
@@ -465,7 +538,9 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
       font-size: 22px;
       line-height: 1;
       cursor: pointer;
-      transition: background var(--duration-fast) var(--ease-out-soft), color var(--duration-fast) var(--ease-out-soft);
+      transition:
+        background var(--duration-fast) var(--ease-out-soft),
+        color var(--duration-fast) var(--ease-out-soft);
     }
     .sidebar-close:hover {
       background: var(--color-bg-neutral-2);
@@ -502,11 +577,21 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
     animation: sidebar-logo-spark 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
   @keyframes sidebar-logo-spark {
-    0%   { opacity: 1; transform: translate(-50%, -50%) translate(0, 0) scale(0.6); }
-    100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--spark-dx, 0px), var(--spark-dy, 0px)) scale(0.9); }
+    0% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translate(0, 0) scale(0.6);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translate(var(--spark-dx, 0px), var(--spark-dy, 0px))
+        scale(0.9);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
-    .sidebar-logo-sparks .spark { animation: none; opacity: 0; }
+    .sidebar-logo-sparks .spark {
+      animation: none;
+      opacity: 0;
+    }
   }
 
   /* Status pulse — matching the welcome/onboarding scene's green dot.
@@ -525,7 +610,8 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
     animation: sidebar-status-pulse 2.4s ease-in-out infinite;
   }
   @keyframes sidebar-status-pulse {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 0.9;
       box-shadow: 0 0 0 0 rgba(125, 181, 146, 0.55);
     }
@@ -535,7 +621,9 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .sidebar-status-dot { animation: none; }
+    .sidebar-status-dot {
+      animation: none;
+    }
   }
 </style>
 
@@ -643,32 +731,35 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
     Logo tap — spin the mark + emit a small burst of colored sparks. The
     click stays a link navigation; we just layer the animation on top.
   */
-  const SPARK_COLORS = ["var(--color-pink)", "var(--color-teal)", "var(--color-orange)", "var(--color-green-1)"];
+  const SPARK_COLORS = [
+    "var(--color-pink)",
+    "var(--color-teal)",
+    "var(--color-orange)",
+    "var(--color-green-1)",
+  ];
   function wireLogo() {
-    document
-      .querySelectorAll<HTMLElement>("[data-logo-link]:not([data-wired])")
-      .forEach((link) => {
-        link.dataset.wired = "1";
-        const sparks = link.querySelector<HTMLElement>("[data-logo-sparks]");
-        link.addEventListener("click", () => {
-          if (sparks) {
-            const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-            if (reduced) return;
-            const count = 10;
-            for (let i = 0; i < count; i++) {
-              const angle = (i / count) * Math.PI * 2 + Math.random() * 0.4;
-              const dist = 24 + Math.random() * 16;
-              const el = document.createElement("span");
-              el.className = "spark";
-              el.style.setProperty("--spark-dx", `${Math.cos(angle) * dist}px`);
-              el.style.setProperty("--spark-dy", `${Math.sin(angle) * dist}px`);
-              el.style.setProperty("--spark-color", SPARK_COLORS[i % SPARK_COLORS.length]);
-              sparks.appendChild(el);
-              window.setTimeout(() => el.remove(), 720);
-            }
+    document.querySelectorAll<HTMLElement>("[data-logo-link]:not([data-wired])").forEach((link) => {
+      link.dataset.wired = "1";
+      const sparks = link.querySelector<HTMLElement>("[data-logo-sparks]");
+      link.addEventListener("click", () => {
+        if (sparks) {
+          const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+          if (reduced) return;
+          const count = 10;
+          for (let i = 0; i < count; i++) {
+            const angle = (i / count) * Math.PI * 2 + Math.random() * 0.4;
+            const dist = 24 + Math.random() * 16;
+            const el = document.createElement("span");
+            el.className = "spark";
+            el.style.setProperty("--spark-dx", `${Math.cos(angle) * dist}px`);
+            el.style.setProperty("--spark-dy", `${Math.sin(angle) * dist}px`);
+            el.style.setProperty("--spark-color", SPARK_COLORS[i % SPARK_COLORS.length]);
+            sparks.appendChild(el);
+            window.setTimeout(() => el.remove(), 720);
           }
-        });
+        }
       });
+    });
   }
 
   /*
@@ -694,9 +785,7 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
           const grid = document.querySelector<HTMLElement>("[data-gallery-grid]");
           const youId = grid?.dataset.youId;
           if (!grid || !youId) return;
-          const card = grid.querySelector<HTMLElement>(
-            `[data-mini-card-wrap][data-id="${youId}"]`,
-          );
+          const card = grid.querySelector<HTMLElement>(`[data-mini-card-wrap][data-id="${youId}"]`);
           if (!card) return;
           e.preventDefault();
           const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -711,7 +800,12 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
             flash();
           } else {
             let settled = false;
-            const fire = () => { if (!settled) { settled = true; flash(); } };
+            const fire = () => {
+              if (!settled) {
+                settled = true;
+                flash();
+              }
+            };
             if ("onscrollend" in window) {
               window.addEventListener("scrollend", fire, { once: true });
               window.setTimeout(fire, 1200);
@@ -735,7 +829,9 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
           }
           // Close the mobile sidebar so the card isn't covered.
           document.querySelector<HTMLElement>("[data-sidebar]")?.removeAttribute("data-open");
-          document.querySelector<HTMLElement>("[data-sidebar-backdrop]")?.removeAttribute("data-open");
+          document
+            .querySelector<HTMLElement>("[data-sidebar-backdrop]")
+            ?.removeAttribute("data-open");
         });
       });
   }
