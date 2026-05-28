@@ -1351,6 +1351,19 @@
       return dizzy ? DIZZY_PHRASES : pool;
     }
 
+    let bubbleNudgeRaf = 0;
+    function clampBubbleNudge(bubble: HTMLElement) {
+      // Reset to 0, measure, then re-apply the clamp. Without resetting the
+      // measured rect would already include the previous frame's shift.
+      bubble.style.setProperty("--bubble-shift-x", "0px");
+      const r = bubble.getBoundingClientRect();
+      const PAD = 8;
+      let shift = 0;
+      if (r.left < PAD) shift = PAD - r.left;
+      else if (r.right > window.innerWidth - PAD) shift = (window.innerWidth - PAD) - r.right;
+      if (shift !== 0) bubble.style.setProperty("--bubble-shift-x", `${shift}px`);
+    }
+
     function saySomething(pet: HTMLElement, pool: string[], ms = 1800) {
       const bubble = pet.querySelector<HTMLElement>("[data-pet-bubble]");
       if (!bubble) return;
@@ -1360,22 +1373,25 @@
       } else {
         bubble.textContent = phrase;
       }
-      // Reset prior horizontal nudge before re-measuring.
       bubble.style.setProperty("--bubble-shift-x", "0px");
       bubble.setAttribute("data-show", "");
-      // Next frame: measure where the bubble landed and nudge horizontally
-      // if it overflows the viewport. The tail counter-translates so it
-      // still points at the pet.
-      requestAnimationFrame(() => {
-        const r = bubble.getBoundingClientRect();
-        const PAD = 8;
-        let shift = 0;
-        if (r.left < PAD) shift = PAD - r.left;
-        else if (r.right > window.innerWidth - PAD) shift = (window.innerWidth - PAD) - r.right;
-        if (shift !== 0) bubble.style.setProperty("--bubble-shift-x", `${shift}px`);
-      });
+      // Continuously re-clamp while the bubble is visible — the pet keeps
+      // walking, so a bubble that fit at show-time can drift offscreen.
+      if (bubbleNudgeRaf) cancelAnimationFrame(bubbleNudgeRaf);
+      const tick = () => {
+        if (!bubble.hasAttribute("data-show")) {
+          bubbleNudgeRaf = 0;
+          return;
+        }
+        clampBubbleNudge(bubble);
+        bubbleNudgeRaf = requestAnimationFrame(tick);
+      };
+      bubbleNudgeRaf = requestAnimationFrame(tick);
       if (bubbleTimer) window.clearTimeout(bubbleTimer);
-      bubbleTimer = window.setTimeout(() => bubble.removeAttribute("data-show"), ms);
+      bubbleTimer = window.setTimeout(() => {
+        bubble.removeAttribute("data-show");
+        bubble.style.setProperty("--bubble-shift-x", "0px");
+      }, ms);
     }
 
     // Tracks whether the pet has already "met" each wall — the first

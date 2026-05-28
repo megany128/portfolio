@@ -81,10 +81,10 @@ const cursorColor = visitor?.color ?? "pink";
 
         <div
           data-portraits
-          class="portrait-strip flex flex-wrap items-start justify-center md:justify-between gap-3 sm:gap-4 mt-2 relative lg:grid lg:grid-cols-[1fr_2.2fr_1fr] lg:items-stretch"
+          class="portrait-strip grid grid-cols-2 lg:grid-cols-[1fr_2fr_1fr] gap-4 lg:gap-8 mt-2 relative items-start lg:items-stretch"
         >
           <div
-            class="portrait-wrap"
+            class="portrait-wrap justify-self-end lg:justify-self-stretch"
             data-portrait
             data-cursor="photo"
             data-cursor-label="hi there!"
@@ -93,11 +93,11 @@ const cursorColor = visitor?.color ?? "pink";
             <img
               src="/images/about/portrait-1.jpg"
               alt="Megan portrait"
-              class="portrait rounded-[10px] object-cover w-[120px] h-[210px] sm:w-[150px] sm:h-[270px] lg:w-full lg:h-[360px]"
+              class="portrait rounded-[10px] object-cover w-[140px] h-[230px] sm:w-[170px] sm:h-[280px] md:w-[200px] md:h-[320px] lg:w-full lg:h-[360px]"
             />
           </div>
           <div
-            class="portrait-wrap order-3 lg:order-none basis-full lg:basis-auto flex justify-center"
+            class="portrait-wrap col-span-2 lg:col-span-1 lg:order-none flex justify-center"
             data-portrait
             data-cursor="photo"
             data-cursor-label="caught in the wild. photo by simon"
@@ -106,11 +106,11 @@ const cursorColor = visitor?.color ?? "pink";
             <img
               src="/images/about/portrait-2.webp"
               alt="Megan candid"
-              class="portrait rounded-[10px] object-cover w-full max-w-[427px] h-[210px] sm:h-[280px] lg:max-w-none lg:w-full lg:h-[360px]"
+              class="portrait rounded-[10px] object-cover w-full max-w-[427px] h-[220px] sm:h-[300px] md:h-[340px] lg:max-w-none lg:w-full lg:h-[360px]"
             />
           </div>
           <div
-            class="portrait-wrap"
+            class="portrait-wrap justify-self-start lg:justify-self-stretch"
             data-portrait
             data-cursor="photo"
             data-cursor-label="ipoh, malaysia"
@@ -119,7 +119,7 @@ const cursorColor = visitor?.color ?? "pink";
             <img
               src="/images/about/portrait-3.webp"
               alt="Megan portrait"
-              class="portrait rounded-[12px] object-cover w-[150px] h-[210px] sm:w-[190px] sm:h-[270px] lg:w-full lg:h-[360px]"
+              class="portrait rounded-[12px] object-cover w-[140px] h-[230px] sm:w-[170px] sm:h-[280px] md:w-[200px] md:h-[320px] lg:w-full lg:h-[360px]"
             />
           </div>
         </div>
@@ -134,16 +134,16 @@ const cursorColor = visitor?.color ?? "pink";
         <div class="flex flex-col md:flex-row gap-4 md:gap-6 items-stretch md:items-start">
           <CommunityCard
             icon="/images/communities/dti-icon.png"
-            iconWidth={19}
-            iconHeight={19}
+            iconWidth={24}
+            iconHeight={24}
             title="Digital Tech & Innovation"
             description="I've been on DTI since my freshman year and have been active as Product Lead, CU Reviews PM, and Incubator PM/Designer! I've grown so much on DTI, and am so happy to be giving back as a mentor and instructor now."
             photo="/images/communities/dti-photo.png"
           />
           <CommunityCard
             icon="/images/communities/dcc-icon.png"
-            iconWidth={11}
-            iconHeight={16}
+            iconWidth={13}
+            iconHeight={24}
             iconRounded={false}
             title="Design Consulting at Cornell"
             description="DCC is where I first got into design — it was in this club that I learned Figma for the first time and truly understood the fundamentals of how to create good user experiences. Being in this community has been lovely!"
@@ -151,8 +151,8 @@ const cursorColor = visitor?.color ?? "pink";
           />
           <CommunityCard
             icon="/images/communities/armada-icon.png"
-            iconWidth={28}
-            iconHeight={19}
+            iconWidth={36}
+            iconHeight={24}
             iconRounded={false}
             title="Armada"
             description="I just joined Armada as a builder — it's an awesome club that is sponsored by Jared Friedman (YC) and Anthropic. Everyone in Armada is insanely cracked and I'm looking forward to getting to know the people here!"
