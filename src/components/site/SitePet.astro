@@ -520,7 +520,7 @@
     position: absolute;
     left: 22px; /* half the sprite width */
     bottom: calc(100% + 14px);
-    transform: translate(-50%, 0) translateY(4px);
+    transform: translate(-50%, 0) translate(var(--bubble-shift-x, 0px), 4px);
     padding: 6px 10px;
     border-radius: 10px;
     background: rgba(18, 18, 18, 0.82);
@@ -542,7 +542,7 @@
   }
   .site-pet__bubble[data-show] {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: translate(-50%, 0) translateX(var(--bubble-shift-x, 0px));
   }
   /* Raise bubble when wearing a hat so it clears the headwear */
   .site-pet[data-hat="bucket"] .site-pet__bubble,
@@ -565,7 +565,9 @@
     top: 100%;
     width: 0;
     height: 0;
-    transform: translateX(-50%);
+    /* Counter-shift so the tail still points at the pet when the bubble
+       has been nudged horizontally to stay on-screen. */
+    transform: translateX(-50%) translateX(calc(-1 * var(--bubble-shift-x, 0px)));
     border: 5px solid transparent;
     border-top-color: rgba(18, 18, 18, 0.82);
     border-bottom: 0;
@@ -1358,7 +1360,20 @@
       } else {
         bubble.textContent = phrase;
       }
+      // Reset prior horizontal nudge before re-measuring.
+      bubble.style.setProperty("--bubble-shift-x", "0px");
       bubble.setAttribute("data-show", "");
+      // Next frame: measure where the bubble landed and nudge horizontally
+      // if it overflows the viewport. The tail counter-translates so it
+      // still points at the pet.
+      requestAnimationFrame(() => {
+        const r = bubble.getBoundingClientRect();
+        const PAD = 8;
+        let shift = 0;
+        if (r.left < PAD) shift = PAD - r.left;
+        else if (r.right > window.innerWidth - PAD) shift = (window.innerWidth - PAD) - r.right;
+        if (shift !== 0) bubble.style.setProperty("--bubble-shift-x", `${shift}px`);
+      });
       if (bubbleTimer) window.clearTimeout(bubbleTimer);
       bubbleTimer = window.setTimeout(() => bubble.removeAttribute("data-show"), ms);
     }
