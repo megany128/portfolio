@@ -61,7 +61,7 @@
   /* === Typography === */
   --font-display: "Gelica", "Cormorant Garamond", "Times New Roman", serif;
   --font-mono: "Source Code Pro", ui-monospace, "SF Mono", Menlo, monospace;
-  --font-body: "Segoe UI", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --font-body: "Segoe UI", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, Roboto, "Noto Sans", sans-serif;
 
   /* H1 — Gelica Light 36 / 100% line-height */
   --text-h1: 2.25rem;

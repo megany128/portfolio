@@ -270,7 +270,7 @@ const hatTotal = Object.values(hatCounts).reduce((a, b) => a + b, 0);
 <script>
   function renderTimeline() {
     const container = document.querySelector<HTMLElement>("[data-stats-timeline]");
-    if (!container || container.dataset.rendered === "1") return;
+    if (!container) return;
 
     const timestamps: string[] = JSON.parse(container.dataset.timestamps || "[]");
     if (timestamps.length === 0) return;
@@ -302,7 +302,10 @@ const hatTotal = Object.values(hatCounts).reduce((a, b) => a + b, 0);
     }
     if (filled.length < 2) return;
 
-    const svgW = 600, svgH = 80, padY = 4;
+    // Measure container so the SVG renders at native pixel width — avoids
+    // the stretch that happened with a fixed 600-wide viewBox + preserveAspectRatio="none".
+    const measuredW = Math.max(120, Math.floor(container.clientWidth || 600));
+    const svgW = measuredW, svgH = 80, padY = 4;
     const graphH = svgH - padY * 2;
     const max = Math.max(...filled.map((d) => d.count), 1);
 
@@ -322,7 +325,7 @@ const hatTotal = Object.values(hatCounts).reduce((a, b) => a + b, 0);
     container.innerHTML = `
       <h3 class="font-[family-name:var(--font-mono)] text-xs uppercase text-[var(--color-fg-neutral)] mb-3 tracking-wide">Visitors Over Time</h3>
       <div class="flex flex-col gap-1">
-        <svg viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="none" class="w-full h-20" data-stats-line role="img" aria-label="Visitor signups over time: ${filled.length} days, peak ${max} in a day">
+        <svg viewBox="0 0 ${svgW} ${svgH}" width="${svgW}" height="${svgH}" class="block h-20" data-stats-line role="img" aria-label="Visitor signups over time: ${filled.length} days, peak ${max} in a day">
           <path d="${areaPath}" fill="var(--color-teal)" opacity="0.12" />
           <path d="${linePath}" fill="none" stroke="var(--color-teal)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.7" />
           <line data-stats-crosshair x1="0" y1="0" x2="0" y2="${svgH}" stroke="var(--color-ink-mute)" stroke-width="1" stroke-dasharray="3 3" opacity="0" />
@@ -523,12 +526,37 @@ const hatTotal = Object.values(hatCounts).reduce((a, b) => a + b, 0);
       resetBtn?.addEventListener("click", clearFilter);
     }
 
-    // Line graph hover: crosshair + active dot + tooltip
+    wireTimelineHover();
+
+    // Re-render the timeline when the container width changes — the chart is
+    // measured-pixel sized, not stretched, so width changes need a redraw.
+    const timelineContainer = document.querySelector<HTMLElement>("[data-stats-timeline]");
+    if (timelineContainer && !timelineContainer.dataset.resizeWired) {
+      timelineContainer.dataset.resizeWired = "1";
+      let lastWidth = timelineContainer.clientWidth;
+      let rafId = 0;
+      const ro = new ResizeObserver(() => {
+        if (rafId) return;
+        rafId = requestAnimationFrame(() => {
+          rafId = 0;
+          const w = timelineContainer.clientWidth;
+          if (Math.abs(w - lastWidth) < 2) return;
+          lastWidth = w;
+          renderTimeline();
+          wireTimelineHover();
+        });
+      });
+      ro.observe(timelineContainer);
+    }
+  }
+
+  function wireTimelineHover() {
     const svg = document.querySelector<SVGElement>("[data-stats-line]");
     const tip = document.querySelector<HTMLElement>("[data-stats-tooltip]");
     const crosshair = svg?.querySelector<SVGLineElement>("[data-stats-crosshair]");
     const activeDot = svg?.querySelector<SVGCircleElement>("[data-stats-active-dot]");
-    if (svg && tip && crosshair && activeDot) {
+    if (svg && tip && crosshair && activeDot && !(svg as SVGElement & { dataset: DOMStringMap }).dataset.hoverWired) {
+      (svg as SVGElement & { dataset: DOMStringMap }).dataset.hoverWired = "1";
       const fmtDate = (iso: string) => {
         const [y, m, d] = iso.split("-").map(Number);
         return new Date(y, m - 1, d).toLocaleDateString("en-US", { month: "short", day: "numeric" });

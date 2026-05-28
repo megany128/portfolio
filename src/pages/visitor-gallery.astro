@@ -24,9 +24,10 @@ const seedCount = SEED_VISITORS.length;
 const offsetVisitors = realVisitors.map((v) => ({ ...v, number: v.number + seedCount }));
 
 // Ensure the current visitor's card is in the initial batch even if they
-// signed up long ago and aren't in the latest PAGE_SIZE.
+// signed up long ago and aren't in the latest PAGE_SIZE. Skip when the
+// visitor hasn't drawn a signature — those cards are excluded from gallery.
 let extraYou: typeof offsetVisitors[number] | null = null;
-if (visitor && !offsetVisitors.some((v) => v.id === visitor.id)) {
+if (visitor && visitor.signature && !offsetVisitors.some((v) => v.id === visitor.id)) {
   extraYou = { ...visitor, number: visitor.number + seedCount, signature: null };
 }
 
@@ -45,7 +46,9 @@ const ordinal = (n: number) => {
 
 const visitorNumber = visitor ? visitor.number + seedCount : 0;
 const subtitle = visitor
-  ? `You're our ${ordinal(visitorNumber)} guest!`
+  ? visitor.signature
+    ? `You're our ${ordinal(visitorNumber)} guest!`
+    : "Add a doodle to join the gallery"
   : total === 0
     ? "Be the first to sign in."
     : `${total} ${total === 1 ? "guest has" : "guests have"} signed in.`;
