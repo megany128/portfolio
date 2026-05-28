@@ -57,14 +57,12 @@ const {
     transform: translateY(0);
     transition:
       transform var(--duration-base) var(--ease-out-soft),
-      box-shadow var(--duration-base) var(--ease-out-soft),
       opacity var(--duration-base) var(--ease-out-soft),
       filter var(--duration-base) var(--ease-out-soft);
     will-change: transform;
   }
   .community-card:hover {
-    transform: translateY(-6px) scale(1.02) rotate(var(--card-tilt, -1.5deg));
-    box-shadow: 0 18px 32px -16px rgba(36, 36, 36, 0.35);
+    transform: translateY(-4px) rotate(var(--card-tilt, -1.5deg));
     z-index: 2;
   }
   .community-card:nth-child(1) { --card-tilt: -1.5deg; }
