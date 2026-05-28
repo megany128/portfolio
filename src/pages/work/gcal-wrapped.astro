@@ -456,7 +456,39 @@ const reflections = [
                         : "text-[var(--color-green)]",
                     ]}
                   >
-                    {item.tone === "negative" ? "\u2716" : "\u2713"} {item.label}!
+                    {item.tone === "negative" ? (
+                      <svg
+                        class="inline-block align-[-2px] mr-1"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M18 6L6 18" />
+                        <path d="M6 6l12 12" />
+                      </svg>
+                    ) : (
+                      <svg
+                        class="inline-block align-[-2px] mr-1"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
+                    )}
+                    {item.label}!
                   </p>
                   <p class="font-[family-name:var(--font-body)] text-[13px] text-[var(--color-ink-dim)] text-center leading-snug">
                     {item.caption}
@@ -483,7 +515,7 @@ const reflections = [
             src="/images/work/gcal-wrapped/landing-page.png"
             alt="Landing page — craziest GCal events submission CTA"
             loading="lazy"
-            class="w-full max-w-[720px] h-auto rounded-[16px]"
+            class="w-full max-w-[720px] lg:max-w-[960px] xl:max-w-[1100px] h-auto rounded-[16px]"
           />
         </div>
 
@@ -537,7 +569,7 @@ const reflections = [
             src="/images/work/gcal-wrapped/launch-post.png"
             alt="Slack launch post announcing GCal Wrapped"
             loading="lazy"
-            class="w-full max-w-[560px] h-auto rounded-[12px]"
+            class="w-full max-w-[560px] lg:max-w-[760px] xl:max-w-[900px] h-auto rounded-[12px]"
           />
         </div>
 
@@ -757,6 +789,16 @@ const reflections = [
     position: relative;
     width: 100%;
     height: 460px;
+  }
+  @media (min-width: 1024px) {
+    .cs-pare-frame {
+      height: 600px;
+    }
+  }
+  @media (min-width: 1280px) {
+    .cs-pare-frame {
+      height: 720px;
+    }
   }
   .cs-pare-img {
     position: absolute;
