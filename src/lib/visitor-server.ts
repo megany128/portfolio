@@ -181,7 +181,7 @@ export async function listVisitors(
   const rows = await db(ctx)
     .prepare(
       `SELECT id, number, name, color, issued_at, signature_png AS signature
-       FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL ORDER BY number DESC LIMIT ?`
+       FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL AND LENGTH(signature_png) > 800 ORDER BY number DESC LIMIT ?`
     )
     .bind(limit)
     .all<VisitorRow>();
@@ -199,7 +199,7 @@ export async function listVisitorsLite(
   const rows = await db(ctx)
     .prepare(
       `SELECT id, number, name, color, issued_at, NULL AS signature
-       FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL ORDER BY number DESC LIMIT ? OFFSET ?`
+       FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL AND LENGTH(signature_png) > 800 ORDER BY number DESC LIMIT ? OFFSET ?`
     )
     .bind(limit, offset)
     .all<VisitorRow>();
@@ -210,7 +210,7 @@ export async function listVisitorsLite(
 /** Total number of approved visitors in the DB. */
 export async function countVisitors(ctx: APIContext): Promise<number> {
   const row = await db(ctx)
-    .prepare(`SELECT COUNT(*) AS cnt FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL`)
+    .prepare(`SELECT COUNT(*) AS cnt FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL AND LENGTH(signature_png) > 800`)
     .first<{ cnt: number }>();
   return row?.cnt ?? 0;
 }
@@ -273,19 +273,19 @@ export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
   const d = db(ctx);
   const [colorRows, sigRow, timeRow, dailyRows, maxRow, hatRows] = await d.batch([
     d.prepare(
-      `SELECT color, COUNT(*) AS cnt FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL GROUP BY color`,
+      `SELECT color, COUNT(*) AS cnt FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL AND LENGTH(signature_png) > 800 GROUP BY color`,
     ),
     d.prepare(
-      `SELECT COUNT(*) AS cnt FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL`,
+      `SELECT COUNT(*) AS cnt FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL AND LENGTH(signature_png) > 800`,
     ),
     d.prepare(
-      `SELECT MIN(issued_at) AS first_at, MAX(issued_at) AS latest_at FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL`,
+      `SELECT MIN(issued_at) AS first_at, MAX(issued_at) AS latest_at FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL AND LENGTH(signature_png) > 800`,
     ),
     d.prepare(
-      `SELECT issued_at FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL ORDER BY issued_at`,
+      `SELECT issued_at FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL AND LENGTH(signature_png) > 800 ORDER BY issued_at`,
     ),
     d.prepare(
-      `SELECT COALESCE(MAX(number), 0) AS max_num FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL`,
+      `SELECT COALESCE(MAX(number), 0) AS max_num FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL AND LENGTH(signature_png) > 800`,
     ),
     d.prepare(
       `SELECT key, value FROM counters WHERE key LIKE 'hat_%' AND value > 0`,
