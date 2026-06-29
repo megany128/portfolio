@@ -806,7 +806,8 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
                 flash();
               }
             };
-            if ("onscrollend" in window) {
+            const hasScrollEnd = "onscrollend" in window;
+            if (hasScrollEnd) {
               window.addEventListener("scrollend", fire, { once: true });
               window.setTimeout(fire, 1200);
             } else {

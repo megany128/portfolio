@@ -5,7 +5,7 @@ import Footer from "../components/home/Footer.astro";
 import CustomCursor from "../components/home/CustomCursor.astro";
 import Grid from "../components/gallery/Grid.astro";
 import StatsPanel from "../components/gallery/StatsPanel.astro";
-import { getCurrentVisitor, listVisitorsLite, countVisitors, getGalleryStats } from "../lib/visitor-server";
+import { getCurrentVisitor, listVisitorsLite, getGalleryStats } from "../lib/visitor-server";
 import { SEED_VISITORS } from "../lib/seed-visitors";
 
 export const prerender = false;
@@ -15,11 +15,13 @@ const PAGE_SIZE = 48;
 const visitor = await getCurrentVisitor(Astro);
 const cursorColor = visitor?.color ?? "pink";
 
-const [realVisitors, realTotal, galleryStats] = await Promise.all([
+const [realVisitors, galleryStats] = await Promise.all([
   listVisitorsLite(Astro, PAGE_SIZE),
-  countVisitors(Astro),
   getGalleryStats(Astro),
 ]);
+// `withSignature` is the same indexed COUNT the old countVisitors ran — the
+// number of real gallery cards, used for Grid's "load more" pagination.
+const realTotal = galleryStats.withSignature;
 const seedCount = SEED_VISITORS.length;
 const offsetVisitors = realVisitors.map((v) => ({ ...v, number: v.number + seedCount }));
 
@@ -128,7 +130,7 @@ const subtitle = visitor
       </header>
 
       {total > 0 && (
-        <StatsPanel stats={galleryStats} total={total} seedCount={seedCount} />
+        <StatsPanel stats={galleryStats} total={total} />
       )}
 
       {!visitor && (
@@ -320,7 +322,8 @@ const subtitle = visitor
           settled = true;
           flash();
         };
-        if ("onscrollend" in window) {
+        const hasScrollEnd = "onscrollend" in window;
+        if (hasScrollEnd) {
           window.addEventListener("scrollend", fire, { once: true });
           window.setTimeout(fire, 1200); // safety net
         } else {

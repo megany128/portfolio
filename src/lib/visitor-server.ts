@@ -49,6 +49,15 @@ function rowToRecord(row: VisitorRow): VisitorRecord {
   };
 }
 
+/**
+ * Whether a stored signature counts as a real drawing for the gallery. Mirrors
+ * the historical `LENGTH(signature_png) > 800` SQL filter — empty/near-empty
+ * canvases fall below the threshold and are excluded.
+ */
+export function hasRealSignature(signature: string | null | undefined): boolean {
+  return typeof signature === "string" && signature.length > 800;
+}
+
 export function readVisitorId(ctx: APIContext): string | null {
   return ctx.cookies.get(VISITOR_ID_COOKIE)?.value ?? null;
 }
@@ -109,15 +118,17 @@ export async function createVisitor(
   // Auto-approve cards that kept the generator's default name and skipped
   // drawing — no user-supplied content to moderate.
   const autoApprove = signature === null && isGeneratedVisitorName(input.name);
+  // Indexed gallery flag — mirrors the old `LENGTH(signature_png) > 800` filter.
+  const hasSig = hasRealSignature(signature) ? 1 : 0;
 
   // INSERT ... SELECT to atomically allocate the next number.
   const result = await db(ctx)
     .prepare(
-      `INSERT INTO visitors (id, number, name, color, issued_at, signature_png, approved)
-       SELECT ?, COALESCE((SELECT MAX(number) FROM visitors), 0) + 1, ?, ?, ?, ?, ?
+      `INSERT INTO visitors (id, number, name, color, issued_at, signature_png, approved, has_signature)
+       SELECT ?, COALESCE((SELECT MAX(number) FROM visitors), 0) + 1, ?, ?, ?, ?, ?, ?
        RETURNING number`
     )
-    .bind(id, input.name, input.color, issuedAt, signature, autoApprove ? 1 : 0)
+    .bind(id, input.name, input.color, issuedAt, signature, autoApprove ? 1 : 0, hasSig)
     .first<{ number: number }>();
 
   if (!result) throw new Error("Failed to insert visitor");
@@ -151,12 +162,13 @@ export async function updateVisitor(
   const stmt = hasSignature
     ? (() => {
         const autoApprove = nameIsDefault && (input.signature ?? null) === null;
+        const hasSig = hasRealSignature(input.signature ?? null) ? 1 : 0;
         return db(ctx)
           .prepare(
-            `UPDATE visitors SET name = ?, color = ?, signature_png = ?, approved = ? WHERE id = ?
+            `UPDATE visitors SET name = ?, color = ?, signature_png = ?, approved = ?, has_signature = ? WHERE id = ?
              RETURNING id, number, name, color, issued_at, signature_png AS signature`
           )
-          .bind(input.name, input.color, input.signature ?? null, autoApprove ? 1 : 0, id);
+          .bind(input.name, input.color, input.signature ?? null, autoApprove ? 1 : 0, hasSig, id);
       })()
     : db(ctx)
         .prepare(
@@ -181,7 +193,7 @@ export async function listVisitors(
   const rows = await db(ctx)
     .prepare(
       `SELECT id, number, name, color, issued_at, signature_png AS signature
-       FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL AND LENGTH(signature_png) > 800 ORDER BY number DESC LIMIT ?`
+       FROM visitors WHERE approved = 1 AND has_signature = 1 ORDER BY number DESC LIMIT ?`
     )
     .bind(limit)
     .all<VisitorRow>();
@@ -199,7 +211,7 @@ export async function listVisitorsLite(
   const rows = await db(ctx)
     .prepare(
       `SELECT id, number, name, color, issued_at, NULL AS signature
-       FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL AND LENGTH(signature_png) > 800 ORDER BY number DESC LIMIT ? OFFSET ?`
+       FROM visitors WHERE approved = 1 AND has_signature = 1 ORDER BY number DESC LIMIT ? OFFSET ?`
     )
     .bind(limit, offset)
     .all<VisitorRow>();
@@ -210,7 +222,7 @@ export async function listVisitorsLite(
 /** Total number of approved visitors in the DB. */
 export async function countVisitors(ctx: APIContext): Promise<number> {
   const row = await db(ctx)
-    .prepare(`SELECT COUNT(*) AS cnt FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL AND LENGTH(signature_png) > 800`)
+    .prepare(`SELECT COUNT(*) AS cnt FROM visitors WHERE approved = 1 AND has_signature = 1`)
     .first<{ cnt: number }>();
   return row?.cnt ?? 0;
 }
@@ -262,8 +274,13 @@ export type GalleryStats = {
   withSignature: number;
   firstIssuedAt: string | null;
   latestIssuedAt: string | null;
-  /** Raw issued_at timestamps — grouped by local day on the client. */
-  signupTimestamps: string[];
+  /**
+   * Signups bucketed per UTC calendar day (`YYYY-MM-DD`), ascending. Aggregated
+   * server-side so we ship ~one row per active day instead of every raw
+   * timestamp — near-midnight signups may land ±1 day off for non-UTC viewers,
+   * which is invisible on the decorative sparkline.
+   */
+  signupsByDay: { day: string; count: number }[];
   /** Highest assigned visitor number (includes unapproved). */
   maxNumber: number;
   hatCounts: Record<HatKey, number>;
@@ -273,19 +290,19 @@ export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
   const d = db(ctx);
   const [colorRows, sigRow, timeRow, dailyRows, maxRow, hatRows] = await d.batch([
     d.prepare(
-      `SELECT color, COUNT(*) AS cnt FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL AND LENGTH(signature_png) > 800 GROUP BY color`,
+      `SELECT color, COUNT(*) AS cnt FROM visitors WHERE approved = 1 AND has_signature = 1 GROUP BY color`,
     ),
     d.prepare(
-      `SELECT COUNT(*) AS cnt FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL AND LENGTH(signature_png) > 800`,
+      `SELECT COUNT(*) AS cnt FROM visitors WHERE approved = 1 AND has_signature = 1`,
     ),
     d.prepare(
-      `SELECT MIN(issued_at) AS first_at, MAX(issued_at) AS latest_at FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL AND LENGTH(signature_png) > 800`,
+      `SELECT MIN(issued_at) AS first_at, MAX(issued_at) AS latest_at FROM visitors WHERE approved = 1 AND has_signature = 1`,
     ),
     d.prepare(
-      `SELECT issued_at FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL AND LENGTH(signature_png) > 800 ORDER BY issued_at`,
+      `SELECT substr(issued_at, 1, 10) AS day, COUNT(*) AS cnt FROM visitors WHERE approved = 1 AND has_signature = 1 GROUP BY day ORDER BY day`,
     ),
     d.prepare(
-      `SELECT COALESCE(MAX(number), 0) AS max_num FROM visitors WHERE approved = 1 AND signature_png IS NOT NULL AND LENGTH(signature_png) > 800`,
+      `SELECT COALESCE(MAX(number), 0) AS max_num FROM visitors WHERE approved = 1 AND has_signature = 1`,
     ),
     d.prepare(
       `SELECT key, value FROM counters WHERE key LIKE 'hat_%' AND value > 0`,
@@ -302,8 +319,8 @@ export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
   const withSignature = (sigRow as D1Result<{ cnt: number }>).results[0]?.cnt ?? 0;
   const timeResult = (timeRow as D1Result<{ first_at: string | null; latest_at: string | null }>).results[0];
 
-  const signupTimestamps = (dailyRows as D1Result<{ issued_at: string }>).results.map(
-    (r) => r.issued_at,
+  const signupsByDay = (dailyRows as D1Result<{ day: string; cnt: number }>).results.map(
+    (r) => ({ day: r.day, count: r.cnt }),
   );
 
   const maxNumber = (maxRow as D1Result<{ max_num: number }>).results[0]?.max_num ?? 0;
@@ -319,7 +336,7 @@ export async function getGalleryStats(ctx: APIContext): Promise<GalleryStats> {
     withSignature,
     firstIssuedAt: timeResult?.first_at ?? null,
     latestIssuedAt: timeResult?.latest_at ?? null,
-    signupTimestamps,
+    signupsByDay,
     maxNumber,
     hatCounts,
   };
@@ -371,7 +388,7 @@ export async function approveAllVisitors(ctx: APIContext): Promise<number> {
   const result = await db(ctx)
     .prepare(`UPDATE visitors SET approved = 1 WHERE approved = 0`)
     .run();
-  return result.meta.changes ?? 0;
+  return Number(result.meta.changes ?? 0);
 }
 
 /** Reject (delete) a visitor card permanently. */

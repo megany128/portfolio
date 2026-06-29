@@ -107,5 +107,103 @@ const ogImageUrl = new URL(image, Astro.site).href;
   <body class={bodyClass}>
     <slot />
     {showPet && <SitePet />}
+
+    <script>
+      /*
+        Gallery navigation skeleton. Default View Transition animations are
+        disabled (instant swap), so while ClientRouter fetches the next page in
+        the background there is zero visual feedback. /visitor-gallery is the
+        one heavy route, so when a nav toward it begins we drop a shape-correct
+        skeleton (sidebar block + a responsive grid of card placeholders) the
+        instant the click lands, and remove it once the real page swaps in.
+
+        Wired once per document: ClientRouter swaps the <body> but keeps the
+        document and module scope, so a one-time bind on `document` survives
+        every navigation. The overlay lives on <html> for the same reason.
+      */
+      (function () {
+        const w = window as unknown as { __gallerySkeletonWired?: boolean };
+        if (w.__gallerySkeletonWired) return;
+        w.__gallerySkeletonWired = true;
+
+        const GALLERY_PATH = "/visitor-gallery";
+        const CARD_COUNT = 9;
+
+        const style = document.createElement("style");
+        style.textContent = `
+          #gallery-skeleton {
+            position: fixed; inset: 0; z-index: 9998;
+            background: var(--color-bg); display: flex; align-items: stretch;
+            animation: gs-fade 140ms ease-out;
+          }
+          @keyframes gs-fade { from { opacity: 0 } to { opacity: 1 } }
+          #gallery-skeleton .gs-sidebar {
+            width: 303px; flex-shrink: 0; background: var(--color-bg-light);
+          }
+          @media (max-width: 767px) { #gallery-skeleton .gs-sidebar { display: none } }
+          #gallery-skeleton .gs-main {
+            flex: 1; min-width: 0; padding: 1rem;
+            display: flex; flex-direction: column; gap: 1.5rem;
+          }
+          @media (min-width: 640px) { #gallery-skeleton .gs-main { padding: 1.5rem } }
+          @media (min-width: 768px) { #gallery-skeleton .gs-main { padding: 2.5rem } }
+          #gallery-skeleton .gs-title {
+            font-family: var(--font-display); font-weight: 300;
+            font-size: 36px; line-height: 1; color: var(--color-ink);
+          }
+          @media (max-width: 640px) { #gallery-skeleton .gs-title { font-size: 28px } }
+          #gallery-skeleton .gs-grid {
+            display: grid; grid-template-columns: 1fr; gap: 1.5rem 1rem;
+          }
+          @media (min-width: 640px) { #gallery-skeleton .gs-grid { grid-template-columns: 1fr 1fr } }
+          @media (min-width: 1024px) { #gallery-skeleton .gs-grid { grid-template-columns: 1fr 1fr 1fr } }
+          #gallery-skeleton .gs-card {
+            aspect-ratio: 388 / 252; border-radius: 24px;
+            background: color-mix(in oklab, var(--color-ink) 7%, var(--color-bg-light));
+            animation: gs-pulse 1.4s ease-in-out infinite;
+          }
+          @keyframes gs-pulse { 0%, 100% { opacity: 0.5 } 50% { opacity: 0.9 } }
+          @media (prefers-reduced-motion: reduce) {
+            #gallery-skeleton { animation: none }
+            #gallery-skeleton .gs-card { animation: none; opacity: 0.65 }
+          }
+        `;
+
+        function build(): HTMLElement {
+          const root = document.createElement("div");
+          root.id = "gallery-skeleton";
+          root.setAttribute("aria-hidden", "true");
+          const cards = Array.from({ length: CARD_COUNT })
+            .map(() => '<div class="gs-card"></div>')
+            .join("");
+          root.innerHTML =
+            '<div class="gs-sidebar"></div>' +
+            '<div class="gs-main">' +
+            '<div class="gs-title">Visitor Gallery</div>' +
+            `<div class="gs-grid">${cards}</div>` +
+            "</div>";
+          return root;
+        }
+
+        function show(event: Event & { to?: URL; from?: URL }) {
+          const to = event.to;
+          if (!to || to.pathname !== GALLERY_PATH) return;
+          // Already on the gallery (e.g. shuffle / scroll-to-you) — no skeleton.
+          if (event.from && event.from.pathname === GALLERY_PATH) return;
+          if (document.getElementById("gallery-skeleton")) return;
+          if (!style.isConnected) document.head.appendChild(style);
+          document.documentElement.appendChild(build());
+        }
+
+        function hide() {
+          document.getElementById("gallery-skeleton")?.remove();
+        }
+
+        document.addEventListener("astro:before-preparation", show as EventListener);
+        // page-load fires after the swap on every ClientRouter navigation; also
+        // covers the case where the destination wasn't the gallery (no-op hide).
+        document.addEventListener("astro:page-load", hide);
+      })();
+    </script>
   </body>
 </html>

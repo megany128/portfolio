@@ -1,14 +1,12 @@
 ---
-import type { CardColor } from "../../lib/visitor";
 import type { GalleryStats, HatKey } from "../../lib/visitor-server";
 
 interface Props {
   stats: GalleryStats;
   total: number;
-  seedCount: number;
 }
 
-const { stats, total, seedCount } = Astro.props;
+const { stats, total } = Astro.props;
 
 const displayColors = ["pink", "teal", "green", "orange"] as const;
 type DisplayColor = (typeof displayColors)[number];
@@ -28,7 +26,7 @@ const colorVars: Record<DisplayColor, string> = {
 };
 
 // Merge seed visitors into color counts
-const seedColors: CardColor[] = ["teal", "orange", "green", "pink"];
+const seedColors: DisplayColor[] = ["teal", "orange", "green", "pink"];
 const mergedCounts: Record<DisplayColor, number> = { pink: 0, teal: 0, green: 0, orange: 0 };
 for (const c of displayColors) mergedCounts[c] = stats.colorCounts[c] ?? 0;
 for (const c of seedColors) mergedCounts[c] = (mergedCounts[c] ?? 0) + 1;
@@ -53,7 +51,7 @@ function timeAgo(d: Date): string {
 }
 const latestAgo = latestDate ? timeAgo(latestDate) : null;
 
-const signupTimestamps = stats.signupTimestamps;
+const signupsByDay = stats.signupsByDay;
 
 // Hat picks
 const hatLabels: Record<HatKey, string> = {
@@ -87,7 +85,7 @@ const hatTotal = Object.values(hatCounts).reduce((a, b) => a + b, 0);
   <div class="stats-body rounded-[var(--radius-md)] border border-[var(--color-bg-neutral-2)] bg-[var(--color-bg-neutral)]/40 mt-4 p-4 sm:p-6 flex flex-col gap-6">
 
     {/* ---- Visitors over time (client-rendered for local timezone) ---- */}
-    <div data-stats-timeline data-timestamps={JSON.stringify(signupTimestamps)} />
+    <div data-stats-timeline data-days={JSON.stringify(signupsByDay)} />
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
@@ -272,16 +270,13 @@ const hatTotal = Object.values(hatCounts).reduce((a, b) => a + b, 0);
     const container = document.querySelector<HTMLElement>("[data-stats-timeline]");
     if (!container) return;
 
-    const timestamps: string[] = JSON.parse(container.dataset.timestamps || "[]");
-    if (timestamps.length === 0) return;
+    // Pre-aggregated per UTC day server-side (`YYYY-MM-DD` + count) — far
+    // smaller than shipping every raw timestamp.
+    const days: { day: string; count: number }[] = JSON.parse(container.dataset.days || "[]");
+    if (days.length === 0) return;
 
-    // Group by viewer's local day
     const dayMap = new Map<string, number>();
-    for (const ts of timestamps) {
-      const d = new Date(ts);
-      const key = [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
-      dayMap.set(key, (dayMap.get(key) ?? 0) + 1);
-    }
+    for (const { day, count } of days) dayMap.set(day, count);
 
     const sortedDays = [...dayMap.keys()].sort();
     if (sortedDays.length === 0) return;
