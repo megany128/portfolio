@@ -113,9 +113,17 @@ const ogImageUrl = new URL(image, Astro.site).href;
         Gallery navigation skeleton. Default View Transition animations are
         disabled (instant swap), so while ClientRouter fetches the next page in
         the background there is zero visual feedback. /visitor-gallery is the
-        one heavy route, so when a nav toward it begins we drop a shape-correct
-        skeleton (sidebar block + a responsive grid of card placeholders) the
-        instant the click lands, and remove it once the real page swaps in.
+        one heavy route, so a slow fetch can leave the user waiting with no cue.
+
+        We only show the skeleton if the nav is actually slow: a SHOW_DELAY timer
+        starts when a nav toward the gallery begins, and is cancelled the moment
+        the page swaps in. On a fast load (the common case now) the timer never
+        fires, so there's no flash — the skeleton only appears when the wait is
+        long enough to matter.
+
+        Shapes mirror the real page (sidebar, title, "Stats for Nerds" bar, the
+        anon-only "Sign the guestbook" button, and the card grid) so the swap
+        lands seamlessly.
 
         Wired once per document: ClientRouter swaps the <body> but keeps the
         document and module scope, so a one-time bind on `document` survives
@@ -128,6 +136,10 @@ const ogImageUrl = new URL(image, Astro.site).href;
 
         const GALLERY_PATH = "/visitor-gallery";
         const CARD_COUNT = 9;
+        // Below this, the page has usually already arrived (gallery TTFB is
+        // ~0.3s) — showing a skeleton would just flash. Only genuinely slow
+        // waits (slow network / cold worker) cross it and get a skeleton.
+        const SHOW_DELAY = 450;
 
         const style = document.createElement("style");
         style.textContent = `
@@ -152,6 +164,16 @@ const ogImageUrl = new URL(image, Astro.site).href;
             font-size: 36px; line-height: 1; color: var(--color-ink);
           }
           @media (max-width: 640px) { #gallery-skeleton .gs-title { font-size: 28px } }
+          #gallery-skeleton .gs-statsbar {
+            height: 34px; flex-shrink: 0; border-radius: var(--radius-sm, 4px);
+            background: var(--color-bg-neutral);
+            animation: gs-pulse 1.4s ease-in-out infinite;
+          }
+          #gallery-skeleton .gs-guestbook {
+            height: 52px; flex-shrink: 0; border-radius: 12px;
+            background: color-mix(in oklab, var(--color-ink) 88%, transparent);
+            animation: gs-pulse 1.4s ease-in-out infinite;
+          }
           #gallery-skeleton .gs-grid {
             display: grid; grid-template-columns: 1fr; gap: 1.5rem 1rem;
           }
@@ -165,9 +187,22 @@ const ogImageUrl = new URL(image, Astro.site).href;
           @keyframes gs-pulse { 0%, 100% { opacity: 0.5 } 50% { opacity: 0.9 } }
           @media (prefers-reduced-motion: reduce) {
             #gallery-skeleton { animation: none }
-            #gallery-skeleton .gs-card { animation: none; opacity: 0.65 }
+            #gallery-skeleton .gs-card,
+            #gallery-skeleton .gs-statsbar,
+            #gallery-skeleton .gs-guestbook { animation: none; opacity: 0.65 }
           }
         `;
+
+        // The identity cookie is HttpOnly; the client mirrors the card in
+        // localStorage, so its presence is a good-enough "signed in" signal for
+        // deciding whether to draw the guestbook CTA placeholder.
+        function isSignedIn(): boolean {
+          try {
+            return !!localStorage.getItem("mp_visitor");
+          } catch {
+            return false;
+          }
+        }
 
         function build(): HTMLElement {
           const root = document.createElement("div");
@@ -176,32 +211,42 @@ const ogImageUrl = new URL(image, Astro.site).href;
           const cards = Array.from({ length: CARD_COUNT })
             .map(() => '<div class="gs-card"></div>')
             .join("");
+          const guestbook = isSignedIn() ? "" : '<div class="gs-guestbook"></div>';
           root.innerHTML =
             '<div class="gs-sidebar"></div>' +
             '<div class="gs-main">' +
             '<div class="gs-title">Visitor Gallery</div>' +
+            '<div class="gs-statsbar"></div>' +
+            guestbook +
             `<div class="gs-grid">${cards}</div>` +
             "</div>";
           return root;
         }
 
-        function show(event: Event & { to?: URL; from?: URL }) {
+        let timer: number | undefined;
+
+        function scheduleShow(event: Event & { to?: URL; from?: URL }) {
           const to = event.to;
           if (!to || to.pathname !== GALLERY_PATH) return;
           // Already on the gallery (e.g. shuffle / scroll-to-you) — no skeleton.
           if (event.from && event.from.pathname === GALLERY_PATH) return;
-          if (document.getElementById("gallery-skeleton")) return;
-          if (!style.isConnected) document.head.appendChild(style);
-          document.documentElement.appendChild(build());
+          window.clearTimeout(timer);
+          timer = window.setTimeout(() => {
+            if (document.getElementById("gallery-skeleton")) return;
+            if (!style.isConnected) document.head.appendChild(style);
+            document.documentElement.appendChild(build());
+          }, SHOW_DELAY);
         }
 
         function hide() {
+          window.clearTimeout(timer);
           document.getElementById("gallery-skeleton")?.remove();
         }
 
-        document.addEventListener("astro:before-preparation", show as EventListener);
-        // page-load fires after the swap on every ClientRouter navigation; also
-        // covers the case where the destination wasn't the gallery (no-op hide).
+        document.addEventListener("astro:before-preparation", scheduleShow as EventListener);
+        // page-load fires after the swap on every ClientRouter navigation; it
+        // cancels a pending timer (fast load → no skeleton) and clears any shown
+        // skeleton. Also a no-op when the destination wasn't the gallery.
         document.addEventListener("astro:page-load", hide);
       })();
     </script>
