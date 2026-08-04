@@ -44,21 +44,10 @@
       "─────˚",
     ];
 
-    function spawn() {
+    function launch(startX: number, startY: number, dx: number, dy: number, duration: number) {
       const el = document.createElement("span");
       el.className = "shooting-star";
       el.textContent = shapes[Math.floor(Math.random() * shapes.length)];
-
-      // Random start position somewhere in the upper-right region; travels
-      // toward the lower-left, so the trail leans in a consistent direction.
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      const startX = w * (0.55 + Math.random() * 0.4);
-      const startY = h * (Math.random() * 0.55);
-      const dx = -(w * (0.5 + Math.random() * 0.3));
-      const dy = h * (0.3 + Math.random() * 0.35);
-      // Fast trail — quick whizz-by feel.
-      const duration = 1.2 + Math.random() * 0.8;
       const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
 
       el.style.left = `${startX}px`;
@@ -71,6 +60,20 @@
 
       stage!.appendChild(el);
       setTimeout(() => el.remove(), duration * 1000 + 200);
+    }
+
+    function spawn() {
+      // Random start position somewhere in the upper-right region; travels
+      // toward the lower-left, so the trail leans in a consistent direction.
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const startX = w * (0.55 + Math.random() * 0.4);
+      const startY = h * (Math.random() * 0.55);
+      const dx = -(w * (0.5 + Math.random() * 0.3));
+      const dy = h * (0.3 + Math.random() * 0.35);
+      // Fast trail — quick whizz-by feel.
+      const duration = 1.2 + Math.random() * 0.8;
+      launch(startX, startY, dx, dy, duration);
     }
 
     function loop() {

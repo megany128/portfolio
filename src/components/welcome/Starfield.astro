@@ -81,6 +81,7 @@ const near = makeLayer(91,  9, 30, 0.32, [0.5, 2, 2.5],    [0.6, 0.9]);
       />
     ))}
   </div>
+
 </div>
 
 <style is:global>
@@ -112,4 +113,146 @@ const near = makeLayer(91,  9, 30, 0.32, [0.5, 2, 2.5],    [0.6, 0.9]);
       animation: none;
     }
   }
+
+  /* Click feedback: a ripple expands from the click — each star flares as
+     the wavefront passes, stronger near the epicenter (--pulse-scale is set
+     per-star by JS), then settles back into its twinkle. */
+  @keyframes star-pulse {
+    0%   { opacity: 1; transform: scale(1); }
+    35%  { opacity: 1; transform: scale(var(--pulse-scale, 2.2)); box-shadow: 0 0 12px rgba(255, 255, 255, 1), 0 0 26px rgba(255, 255, 255, 0.55); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  .star--pulse {
+    animation: star-pulse 800ms cubic-bezier(0.22, 1, 0.36, 1) 1;
+  }
+
+  /* Stars born from clicks are ✦ glyphs — visibly "planted by you" among
+     the dot field, glowing a touch brighter than the ambient stars. */
+  .star-glyph {
+    font-family: var(--font-mono);
+    color: rgba(255, 255, 255, 0.95);
+    line-height: 1;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.9), 0 0 14px rgba(255, 255, 255, 0.45);
+    box-shadow: none !important;
+    background: none !important;
+    /* `translate` (not `transform`) so centering survives the scale()
+       keyframes of star-birth / star-pulse. */
+    translate: -50% -50%;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  /* A star born from a click: flares in bright and oversized, then settles
+     down to a regular twinkling resident of the sky. */
+  @keyframes star-birth {
+    0%   { opacity: 0; transform: scale(0.2); }
+    30%  { opacity: 1; transform: scale(3.4); box-shadow: 0 0 16px rgba(255, 255, 255, 1), 0 0 36px rgba(255, 255, 255, 0.65); }
+    100% { opacity: 0.9; transform: scale(1); }
+  }
+  .star--born {
+    animation: star-birth 1100ms cubic-bezier(0.22, 1, 0.36, 1) 1;
+  }
 </style>
+
+<script>
+  // Click feedback: a ripple expands from the click through the starfield.
+  // Every star inside RIPPLE_RADIUS flares as the wavefront reaches it
+  // (delay = distance / speed), stronger near the epicenter. Positions are
+  // sampled live at click time since the layers rotate. The matching
+  // shooting star launch lives in ShootingStars.astro.
+  const RIPPLE_RADIUS = 420;
+  const RIPPLE_SPEED = 0.9; // px per ms
+  const MAX_BORN = 60;
+  let bornCount = 0;
+
+  // Click also mints a NEW star at the cursor. It's appended to the near
+  // layer so it rotates along with the rest of the sky — which means the
+  // click position (viewport coords) must be converted into the layer's
+  // un-rotated local space first.
+  function birthStar(clientX: number, clientY: number, reduced: boolean) {
+    const layer = document.querySelector<HTMLElement>(".starfield--near");
+    if (!layer || bornCount >= MAX_BORN) return;
+
+    // Spawn just above the pointer — the 18px glowing cursor would sit right
+    // on top of the star otherwise and swallow the birth flare.
+    const offsetX = (Math.random() - 0.5) * 14;
+    const offsetY = -(26 + Math.random() * 8);
+
+    const theta = (parseFloat(getComputedStyle(layer).rotate) || 0) * (Math.PI / 180);
+    const size = layer.offsetWidth;
+    const px = clientX + offsetX - window.innerWidth / 2;
+    const py = clientY + offsetY - window.innerHeight / 2;
+    // Rotate the point by -theta to land in the layer's local space.
+    const lx = px * Math.cos(theta) + py * Math.sin(theta);
+    const ly = -px * Math.sin(theta) + py * Math.cos(theta);
+
+    const el = document.createElement("span");
+    el.className = "star star-glyph absolute";
+    el.textContent = "✦";
+    el.setAttribute("aria-hidden", "true");
+    el.style.cssText = [
+      `left:${(((lx + size / 2) / size) * 100).toFixed(3)}%`,
+      `top:${(((ly + size / 2) / size) * 100).toFixed(3)}%`,
+      `font-size:${(8 + Math.random() * 3).toFixed(1)}px`,
+      "opacity:0.95",
+    ].join(";");
+    layer.appendChild(el);
+    bornCount++;
+
+    // Randomize the twinkle phase only AFTER the birth flare — an inline
+    // animation-delay at spawn would postpone the flare itself.
+    const desyncTwinkle = () => {
+      el.style.animationDelay = `-${(Math.random() * 9).toFixed(1)}s`;
+    };
+
+    if (!reduced) {
+      el.classList.add("star--born");
+      el.addEventListener(
+        "animationend",
+        () => {
+          el.classList.remove("star--born");
+          desyncTwinkle();
+        },
+        { once: true },
+      );
+    } else {
+      desyncTwinkle();
+    }
+  }
+
+  function onPointerDown(e: PointerEvent) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Snapshot existing stars BEFORE the newborn joins, so it doesn't get
+    // ripple-pulsed on the very click that created it.
+    const stars = document.querySelectorAll<HTMLElement>(".starfield .star");
+    birthStar(e.clientX, e.clientY, reduced);
+    if (reduced) return;
+    if (!stars.length) return;
+
+    for (const el of stars) {
+      const r = el.getBoundingClientRect();
+      const dx = r.left + r.width / 2 - e.clientX;
+      const dy = r.top + r.height / 2 - e.clientY;
+      const dist = Math.hypot(dx, dy);
+      if (dist > RIPPLE_RADIUS) continue;
+
+      // Flare fades with distance: 3× at the epicenter, ~1.6× at the edge.
+      const scale = 3 - (dist / RIPPLE_RADIUS) * 1.4;
+      window.setTimeout(() => {
+        el.classList.remove("star--pulse");
+        // Force reflow so re-adding restarts the animation on rapid clicks.
+        void el.offsetWidth;
+        el.style.setProperty("--pulse-scale", scale.toFixed(2));
+        el.classList.add("star--pulse");
+        el.addEventListener(
+          "animationend",
+          () => el.classList.remove("star--pulse"),
+          { once: true },
+        );
+      }, dist / RIPPLE_SPEED);
+    }
+  }
+
+  window.addEventListener("pointerdown", onPointerDown, { passive: true });
+</script>

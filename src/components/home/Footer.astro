@@ -7,7 +7,6 @@
 //     silhouette (right-of-center so the quote drifts across it).
 //   - Glimmer dots near the cursor get a brighter halo via --cursor-boost.
 //   - Clicking anywhere in the footer spawns a small sparkle burst (canvas).
-//   - Nav links shove gently away from the cursor (same pattern as WelcomeHero).
 //   - Paul Graham quote's emphasized words ("Discoveries" / "by you?") bloom on
 //     hover with an underline draw + color shift.
 
@@ -197,10 +196,7 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
     display: inline-block;
     position: relative;
     color: inherit;
-    transition:
-      color var(--duration-base) var(--ease-out-soft),
-      transform var(--duration-base) var(--ease-out-soft);
-    will-change: transform;
+    transition: color var(--duration-base) var(--ease-out-soft);
   }
   .footer-themed .footer-link:hover {
     color: var(--color-ink-inverted);
@@ -328,27 +324,12 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const canvas = footer.querySelector<HTMLCanvasElement>("[data-footer-burst]");
     const ctx = canvas?.getContext("2d") ?? null;
-    const links = Array.from(footer.querySelectorAll<HTMLAnchorElement>("[data-footer-link]"));
 
-    // --- Shove targets (cursor-repel) -------------------------------------
-    type Vec = { x: number; y: number };
-    const targets = new WeakMap<HTMLElement, Vec>();
-    const currents = new WeakMap<HTMLElement, Vec>();
-    links.forEach((el) => {
-      targets.set(el, { x: 0, y: 0 });
-      currents.set(el, { x: 0, y: 0 });
-    });
-
-    // Mouse tracked in viewport coordinates.
-    let mx = -9999;
-    let my = -9999;
     let hovering = false;
 
     footer.addEventListener(
       "pointermove",
-      (e) => {
-        mx = e.clientX;
-        my = e.clientY;
+      () => {
         if (!hovering) {
           hovering = true;
           footer.setAttribute("data-footer-hover", "true");
@@ -360,8 +341,6 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
       "pointerleave",
       () => {
         hovering = false;
-        mx = -9999;
-        my = -9999;
         footer.removeAttribute("data-footer-hover");
       },
       { passive: true }
@@ -429,6 +408,10 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
       "pointerdown",
       (e) => {
         if (e.pointerType === "mouse" && e.button !== 0) return;
+        // No burst on the "Back to space" link — it navigates into the dark
+        // scene immediately, so particles would just flash and get cut off.
+        const link = (e.target as HTMLElement).closest?.("a");
+        if (link?.getAttribute("href") === "/") return;
         spawnBurst(e.clientX, e.clientY);
       },
       { passive: true }
@@ -453,53 +436,11 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
     let lastFrame = performance.now();
     let rafId = 0;
 
-    const SHOVE_RADIUS = 70;
-    const SHOVE_STRENGTH = 10; // small, playful
-    const SETTLE_PX = 0.05;
-
-    // Cache link rects; refresh on resize/scroll only, not every frame.
-    type LinkRect = { el: HTMLAnchorElement; cx: number; cy: number };
-    let linkRects: LinkRect[] = [];
-    function refreshLinkRects() {
-      linkRects = links.map((el) => {
-        const r = el.getBoundingClientRect();
-        return { el, cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
-      });
-    }
-    refreshLinkRects();
-    window.addEventListener("scroll", refreshLinkRects, { passive: true });
-    window.addEventListener("resize", refreshLinkRects, { passive: true });
-
     function tick(now: number) {
       const dt = Math.min(48, now - lastFrame);
       lastFrame = now;
       const dtSec = dt / 1000;
       let active = false;
-
-      // Shove nav links away from cursor.
-      if (!reduced) {
-        for (const lr of linkRects) {
-          const dx = lr.cx - mx;
-          const dy = lr.cy - my;
-          const dist = Math.hypot(dx, dy) || 1;
-          const t = targets.get(lr.el)!;
-          if (dist < SHOVE_RADIUS && hovering) {
-            const force = (1 - dist / SHOVE_RADIUS) ** 1.4;
-            t.x = (dx / dist) * force * SHOVE_STRENGTH;
-            t.y = (dy / dist) * force * SHOVE_STRENGTH;
-          } else {
-            t.x = 0;
-            t.y = 0;
-          }
-          const c = currents.get(lr.el)!;
-          c.x += (t.x - c.x) * 0.18;
-          c.y += (t.y - c.y) * 0.18;
-          if (Math.abs(t.x - c.x) > SETTLE_PX || Math.abs(t.y - c.y) > SETTLE_PX) {
-            active = true;
-          }
-          lr.el.style.transform = `translate3d(${c.x.toFixed(2)}px, ${c.y.toFixed(2)}px, 0)`;
-        }
-      }
 
       // Particle render.
       if (canvas && ctx) {
@@ -592,8 +533,6 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
       particles.length = 0;
       colorObserver.disconnect();
       window.removeEventListener("resize", resize);
-      window.removeEventListener("scroll", refreshLinkRects);
-      window.removeEventListener("resize", refreshLinkRects);
     }
     window.addEventListener("pagehide", cleanup, { once: true });
     // If ClientRouter tears this footer out of the DOM, stop its RAF loop so

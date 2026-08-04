@@ -4,7 +4,6 @@ import WelcomeHero from "../components/welcome/WelcomeHero.astro";
 import ShootingStars from "../components/welcome/ShootingStars.astro";
 import Starfield from "../components/welcome/Starfield.astro";
 import WelcomeCursor from "../components/welcome/WelcomeCursor.astro";
-import SparkBurst from "../components/welcome/SparkBurst.astro";
 import { getCurrentVisitor } from "../lib/visitor-server";
 
 export const prerender = false;
@@ -21,7 +20,6 @@ const isReturning = visitor !== null;
   <Starfield />
   <ShootingStars />
   <WelcomeHero returning={isReturning} />
-  <SparkBurst />
   <WelcomeCursor />
 
   <script>
