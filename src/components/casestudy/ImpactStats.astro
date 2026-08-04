@@ -1,0 +1,130 @@
+---
+/*
+  Impact stats — outcome metrics strip shown right below the case-study meta
+  grid. Paper tiles with an accent top rule, display-type value, mono label,
+  and an optional one-line note.
+*/
+
+interface Metric {
+  value: string;
+  /** Small trailing glyph/unit rendered at reduced size (e.g. "★"). */
+  suffix?: string;
+  label: string;
+}
+
+interface Props {
+  metrics: Metric[];
+  accent?: "pink" | "teal" | "orange" | "green";
+}
+
+const { metrics, accent = "orange" } = Astro.props;
+
+const accentColor: Record<NonNullable<Props["accent"]>, string> = {
+  pink: "var(--color-pink)",
+  teal: "var(--color-teal)",
+  orange: "var(--color-orange)",
+  green: "var(--color-green)",
+};
+---
+
+<section class="impact-stats" style={`--impact-accent: ${accentColor[accent]};`} aria-label="Impact">
+  <p class="impact-stats__label">Impact</p>
+  <div class="impact-stats__grid" style={`--impact-cols: ${metrics.length};`}>
+    {metrics.map((m) => (
+      <div class="impact-stats__tile">
+        <span class="impact-stats__rule" aria-hidden="true"></span>
+        <p class="impact-stats__value">
+          {m.value}{m.suffix && <span class="impact-stats__suffix">{m.suffix}</span>}
+        </p>
+        <p class="impact-stats__metric-label">{m.label}</p>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .impact-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .impact-stats__label {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-ink-dim);
+    margin: 0;
+  }
+
+  .impact-stats__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--impact-cols, 3), minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  @media (max-width: 640px) {
+    .impact-stats__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .impact-stats__tile {
+    background: var(--color-bg-light);
+    border: 1px solid color-mix(in oklab, var(--color-bg-neutral-2) 60%, transparent);
+    border-radius: var(--radius-md);
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: transform var(--duration-base) var(--ease-out-soft);
+  }
+  .impact-stats__tile:hover {
+    transform: translateY(-2px);
+  }
+
+  .impact-stats__rule {
+    display: block;
+    width: 28px;
+    height: 3px;
+    border-radius: var(--radius-pill);
+    background: var(--impact-accent);
+    margin-bottom: 6px;
+  }
+
+  .impact-stats__value {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 30px;
+    line-height: 1.05;
+    color: var(--color-ink);
+    font-variant-numeric: tabular-nums;
+    margin: 0;
+  }
+
+  .impact-stats__suffix {
+    font-size: 0.55em;
+    margin-left: 5px;
+    vertical-align: 0.16em;
+  }
+
+  .impact-stats__metric-label {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-ink-dim);
+    margin: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .impact-stats__tile {
+      transition: none;
+    }
+    .impact-stats__tile:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+</style>

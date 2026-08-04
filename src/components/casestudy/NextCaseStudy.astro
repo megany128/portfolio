@@ -1,0 +1,127 @@
+---
+/*
+  Next-read banner — sits at the bottom of a case study and points to the
+  recommended next one. Light paper panel matching the home cards; the
+  eyebrow and CTA pill take the target study's accent color.
+*/
+
+interface Props {
+  title: string;
+  href: string;
+  blurb?: string;
+  accent?: "pink" | "teal" | "orange" | "green";
+}
+
+const { title, href, blurb, accent = "pink" } = Astro.props;
+
+/* `accent` currently unused — panel is neutral ink-on-cream — but kept in
+   the Props so the per-page data stays if accent styling returns. */
+void accent;
+---
+
+<a
+  href={href}
+  class="next-cs cursor-pointer"
+>
+  <div class="next-cs__text">
+    <p class="next-cs__eyebrow">Next up</p>
+    <p class="next-cs__title">{title}</p>
+    {blurb && <p class="next-cs__blurb">{blurb}</p>}
+  </div>
+  <span class="next-cs__cta">
+    Read next <span class="next-cs__arrow" aria-hidden="true">→</span>
+  </span>
+</a>
+
+<style>
+  .next-cs {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+    /* Light paper panel, same grammar as the home cards: cream fill plus
+       a warm hairline ring. Accent lives only in the eyebrow and CTA. */
+    background: var(--color-bg-light);
+    box-shadow: 0 0 0 1px color-mix(in oklab, #999079 32%, transparent);
+    border-radius: 16px;
+    padding: 24px;
+    text-decoration: none;
+  }
+
+  .next-cs__text {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .next-cs__eyebrow {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-ink-dim);
+    margin: 0;
+  }
+
+  .next-cs__title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 26px;
+    line-height: 1.1;
+    color: var(--color-ink);
+    margin: 0;
+  }
+
+  .next-cs__blurb {
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--color-ink-dim);
+    margin: 0;
+  }
+
+  .next-cs__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    background: var(--color-ink);
+    color: var(--color-ink-inverted);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 12px 18px;
+    border-radius: var(--radius-pill);
+    transition:
+      transform var(--duration-base) var(--ease-out-soft),
+      background var(--duration-base) var(--ease-out-soft);
+  }
+  .next-cs__cta:hover {
+    transform: scale(1.06);
+    background: color-mix(in oklab, var(--color-ink) 80%, var(--color-bg-light));
+  }
+  .next-cs__cta:active {
+    transform: scale(1.02);
+  }
+
+  .next-cs__arrow {
+    transition: transform var(--duration-base) var(--ease-out-soft);
+  }
+  .next-cs:hover .next-cs__arrow {
+    transform: translateX(4px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .next-cs__cta,
+    .next-cs__arrow {
+      transition: none;
+    }
+    .next-cs:hover .next-cs__arrow {
+      transform: none;
+    }
+  }
+</style>

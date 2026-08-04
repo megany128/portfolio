@@ -52,13 +52,16 @@ const logHtml = renderLogHtml(log.body, { previews: true });
           <div class="flex flex-col gap-8 md:pt-0">
             <ProjectIndexCard
               title="Lingofable"
-              number={1}
               role="Co-Founder, Design, Dev, Marketing"
               team="with Simon Ilincev"
               shipped="Oct 2025 - present"
-              status="SHIPPED"
-              sideProject
-              description="A mobile app focused on language learning through stories with ~200 users. Featured on Cornell's Speaking of Language Podcast."
+              category="side-project"
+              description="A mobile app for language learning through comprehensible stories. Featured on Cornell's Speaking of Language Podcast."
+              metrics={[
+                { value: "500+", label: "downloads" },
+                { value: "1K+", label: "stories read" },
+                { value: "5.0", suffix: "★", label: "on App Store" },
+              ]}
               image="/images/projects/lingofable.gif"
               imageHeight={280}
               imagePosition="bottom"
@@ -67,25 +70,27 @@ const logHtml = renderLogHtml(log.body, { previews: true });
             />
             <ProjectIndexCard
               title="GCal Wrapped"
-              number={3}
               role="Co-Creator, Design, Dev"
               team="with Simon Ilincev"
               shipped="Apr - May 2025"
-              status="SHIPPED"
-              sideProject
-              description="Interactive and fun-filled lookback into college semesters built for college students. 10K+ users across 200 universities and 90 countries."
+              category="side-project"
+              description="Interactive Calendar Wrapped experience built for college students. Collaborating with a Distinguished Engineer to build an internal Google version."
+              metrics={[
+                { value: "11K+", label: "users" },
+                { value: "350+", label: "colleges" },
+                { value: "100+", label: "countries" },
+              ]}
               image="/images/projects/gcal-wrapped.gif"
-              imageHeight={320}
+              imageAspect="716 / 476"
               href="/work/gcal-wrapped"
               tilt={0.5}
             />
             <ProjectIndexCard
               title="Loop"
-              number={5}
               role="Product Manager, Design Engineer"
               team="1 PM, 2 designers, 3 developers"
               shipped="Feb 2026 - present"
-              status="IN PROGRESS"
+              category="club-project"
               description="A Cornell tool for connecting students with campus opportunities and events amidst countless email newsletters."
               image="/images/projects/loop.png"
               imageHeight={320}
@@ -97,12 +102,16 @@ const logHtml = renderLogHtml(log.body, { previews: true });
           <div class="flex flex-col gap-8 md:pt-10">
             <ProjectIndexCard
               title="Splunk"
-              number={2}
               role="Product Design Intern"
               team="Data Management"
               shipped="Summer 2025"
-              status={["INTERNSHIP", "SHIPPED"]}
-              description="Led design for AI-powered root cause analysis and self-healing pipeline for data ingestion issues. Showcased to 5,000+ Splunk users during .conf25."
+              category="internship"
+              description="Led design for AI-powered root cause analysis and self-healing pipeline for data ingestion issues, along with Splunk's first natively integrated AI-powered code assistant."
+              metrics={[
+                { value: "95%", label: "faster resolution" },
+                { value: "6K+", label: "demo audience" },
+                { value: "50+", label: "iterations" },
+              ]}
               image="/images/projects/splunk.gif"
               imageHeight={240}
               href="/work/splunk"
@@ -110,13 +119,16 @@ const logHtml = renderLogHtml(log.body, { previews: true });
             />
             <ProjectIndexCard
               title="Skloňuj"
-              number={4}
               role="Design, Dev"
               team="Solo"
               shipped="March 2026 - present"
-              status="SHIPPED"
-              sideProject
-              description="Noun declension practice for Czech learners with 10K+ drills completed. Piloting at Harvard, Brown, and Columbia. Inspired by my experiences learning Czech."
+              category="side-project"
+              description="Noun declension practice for Czech learners with 20K+ drills completed. Piloting at Harvard, Brown, Columbia, and more. Inspired by my experiences learning Czech."
+              metrics={[
+                { value: "20K+", label: "drills done" },
+                { value: "500+", label: "unique users" },
+                { value: "5+", label: "college pilots" },
+              ]}
               image="/images/projects/sklonuj.png"
               imageHeight={210}
               href="https://sklonuj.com"
@@ -125,11 +137,10 @@ const logHtml = renderLogHtml(log.body, { previews: true });
             />
             <ProjectIndexCard
               title="Microsoft Copilot for Sales"
-              number={6}
               role="Design Consultant"
               team="2 PMs, 5 design consultants"
               shipped="Jan - May 2025"
-              status="HANDED OVER"
+              category="club-project"
               description="Designed B2B2C discovery flow for buyers to match organizational requirements to desired products and vendors."
               image="/images/projects/copilot.gif"
               imageHeight={270}
@@ -139,11 +150,10 @@ const logHtml = renderLogHtml(log.body, { previews: true });
             />
             <ProjectIndexCard
               title="CU Reviews"
-              number={7}
               role="Product Manager, Designer"
               team="1 PM, 2 designers, 3 developers, 1 PMM"
               shipped="Feb 2024 - Jan 2025"
-              status="SHIPPED"
+              category="club-project"
               description="Enhanced inituitiveness and efficiency of Cornell course metrics display for 3,000+ students. Now live on website!"
               image="/images/projects/cu-reviews.gif"
               imageHeight={230}

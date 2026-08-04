@@ -5,12 +5,29 @@ import Footer from "../../components/home/Footer.astro";
 import CustomCursor from "../../components/home/CustomCursor.astro";
 import Tag from "../../components/ui/Tag.astro";
 import Button from "../../components/ui/Button.astro";
+import ImpactStats from "../../components/casestudy/ImpactStats.astro";
+import NextCaseStudy from "../../components/casestudy/NextCaseStudy.astro";
 import { getCurrentVisitor } from "../../lib/visitor-server";
 
 export const prerender = false;
 
 const visitor = await getCurrentVisitor(Astro);
 const cursorColor = visitor?.color ?? "pink";
+
+const impactMetrics = [
+  {
+    value: "11K+",
+    label: "users",
+  },
+  {
+    value: "350+",
+    label: "colleges",
+  },
+  {
+    value: "100+",
+    label: "countries",
+  },
+];
 
 const tocSections = [
   { id: "context", label: "Context" },
@@ -56,7 +73,7 @@ const reflections = [
 
 <BaseLayout
   title="GCal Wrapped — Megan Yap"
-  description="A Google Calendar Wrapped for college students. Reached 2K users across 60 universities and 38 countries in 2 weeks after launch."
+  description="A Google Calendar Wrapped for college students. Reached 11K+ users across 350+ colleges and 100+ countries."
 >
   <div class="flex items-stretch min-h-screen" id="top">
     <CaseStudySidebar sections={tocSections} active="context" />
@@ -97,9 +114,8 @@ const reflections = [
           class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
         >
           Deep dive into Google Calendar analytics, specially built for college students. Gained
-          <span class="cs-emph" data-cs-emph>2K users</span> across
-          <span class="cs-emph" data-cs-emph>60 universities</span> and
-          <span class="cs-emph" data-cs-emph>38 countries</span> in 2 weeks after launch.
+          11K+ users across 350+ colleges and 100+ countries — 2K in the first two weeks after
+          launch.
         </p>
         <Button href="https://gcalwrapped.com" variant="outline" target="_blank" class="cs-fill-btn">
           <span class="cs-fill-btn-label">Try it out <span aria-hidden="true">→</span></span>
@@ -145,6 +161,9 @@ const reflections = [
         </div>
       </section>
 
+      <!-- Impact stats -->
+      <ImpactStats metrics={impactMetrics} accent="green" />
+
       <!-- 01. Context -->
       <section id="context" data-cs-section class="flex flex-col gap-2 cs-section">
         <p class="cs-section-label">Context</p>
@@ -189,7 +208,7 @@ const reflections = [
         <div class="flex flex-col gap-2 mt-6">
           <h2 class="cs-section-heading">A sneak peek (watch out &mdash; it goes by fast)!</h2>
           <div class="flex justify-center mt-2">
-            <div class="cs-sneak-wrap w-full rounded-[16px] overflow-hidden relative">
+            <div class="cs-sneak-wrap w-full rounded-[16px] overflow-hidden relative" data-sneak-wrap>
               <video
                 data-sneak-video
                 src="/images/work/gcal-wrapped/sneak-peek.mp4"
@@ -197,7 +216,8 @@ const reflections = [
                 loop
                 muted
                 playsinline
-                class="block w-full h-auto"></video>
+                preload="auto"
+                class="cs-sneak-video block w-full h-full object-cover"></video>
               <button
                 type="button"
                 data-sneak-unmute
@@ -632,7 +652,7 @@ const reflections = [
       <section id="reflection" data-cs-section class="flex flex-col gap-2 cs-section">
         <p class="cs-section-label">Reflection</p>
         <h2 class="cs-section-heading">
-          10,000 users, 200 universities, 90 countries, and 2 happy builders.
+          11,000 users, 350+ colleges, 100+ countries, and 2 happy builders.
         </h2>
         <p class="cs-section-body">
           When Simon and I first started this project, we hoped that it would do well, but we had no
@@ -701,6 +721,13 @@ const reflections = [
           </div>
         </div>
       </section>
+      <!-- Next case study -->
+      <NextCaseStudy
+        title="Splunk self-healing pipeline"
+        href="/work/splunk"
+        accent="orange"
+        blurb="Designed feature diagnosing data ingestion alerts through AI-powered root cause analysis and remediation."
+      />
     </main>
   </div>
 
@@ -754,10 +781,6 @@ const reflections = [
   .cs-section[data-visible] {
     opacity: 1;
     transform: translateY(0);
-  }
-
-  .cs-hero {
-    box-shadow: 0 14px 38px -22px rgba(36, 36, 36, 0.35);
   }
 
   /* Emphasis underline (green) */
@@ -837,6 +860,45 @@ const reflections = [
     background: var(--color-ink);
     color: var(--color-bg);
     transform: translateY(-1px);
+  }
+
+  /* Sneak peek frame — reserves the video's 16:9 box and shows a shimmer
+     skeleton until the first frame is decodable, so the section never sits
+     as a blank cream gap while the 19MB file streams in. */
+  .cs-sneak-wrap {
+    aspect-ratio: 1920 / 1080;
+    background: linear-gradient(
+      100deg,
+      var(--color-bg-neutral) 40%,
+      var(--color-bg-neutral-2) 50%,
+      var(--color-bg-neutral) 60%
+    );
+    background-size: 200% 100%;
+    animation: cs-sneak-shimmer 1.4s linear infinite;
+  }
+  .cs-sneak-wrap[data-loaded] {
+    animation: none;
+    background: var(--color-bg-neutral);
+  }
+  .cs-sneak-video {
+    opacity: 0;
+    transition: opacity var(--duration-slow) var(--ease-out-soft);
+  }
+  .cs-sneak-wrap[data-loaded] .cs-sneak-video {
+    opacity: 1;
+  }
+  @keyframes cs-sneak-shimmer {
+    to {
+      background-position: -200% 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cs-sneak-wrap {
+      animation: none;
+    }
+    .cs-sneak-video {
+      transition: none;
+    }
   }
 
   /* Sneak peek unmute button */
@@ -1045,6 +1107,22 @@ const reflections = [
   }
   initSneakUnmute();
   document.addEventListener("astro:page-load", initSneakUnmute);
+
+  /* Sneak peek load/reveal. After a ClientRouter swap the browser can leave
+     the swapped-in <video> stalled with autoplay never firing — kick load()
+     and play() explicitly, and reveal the frame once data is decodable. */
+  function initSneakVideo() {
+    const wrap = document.querySelector<HTMLElement>("[data-sneak-wrap]");
+    const video = document.querySelector<HTMLVideoElement>("[data-sneak-video]");
+    if (!wrap || !video) return;
+    const reveal = () => wrap.setAttribute("data-loaded", "");
+    if (video.readyState >= 2) reveal();
+    else video.addEventListener("loadeddata", reveal, { once: true });
+    if (video.readyState === 0) video.load();
+    video.play().catch(() => {});
+  }
+  initSneakVideo();
+  document.addEventListener("astro:page-load", initSneakVideo);
 
   /* Ideation pare-down toggle */
   function initPareToggle() {

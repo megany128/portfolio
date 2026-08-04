@@ -4,12 +4,29 @@ import CaseStudySidebar from "../../components/casestudy/CaseStudySidebar.astro"
 import Footer from "../../components/home/Footer.astro";
 import CustomCursor from "../../components/home/CustomCursor.astro";
 import Tag from "../../components/ui/Tag.astro";
+import ImpactStats from "../../components/casestudy/ImpactStats.astro";
+import NextCaseStudy from "../../components/casestudy/NextCaseStudy.astro";
 import { getCurrentVisitor } from "../../lib/visitor-server";
 
 export const prerender = false;
 
 const visitor = await getCurrentVisitor(Astro);
 const cursorColor = visitor?.color ?? "pink";
+
+const impactMetrics = [
+  {
+    value: "95%",
+    label: "faster ticket resolution",
+  },
+  {
+    value: "6,000+",
+    label: ".conf25 demo audience",
+  },
+  {
+    value: "50+",
+    label: "design iterations",
+  },
+];
 
 const tocSections = [
   { id: "context", label: "Context" },
@@ -144,7 +161,7 @@ const reflections = [
 ];
 ---
 
-<BaseLayout title="Splunk — Megan Yap" description="Designed AI-powered root cause analysis and remediation for data ingestion alerts. Showcased to 5,000+ Splunk users during .conf25.">
+<BaseLayout title="Splunk — Megan Yap" description="Designed AI-powered root cause analysis and remediation for data ingestion alerts. Showcased to 6,000+ Splunk users during .conf25.">
   <div class="flex items-stretch min-h-screen" id="top">
     <CaseStudySidebar sections={tocSections} active="context" />
 
@@ -182,9 +199,8 @@ const reflections = [
           class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
         >
           Designed feature diagnosing data ingestion alerts through AI-powered root cause analysis
-          and remediation. Showcased to
-          <span class="cs-emph" data-cs-emph>5,000+ Splunk users</span> during
-          <span class="cs-emph" data-cs-emph>.conf25</span>.
+          and remediation — cutting ticket resolution time by 95%. Showcased to 6,000+ Splunk users
+          during .conf25.
         </p>
       </section>
 
@@ -227,13 +243,16 @@ const reflections = [
         </div>
       </section>
 
+      <!-- Impact stats -->
+      <ImpactStats metrics={impactMetrics} accent="orange" />
+
       <!-- 01. Context -->
       <section id="context" data-cs-section class="flex flex-col gap-2 cs-section">
         <p class="cs-section-label">Context</p>
         <h2 class="cs-section-heading">A sunny summer in Boulder, Colorado.</h2>
         <p class="cs-section-body">
           As an intern on Splunk&rsquo;s Data Management team, I was responsible for crafting an
-          entire end-to-end self-healing pipeline feature to be demoed to 5,000+ people at .conf,
+          entire end-to-end self-healing pipeline feature to be demoed to 6,000+ people at .conf,
           Splunk&rsquo;s largest conference.
         </p>
       </section>
@@ -809,7 +828,7 @@ const reflections = [
           <p class="cs-section-body">
             As an intern, I didn&rsquo;t expect to be selected to be the sole designer on an entire
             feature that would not only actually be shipped to users, but also be showcased to
-            5,000+ people at .conf25! It was an honor to be placed on this project, and I learned so
+            6,000+ people at .conf25! It was an honor to be placed on this project, and I learned so
             much in the process as well as from the amazing Data Management design team.
           </p>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
@@ -842,6 +861,13 @@ const reflections = [
           </figure>
         </div>
       </section>
+      <!-- Next case study -->
+      <NextCaseStudy
+        title="CU Reviews — Cornell course review platform"
+        href="/work/cu-reviews"
+        accent="teal"
+        blurb="Enhanced intuitiveness and efficiency of the Cornell course metrics display for 3,000+ students."
+      />
     </main>
   </div>
 
@@ -901,10 +927,6 @@ const reflections = [
   .cs-pillar-img-wrap {
     height: 180px;
     padding: 12px;
-  }
-
-  .cs-hero {
-    box-shadow: 0 14px 38px -22px rgba(36, 36, 36, 0.35);
   }
 
   /* === Emphasis underline === */

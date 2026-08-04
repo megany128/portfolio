@@ -6,19 +6,15 @@
   divider appears, and a ROLE / TEAM / TIMEFRAME grid slides in.
 */
 
-import Tag from "../ui/Tag.astro";
-
-type Status = "SHIPPED" | "INTERNSHIP" | "HANDED OVER" | "IN PROGRESS";
-type StatusProp = Status | Status[];
+type Category = "side-project" | "internship" | "club-project";
 
 interface Props {
   title: string;
-  number: number;
   role: string;
   team: string;
   shipped: string;
-  status: StatusProp;
-  sideProject?: boolean;
+  /** Project category — colors the single card badge. */
+  category: Category;
   /** One-line summary shown below the title. */
   description?: string;
   image?: string;
@@ -32,16 +28,19 @@ interface Props {
   caseStudyCursor?: boolean;
   /** Small idle rotation so a row of cards reads as a loose stack. */
   tilt?: number;
+  /** Outcome stat badges shown under the description (always visible). */
+  metrics?: { value: string; suffix?: string; label: string }[];
+  /** CSS aspect-ratio (e.g. "716 / 476"). When set, the frame matches the
+      media's native ratio so nothing is cropped; overrides imageHeight. */
+  imageAspect?: string;
 }
 
 const {
   title,
-  number,
   role,
   team,
   shipped,
-  status,
-  sideProject = false,
+  category,
   description,
   image,
   imageHeight = 228,
@@ -50,10 +49,21 @@ const {
   external = false,
   caseStudyCursor = false,
   tilt = 0,
+  metrics = [],
+  imageAspect,
 } = Astro.props;
 
+const frameStyle = imageAspect
+  ? `aspect-ratio: ${imageAspect};`
+  : `height: ${imageHeight}px;`;
+
 const Wrapper = href ? "a" : "article";
-const num = String(number).padStart(2, "0");
+
+const categoryLabels: Record<Category, string> = {
+  "side-project": "Side Project",
+  internship: "Internship",
+  "club-project": "Club Project",
+};
 ---
 
 <Wrapper
@@ -67,13 +77,8 @@ const num = String(number).padStart(2, "0");
     href ? "cursor-none" : "cursor-default",
   ]}
 >
-  <div class="index-card__top">
-    <span class="index-card__hole" aria-hidden="true"></span>
-    <span class="index-card__num">No. {num}</span>
-  </div>
-
   {image && (
-    <div class="index-card__frame" style={`height: ${imageHeight}px;`}>
+    <div class="index-card__frame" style={frameStyle}>
       <img
         src={image}
         alt=""
@@ -90,13 +95,25 @@ const num = String(number).padStart(2, "0");
       <div class="index-card__header">
         <h3 class="index-card__title">{title}</h3>
         <div class="index-card__tags">
-          {sideProject && <Tag>Side Project</Tag>}
-          {Array.isArray(status) ? status.map((s) => <Tag>{s}</Tag>) : <Tag>{status}</Tag>}
+          <span class="index-card__category">{categoryLabels[category]}</span>
         </div>
       </div>
 
       {description && (
         <p class="index-card__description">{description}</p>
+      )}
+
+      {metrics.length > 0 && (
+        <ul class="index-card__metrics">
+          {metrics.map((m) => (
+            <li class="index-card__metric">
+              <span class="index-card__metric-value">
+                {m.value}{m.suffix && <span class="index-card__metric-suffix">{m.suffix}</span>}
+              </span>
+              <span class="index-card__metric-label">{m.label}</span>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
 
@@ -139,40 +156,16 @@ const num = String(number).padStart(2, "0");
     gap: 8px;
     transform: rotate(var(--card-tilt, 0deg));
     transform-origin: 50% 40%;
-    box-shadow: 0 0 4px 0 #999079;
+    /* Flat paper: no drop shadow, just a warm hairline ring so the cream
+       card still separates from the cream page. */
+    box-shadow: 0 0 0 1px color-mix(in oklab, #999079 32%, transparent);
     transition:
       transform 320ms var(--ease-out-soft),
       box-shadow 480ms var(--ease-out-soft);
   }
   .index-card:hover {
     transform: rotate(0deg) translateY(-3px);
-    box-shadow: 0 12px 22px -14px rgba(36, 36, 36, 0.35), 0 0 4px 0 #999079;
-  }
-
-  /* Top row — hole punch on the left, "No. NN" on the right. */
-  .index-card__top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-  }
-  .index-card__hole {
-    width: 13px;
-    height: 13px;
-    border-radius: 9999px;
-    background: var(--color-bg);
-    box-shadow:
-      inset 0 1px 1.5px rgba(36, 36, 36, 0.35),
-      inset 0 -0.5px 0.5px rgba(255, 255, 255, 0.4),
-      0 0 0 1px color-mix(in oklab, var(--color-ink) 14%, transparent);
-  }
-  .index-card__num {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    line-height: 1;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    color: var(--color-ink-dim);
+    box-shadow: 0 0 0 1px color-mix(in oklab, #999079 48%, transparent);
   }
 
   /* Media frame. */
@@ -239,12 +232,72 @@ const num = String(number).padStart(2, "0");
     flex-shrink: 0;
   }
 
+  .index-card__category {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding: 3px 6px;
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-neutral-2);
+    color: var(--color-ink-dim);
+  }
+
   .index-card__description {
     margin: 0;
     font-family: var(--font-body);
     font-size: 12px;
     line-height: 1.4;
     color: #6b6553;
+  }
+
+  /* Outcome mini-stats — editorial stat row (display value over mono label)
+     divided by hairlines, so impact reads at a glance via type contrast
+     instead of boxed chips that vanish against the cream card. */
+  .index-card__metrics {
+    list-style: none;
+    margin: 8px 0 2px;
+    padding: 0;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    width: 100%;
+  }
+  .index-card__metric {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 2px 16px;
+    border-left: 1px solid color-mix(in oklab, var(--color-ink) 16%, transparent);
+  }
+  .index-card__metric:first-child {
+    padding-left: 0;
+    border-left: none;
+  }
+  .index-card__metric-value {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: 19px;
+    line-height: 1;
+    color: var(--color-ink);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .index-card__metric-suffix {
+    font-size: 0.6em;
+    margin-left: 4px;
+    vertical-align: 0.14em;
+  }
+  .index-card__metric-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-ink-dim);
+    white-space: nowrap;
   }
 
   /*

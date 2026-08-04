@@ -5,12 +5,30 @@ import Footer from "../../components/home/Footer.astro";
 import CustomCursor from "../../components/home/CustomCursor.astro";
 import Tag from "../../components/ui/Tag.astro";
 import Button from "../../components/ui/Button.astro";
+import ImpactStats from "../../components/casestudy/ImpactStats.astro";
+import NextCaseStudy from "../../components/casestudy/NextCaseStudy.astro";
 import { getCurrentVisitor } from "../../lib/visitor-server";
 
 export const prerender = false;
 
 const visitor = await getCurrentVisitor(Astro);
 const cursorColor = visitor?.color ?? "pink";
+
+const impactMetrics = [
+  {
+    value: "500+",
+    label: "downloads",
+  },
+  {
+    value: "1,000+",
+    label: "stories read",
+  },
+  {
+    value: "5.0",
+    suffix: "★",
+    label: "App Store rating",
+  },
+];
 
 // Sidebar sections — ids map 1:1 to the section elements below.
 const tocSections = [
@@ -120,9 +138,9 @@ const reflections = [
           >
           as a passion project. It is a language app focused on learning through stories — we launched
           on the App Store in
-          <span class="cs-emph" data-cs-emph>March 2026</span>, pitched to Pinterest&rsquo;s ex-CPO,
+          March 2026, pitched to Pinterest&rsquo;s ex-CPO,
           and were featured on Cornell&rsquo;s
-          <span class="cs-emph" data-cs-emph>Speaking of Language</span>
+          Speaking of Language
           podcast!
         </p>
         <Button href="https://lingofable.com" variant="outline" target="_blank">
@@ -157,6 +175,9 @@ const reflections = [
           </p>
         </div>
       </section>
+
+      <!-- Impact stats -->
+      <ImpactStats metrics={impactMetrics} accent="pink" />
 
       <!-- 01. Context -->
       <section id="context" data-cs-section class="flex flex-col gap-2 cs-section">
@@ -534,6 +555,13 @@ const reflections = [
           />
         </figure>
       </section>
+      <!-- Next case study -->
+      <NextCaseStudy
+        title="GCal Wrapped — Google Calendar Analytics"
+        href="/work/gcal-wrapped"
+        accent="green"
+        blurb="Deep dive into Google Calendar analytics, specially built for college students."
+      />
     </main>
   </div>
 
@@ -559,11 +587,7 @@ const reflections = [
     transform: translateY(0);
   }
 
-  /* Hero */
-  .cs-hero {
-    box-shadow: 0 14px 38px -22px rgba(36, 36, 36, 0.35);
-  }
-  .cs-hero img {
+  /* Hero */  .cs-hero img {
     transition: transform 600ms var(--ease-out-soft);
   }
   .cs-hero:hover img {

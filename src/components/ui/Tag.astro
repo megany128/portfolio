@@ -6,10 +6,11 @@
 
 interface Props {
   variant?: "neutral" | "muted" | "outline";
+  size?: "sm" | "md";
   class?: string;
 }
 
-const { variant = "neutral", class: className = "" } = Astro.props;
+const { variant = "neutral", size = "md", class: className = "" } = Astro.props;
 
 const variants = {
   neutral: "bg-[var(--color-bg-neutral-2)] text-[var(--color-ink-dim)]",
@@ -17,12 +18,17 @@ const variants = {
   outline:
     "bg-transparent text-[var(--color-ink-dim)] ring-1 ring-inset ring-[var(--color-bg-neutral-2)]",
 } as const;
+
+const sizes = {
+  md: { pad: "px-2 py-1", text: "text-[14px]" },
+  sm: { pad: "px-1.5 py-[3px]", text: "text-[11px] tracking-[0.03em]" },
+} as const;
 ---
 
 <span
-  class={`inline-flex items-center min-w-0 max-w-full px-2 py-1 rounded-[4px] ${variants[variant]} ${className}`}
+  class={`inline-flex items-center min-w-0 max-w-full ${sizes[size].pad} rounded-[4px] ${variants[variant]} ${className}`}
 >
-  <span class="font-[family-name:var(--font-mono)] text-[14px] leading-none uppercase whitespace-nowrap overflow-hidden text-ellipsis min-w-0">
+  <span class={`font-[family-name:var(--font-mono)] ${sizes[size].text} leading-none uppercase whitespace-nowrap overflow-hidden text-ellipsis min-w-0`}>
     <slot />
   </span>
 </span>

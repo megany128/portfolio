@@ -4,6 +4,7 @@ import CaseStudySidebar from "../../components/casestudy/CaseStudySidebar.astro"
 import Footer from "../../components/home/Footer.astro";
 import CustomCursor from "../../components/home/CustomCursor.astro";
 import Tag from "../../components/ui/Tag.astro";
+import NextCaseStudy from "../../components/casestudy/NextCaseStudy.astro";
 import { getCurrentVisitor } from "../../lib/visitor-server";
 
 export const prerender = false;
@@ -164,8 +165,8 @@ const reflections = [
           class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
         >
           Enhanced intuitiveness and efficiency of the Cornell course metrics display for
-          <span class="cs-emph" data-cs-emph>3,000+ students</span>. Now
-          <span class="cs-emph" data-cs-emph>live on the website</span>!
+          3,000+ students. Now
+          live on the website!
         </p>
       </section>
 
@@ -208,7 +209,7 @@ const reflections = [
         </div>
       </section>
 
-      <!-- 01. Context -->
+<!-- 01. Context -->
       <section id="context" data-cs-section class="flex flex-col gap-2 cs-section">
         <p class="cs-section-label">Context</p>
         <h2 class="cs-section-heading">A redesign for a Cornell-wide course review platform.</h2>
@@ -736,6 +737,13 @@ const reflections = [
           </div>
         </div>
       </section>
+      <!-- Next case study -->
+      <NextCaseStudy
+        title="Lingofable — learning languages through stories"
+        href="/work/lingofable"
+        accent="pink"
+        blurb="I designed & built Lingofable together with Simon Ilincev as a passion project."
+      />
     </main>
   </div>
 
@@ -789,10 +797,6 @@ const reflections = [
   .cs-section[data-visible] {
     opacity: 1;
     transform: translateY(0);
-  }
-
-  .cs-hero {
-    box-shadow: 0 14px 38px -22px rgba(36, 36, 36, 0.35);
   }
 
   /* === Emphasis underline === */
