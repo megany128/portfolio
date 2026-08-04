@@ -5,6 +5,7 @@
  */
 
 import type { APIContext } from "astro";
+import { env } from "cloudflare:workers";
 import { isGeneratedVisitorName } from "./visitor-name";
 
 export const VISITOR_ID_COOKIE = "mp_vid";
@@ -76,8 +77,7 @@ export function clearVisitorId(ctx: APIContext) {
   ctx.cookies.delete(VISITOR_ID_COOKIE, { path: "/" });
 }
 
-export function db(ctx: APIContext): D1Database {
-  const env = ctx.locals.runtime?.env;
+export function db(_ctx: APIContext): D1Database {
   if (!env?.DB) {
     throw new Error("D1 binding `DB` is not available on this request");
   }

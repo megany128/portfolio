@@ -1,4 +1,5 @@
 import type { APIContext } from "astro";
+import { env } from "cloudflare:workers";
 import {
   listPendingVisitors,
   approveVisitor,
@@ -8,8 +9,8 @@ import {
 
 export const prerender = false;
 
-function getAdminToken(ctx: APIContext): string | null {
-  return (ctx.locals.runtime?.env as Record<string, string>)?.ADMIN_TOKEN ?? null;
+function getAdminToken(_ctx: APIContext): string | null {
+  return env.ADMIN_TOKEN ?? null;
 }
 
 function isAuthorized(ctx: APIContext): boolean {

@@ -1,10 +1,16 @@
 /// <reference path="../.astro/types.d.ts" />
 /// <reference types="astro/client" />
 
-type Runtime = import("@astrojs/cloudflare").Runtime<Env>;
+type Runtime = import("@astrojs/cloudflare").Runtime;
 
 declare namespace App {
   interface Locals extends Runtime {}
+}
+
+/* Bindings via `import { env } from "cloudflare:workers"` (adapter v13+).
+   Minimal declaration so we don't need @cloudflare/workers-types. */
+declare module "cloudflare:workers" {
+  export const env: Env;
 }
 
 /* Minimal D1 types — avoids pulling in @cloudflare/workers-types globally,
@@ -30,4 +36,5 @@ interface D1Database {
 
 interface Env {
   DB: D1Database;
+  ADMIN_TOKEN?: string;
 }

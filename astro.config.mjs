@@ -6,9 +6,11 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   site: "https://meganyap.me",
   output: "server",
-  adapter: cloudflare({
-    platformProxy: { enabled: true },
-  }),
+  // Astro 7's HTML compression strips newline-only whitespace between tags,
+  // which eats the spaces around inline links/spans that wrap across source
+  // lines ("Ilincevand", "to5,000+"). Cloudflare gzips anyway — keep it off.
+  compressHTML: false,
+  adapter: cloudflare(),
   // 301 redirects for stale Webflow URLs that Google still has indexed.
   // Each entry maps an old slug to its closest equivalent on the new portfolio
   // so SEO signals consolidate instead of leaking into 404s. Update the

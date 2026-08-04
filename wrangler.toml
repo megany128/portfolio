@@ -1,8 +1,7 @@
 name = "portfolio"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
-main = "./dist/_worker.js/index.js"
-assets = { directory = "./dist", binding = "ASSETS" }
+main = "@astrojs/cloudflare/entrypoints/server"
 
 # ADMIN_TOKEN is set via: pnpm exec wrangler secret put ADMIN_TOKEN
 
