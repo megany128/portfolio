@@ -1,0 +1,139 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import CustomCursor from "../components/home/CustomCursor.astro";
+import SitePreviewLinks from "../components/home/SitePreviewLinks.astro";
+import { listLogs, renderLogHtml, formatLogDate, FALLBACK_LOG } from "../lib/logs-server";
+import { getCurrentVisitor } from "../lib/visitor-server";
+
+export const prerender = false;
+
+const [visitor, rows] = await Promise.all([getCurrentVisitor(Astro), listLogs(Astro)]);
+const cursorColor = visitor?.color ?? "pink";
+const logs = rows.length ? rows : [FALLBACK_LOG];
+---
+
+<BaseLayout
+  title="Logs — Megan Yap"
+  description="Every log entry from Megan Yap's portfolio, newest first."
+>
+  <main class="logs-page mx-auto w-full max-w-[720px] px-4 sm:px-6 py-10 sm:py-16 flex flex-col">
+    <a href="/home" data-cursor="link" class="logs-page__back font-[family-name:var(--font-mono)]"
+      >← back home</a
+    >
+
+    <h1
+      class="mt-6 font-[family-name:var(--font-display)] font-light text-[40px] leading-none text-[var(--color-ink)]"
+    >
+      Logs
+    </h1>
+    <p class="mt-3 font-[family-name:var(--font-body)] text-sm text-[var(--color-ink-dim)]">
+      What I've been up to!
+    </p>
+
+    <ol class="logs-page__timeline mt-10 flex flex-col list-none p-0 m-0">
+      {
+        logs.map((log) => (
+          <li class="logs-page__entry">
+            <div class="logs-page__marker" aria-hidden="true" />
+            <p class="logs-page__date font-[family-name:var(--font-mono)]">
+              {formatLogDate(log.createdAt)}
+            </p>
+            <p class="logs-page__body font-[family-name:var(--font-body)]">
+              <Fragment set:html={renderLogHtml(log.body, { previews: true })} />
+            </p>
+          </li>
+        ))
+      }
+    </ol>
+  </main>
+
+  <SitePreviewLinks />
+
+  <CustomCursor color={cursorColor} />
+
+  <style>
+    .logs-page__back {
+      align-self: flex-start;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--color-ink-dim);
+      text-decoration: none;
+      transition: color var(--duration-fast) var(--ease-out-soft);
+    }
+    .logs-page__back:hover,
+    .logs-page__back:focus-visible {
+      color: var(--color-ink);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    /*
+      Changelog timeline: a soft vertical rail with a dot per entry, date
+      column on the left at desktop widths, stacked on mobile.
+    */
+    .logs-page__entry {
+      position: relative;
+      padding: 0 0 40px 28px;
+      border-left: 1px solid color-mix(in oklab, var(--color-ink) 14%, transparent);
+      margin-left: 5px;
+    }
+    .logs-page__entry:last-child {
+      border-left-color: transparent;
+      padding-bottom: 0;
+    }
+    .logs-page__marker {
+      position: absolute;
+      left: -4.5px;
+      top: 5px;
+      width: 8px;
+      height: 8px;
+      border-radius: 9999px;
+      background: var(--color-bg);
+      border: 1.5px solid color-mix(in oklab, var(--color-ink) 45%, transparent);
+    }
+    .logs-page__date {
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--color-ink-dim);
+      line-height: 1.4;
+    }
+    .logs-page__body {
+      margin-top: 8px;
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--color-ink);
+      max-width: 60ch;
+    }
+
+    @media (min-width: 640px) {
+      .logs-page__entry {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        column-gap: 24px;
+        padding-left: 32px;
+      }
+      .logs-page__date {
+        padding-top: 2px;
+      }
+      .logs-page__body {
+        margin-top: 0;
+      }
+    }
+  </style>
+
+  <style is:global>
+    /*
+      Log links render with .latest-log__site-link, which is cream-on-ink for
+      the /home card. On this cream page, flip them to ink.
+    */
+    .logs-page .latest-log__site-link {
+      color: var(--color-ink);
+      text-decoration-color: color-mix(in oklab, var(--color-ink) 40%, transparent);
+    }
+    .logs-page .latest-log__site-link:hover {
+      text-decoration-color: var(--color-ink);
+    }
+  </style>
+</BaseLayout>

@@ -7,14 +7,24 @@ export const prerender = false;
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow" />
   <link rel="icon" type="image/png" href="/portfolio-logo.png" />
-  <title>Moderation — Admin</title>
-  <style>
+  <title>Admin — Megan Yap</title>
+  <!-- is:global — most of this page is built with JS, and Astro's scoped
+       styles only match elements rendered in this template. -->
+  <style is:global>
     * { margin: 0; box-sizing: border-box; }
     body { font-family: system-ui, sans-serif; background: #fff; color: #1a1a1a; padding: 24px; }
     h1 { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
     .login { max-width: 320px; margin: 80px auto; }
     .login input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #ddd; background: #f5f5f5; color: #1a1a1a; font-size: 14px; margin-top: 8px; }
     .login button { margin-top: 12px; width: 100%; padding: 10px; border-radius: 8px; border: none; background: #1a1a1a; color: #fff; font-weight: 600; cursor: pointer; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid #e0e0e0; margin-bottom: 24px; }
+    .tab { padding: 10px 18px; border: none; background: none; font-size: 14px; font-weight: 600; color: #888; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    .tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; }
+    .tab .tab-badge { display: inline-block; background: #ef4444; color: #fff; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 9999px; margin-left: 6px; vertical-align: 1px; }
+
+    /* Moderation queue */
     .queue { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
     .card { background: #f9f9f9; border-radius: 12px; padding: 20px; display: flex; gap: 16px; align-items: center; border: 1px solid #e0e0e0; }
     .card-info { flex: 1; min-width: 0; }
@@ -31,23 +41,143 @@ export const prerender = false;
     .badge { display: inline-block; background: #ef4444; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
     .color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle; }
     .count { font-size: 14px; color: #888; margin-bottom: 16px; }
+
+    /* Logs tab */
+    .log-section { max-width: 720px; }
+    .log-label { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+    .log-section textarea { width: 100%; min-height: 96px; padding: 12px; border-radius: 8px; border: 1px solid #ddd; background: #f5f5f5; font-family: inherit; font-size: 14px; line-height: 1.5; resize: vertical; }
+    .log-hint { font-size: 12px; color: #999; margin-top: 6px; line-height: 1.6; }
+    .log-hint code { background: #f0f0f0; padding: 1px 4px; border-radius: 4px; }
+    .btn-publish { margin-top: 12px; padding: 9px 22px; border: none; border-radius: 8px; background: #1a1a1a; color: #fff; font-weight: 600; font-size: 13px; cursor: pointer; }
+    .btn-publish:disabled { opacity: 0.4; cursor: default; }
+    .btn-upload { padding: 6px 12px; border: 1px solid #ddd; border-radius: 8px; background: #f5f5f5; color: #1a1a1a; font-weight: 600; font-size: 12px; cursor: pointer; }
+    .btn-upload:hover { background: #eee; }
+    .btn-upload:disabled { opacity: 0.4; cursor: default; }
+
+    /* Per-link thumbnail rows */
+    .log-link-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid #e0e0e0; border-radius: 10px; background: #fafafa; margin-top: 8px; }
+    .log-link-thumb { width: 72px; height: 44px; border-radius: 6px; object-fit: cover; background: #eee; flex-shrink: 0; }
+    .log-link-thumb.is-empty { display: grid; place-items: center; color: #bbb; font-size: 10px; }
+    .log-link-info { flex: 1; min-width: 0; }
+    .log-link-text { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .log-link-host { font-size: 11px; color: #999; margin-top: 2px; }
+    .log-link-auto { display: inline-block; background: #e8f4ea; color: #22803c; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: 1px; }
+    .log-link-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .btn-thumb-remove { padding: 6px 10px; border: 1px solid #efc7c7; border-radius: 8px; background: #fff; color: #ef4444; font-weight: 600; font-size: 12px; cursor: pointer; }
+    .btn-thumb-remove:hover { background: #ef4444; border-color: #ef4444; color: #fff; }
+    .log-status { display: inline-block; margin-left: 10px; font-size: 13px; color: #22c55e; }
+
+    /* Write / Preview toggle */
+    .mode-toggle { display: inline-flex; background: #f0f0f0; border-radius: 8px; padding: 2px; }
+    .mode-btn { padding: 5px 14px; border: none; border-radius: 6px; background: none; font-size: 12px; font-weight: 600; color: #888; cursor: pointer; }
+    .mode-btn.active { background: #fff; color: #1a1a1a; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
+    /* Preview card — mirrors the LatestLog card on /home. */
+    .log-preview { background: #242424; color: #f5f0e8; border-radius: 12px; padding: 16px; }
+    .log-preview-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+    .log-preview-title { font-family: ui-monospace, "Source Code Pro", monospace; font-size: 14px; text-transform: uppercase; }
+    .log-preview-date { font-size: 12px; color: #b8b3aa; }
+    .log-preview-body { font-size: 15px; line-height: 1.55; color: #d8d3ca; }
+    .log-preview-body .latest-log__site-link { position: relative; color: #f5f0e8; text-decoration: underline; text-underline-offset: 2px; }
+    .log-preview-body .latest-log__site-link:visited { color: #f5f0e8; }
+    .log-preview-body .latest-log__preview { position: fixed; top: 0; left: 0; transform: translate(var(--preview-x, 0px), var(--preview-y, 0px)) scale(0.97); width: 240px; padding: 8px; border-radius: 10px; background: #faf6ef; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 18px 36px -16px rgba(36,36,36,0.55); pointer-events: none; opacity: 0; transition: opacity 0.2s, transform 0.2s; display: flex; flex-direction: column; gap: 6px; z-index: 50; }
+    .log-preview-body .latest-log__site-link:hover .latest-log__preview { opacity: 1; transform: translate(var(--preview-x, 0px), var(--preview-y, 0px)) scale(1); }
+    .log-preview-body .site-preview__chrome { display: flex; align-items: center; gap: 6px; padding: 0 2px; }
+    .log-preview-body .site-preview__dots { display: inline-flex; gap: 3px; }
+    .log-preview-body .site-preview__dots i { display: block; width: 5px; height: 5px; border-radius: 9999px; background: rgba(0,0,0,0.3); }
+    .log-preview-body .site-preview__url { font-family: ui-monospace, monospace; font-size: 10px; color: #6a665f; }
+    .log-preview-body .site-preview__thumb { display: block; width: 100%; height: 120px; border-radius: 6px; background-size: cover; background-position: center top; background-color: #e8e2d6; }
+
+    /* Log history */
+    .log-history { margin-top: 32px; }
+    .log-list { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+    .log-item { background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 12px; padding: 14px 16px; display: flex; gap: 16px; align-items: flex-start; }
+    .log-item.is-latest { border-color: #22c55e; background: #f4faf6; }
+    .log-item-info { flex: 1; min-width: 0; }
+    .log-item-date { font-size: 12px; color: #888; margin-bottom: 4px; }
+    .log-item-date .latest-tag { display: inline-block; background: #22c55e; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: 1px; }
+    .log-item-body { font-size: 14px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+    .btn-delete { padding: 6px 12px; border: none; border-radius: 8px; background: #fff; color: #ef4444; border: 1px solid #efc7c7; font-weight: 600; font-size: 12px; cursor: pointer; flex-shrink: 0; }
+    .btn-delete:hover { background: #ef4444; color: #fff; border-color: #ef4444; }
+    .btn-delete:disabled { opacity: 0.4; cursor: default; }
   </style>
 </head>
 <body>
   <div class="login" id="login">
-    <h1>Moderation</h1>
+    <h1>Admin</h1>
     <input type="password" id="token" placeholder="Admin token" autocomplete="off" />
     <button type="button" id="login-btn">Enter</button>
     <p id="login-error" style="color:#ef4444;font-size:13px;margin-top:8px;display:none;"></p>
   </div>
 
   <div id="app" style="display:none;">
-    <h1>Moderation Queue</h1>
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-      <p class="count" id="count" style="margin:0;"></p>
-      <button type="button" class="btn-approve-all" id="approve-all-btn" style="display:none;">Approve All</button>
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab active" id="tab-btn-queue" role="tab" aria-selected="true">
+        Moderation<span class="tab-badge" id="tab-queue-badge" style="display:none;"></span>
+      </button>
+      <button type="button" class="tab" id="tab-btn-logs" role="tab" aria-selected="false">
+        Logs
+      </button>
     </div>
-    <div class="queue" id="queue"></div>
+
+    <section id="tab-queue" role="tabpanel">
+      <h1>Moderation Queue</h1>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <p class="count" id="count" style="margin:0;"></p>
+        <button type="button" class="btn-approve-all" id="approve-all-btn" style="display:none;">Approve All</button>
+      </div>
+      <div class="queue" id="queue"></div>
+    </section>
+
+    <section id="tab-logs" role="tabpanel" hidden>
+      <div class="log-section">
+        <h1>Latest Log</h1>
+        <p class="log-hint" style="margin-bottom:16px;">Publishing replaces the log on /home instantly. Older entries stay on /logs.</p>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <p class="log-label" style="margin:0;">New entry</p>
+          <div class="mode-toggle" role="tablist">
+            <button type="button" class="mode-btn active" id="mode-write">Write</button>
+            <button type="button" class="mode-btn" id="mode-preview">Preview</button>
+          </div>
+        </div>
+
+        <div id="composer-write">
+          <textarea id="log-body" placeholder="What's new?"></textarea>
+          <p class="log-hint">
+            Add a link with <code>[text](https://url)</code> — every link you write shows up
+            below, where you can attach a hover-preview thumbnail to it (or not — thumbnails
+            are optional).
+          </p>
+          <div class="log-links" id="log-links" style="display:none;">
+            <p class="log-label" style="margin-top:16px;">Links in this entry</p>
+            <div id="log-links-list"></div>
+          </div>
+          <input type="file" id="thumb-file" accept="image/*" style="display:none;" />
+        </div>
+
+        <div id="composer-preview" style="display:none;">
+          <div class="log-preview">
+            <div class="log-preview-header">
+              <span class="log-preview-title">Latest Log</span>
+              <span class="log-preview-date" id="log-preview-date"></span>
+            </div>
+            <p class="log-preview-body" id="log-preview-body"></p>
+          </div>
+          <p class="log-hint" style="margin-top:8px;">Exactly how it'll render on /home — hover links to check previews.</p>
+        </div>
+
+        <div style="margin-top:16px;">
+          <button type="button" class="btn-publish" id="publish-btn">Publish to /home</button>
+          <span class="log-status" id="log-status"></span>
+        </div>
+
+        <div class="log-history">
+          <p class="log-label">History</p>
+          <div class="log-list" id="log-list"></div>
+        </div>
+      </div>
+    </section>
   </div>
 
   <script is:inline>
@@ -83,6 +213,31 @@ export const prerender = false;
       document.getElementById('app').style.display = '';
       const { pending } = await res.json();
       render(pending);
+      loadLogs();
+      if (location.hash === '#logs') switchTab('logs');
+    }
+
+    // ---- Tabs ----
+
+    function switchTab(name) {
+      const isLogs = name === 'logs';
+      document.getElementById('tab-queue').hidden = isLogs;
+      document.getElementById('tab-logs').hidden = !isLogs;
+      document.getElementById('tab-btn-queue').classList.toggle('active', !isLogs);
+      document.getElementById('tab-btn-logs').classList.toggle('active', isLogs);
+      document.getElementById('tab-btn-queue').setAttribute('aria-selected', String(!isLogs));
+      document.getElementById('tab-btn-logs').setAttribute('aria-selected', String(isLogs));
+      history.replaceState(null, '', isLogs ? '#logs' : '#');
+    }
+    document.getElementById('tab-btn-queue').addEventListener('click', () => switchTab('queue'));
+    document.getElementById('tab-btn-logs').addEventListener('click', () => switchTab('logs'));
+
+    // ---- Moderation queue ----
+
+    function updateQueueBadge(count) {
+      const badge = document.getElementById('tab-queue-badge');
+      badge.textContent = count;
+      badge.style.display = count > 0 ? '' : 'none';
     }
 
     function updateApproveAllBtn(count) {
@@ -94,6 +249,7 @@ export const prerender = false;
       const q = document.getElementById('queue');
       document.getElementById('count').textContent = cards.length + ' pending';
       updateApproveAllBtn(cards.length);
+      updateQueueBadge(cards.length);
       if (!cards.length) {
         q.innerHTML = '<p class="empty">Nothing to review.</p>';
         return;
@@ -138,7 +294,7 @@ export const prerender = false;
         info.appendChild(nameEl);
         const meta = document.createElement('div');
         meta.className = 'card-meta';
-        meta.textContent = '#' + c.number + ' \u00b7 ' + (c.issuedAt?.slice(0, 10) || '?');
+        meta.textContent = '#' + c.number + ' · ' + (c.issuedAt?.slice(0, 10) || '?');
         info.appendChild(meta);
         row.appendChild(info);
 
@@ -176,6 +332,7 @@ export const prerender = false;
           const remaining = document.querySelectorAll('.card').length;
           document.getElementById('count').textContent = remaining + ' pending';
           updateApproveAllBtn(remaining);
+          updateQueueBadge(remaining);
           if (remaining <= 0) {
             document.getElementById('queue').innerHTML = '<p class="empty">Nothing to review.</p>';
           }
@@ -200,11 +357,310 @@ export const prerender = false;
         setTimeout(() => {
           document.getElementById('queue').innerHTML = '<p class="empty">Nothing to review.</p>';
           document.getElementById('count').textContent = '0 pending';
-          btn.style.display = 'none';
+          updateApproveAllBtn(0);
+          updateQueueBadge(0);
         }, 350);
       } else {
         btn.disabled = false;
         btn.textContent = 'Approve All';
+      }
+    });
+
+    // ---- Latest Log ----
+
+    function fmtLogDate(iso) {
+      const d = new Date(iso);
+      if (isNaN(d)) return iso;
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+    }
+
+    async function loadLogs() {
+      const res = await fetch('/api/admin/logs', {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      if (!res.ok) return;
+      const { logs } = await res.json();
+      renderLogs(logs);
+    }
+
+    function renderLogs(logs) {
+      const list = document.getElementById('log-list');
+      list.innerHTML = '';
+      if (!logs.length) {
+        list.innerHTML = '<p class="empty">No logs yet.</p>';
+        return;
+      }
+      logs.forEach((log, i) => {
+        const item = document.createElement('div');
+        item.className = 'log-item' + (i === 0 ? ' is-latest' : '');
+
+        const info = document.createElement('div');
+        info.className = 'log-item-info';
+        const date = document.createElement('div');
+        date.className = 'log-item-date';
+        date.textContent = fmtLogDate(log.createdAt);
+        if (i === 0) {
+          const tag = document.createElement('span');
+          tag.className = 'latest-tag';
+          tag.textContent = 'LIVE ON /home';
+          date.appendChild(tag);
+        }
+        const body = document.createElement('div');
+        body.className = 'log-item-body';
+        body.textContent = log.body;
+        info.appendChild(date);
+        info.appendChild(body);
+        item.appendChild(info);
+
+        const del = document.createElement('button');
+        del.className = 'btn-delete';
+        del.textContent = 'Delete';
+        del.addEventListener('click', async () => {
+          if (!confirm('Delete this log?')) return;
+          del.disabled = true;
+          const res = await fetch('/api/admin/logs', {
+            method: 'DELETE',
+            headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: log.id }),
+          });
+          if (res.ok) { loadLogs(); } else { del.disabled = false; }
+        });
+        item.appendChild(del);
+
+        list.appendChild(item);
+      });
+    }
+
+    // ---- Write / Preview toggle ----
+
+    let previewSeq = 0;
+
+    async function refreshPreview() {
+      const body = document.getElementById('log-body').value.trim();
+      const bodyEl = document.getElementById('log-preview-body');
+      const dateEl = document.getElementById('log-preview-date');
+      if (!body) {
+        bodyEl.textContent = 'Nothing to preview yet — write something first.';
+        dateEl.textContent = '';
+        return;
+      }
+      const seq = ++previewSeq;
+      bodyEl.textContent = 'Rendering…';
+      const res = await fetch('/api/admin/logs', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body, preview: true }),
+      });
+      if (!res.ok || seq !== previewSeq) return;
+      const { html, date } = await res.json();
+      // Server-rendered by the same escaper /home uses — safe to inject.
+      bodyEl.innerHTML = html;
+      dateEl.textContent = date;
+      wirePreviewChips(bodyEl);
+    }
+
+    // Clamp hover chips to the viewport (mirrors wireSitePreviews on /home) —
+    // pure CSS centering pushed them off-screen near the window edges.
+    function wirePreviewChips(root) {
+      const W = 240, MARGIN = 12;
+      root.querySelectorAll('.latest-log__site-link').forEach((link) => {
+        const chip = link.querySelector('.latest-log__preview');
+        if (!chip) return;
+        link.addEventListener('pointerenter', () => {
+          const r = link.getBoundingClientRect();
+          const x = Math.max(MARGIN, Math.min(window.innerWidth - W - MARGIN, r.left + r.width / 2 - W / 2));
+          const h = chip.offsetHeight || 176;
+          let y = r.top - h - MARGIN;
+          if (y < MARGIN) y = r.bottom + MARGIN;
+          chip.style.setProperty('--preview-x', x + 'px');
+          chip.style.setProperty('--preview-y', y + 'px');
+        });
+      });
+    }
+
+    function setMode(mode) {
+      const isPreview = mode === 'preview';
+      document.getElementById('composer-write').style.display = isPreview ? 'none' : '';
+      document.getElementById('composer-preview').style.display = isPreview ? '' : 'none';
+      document.getElementById('mode-write').classList.toggle('active', !isPreview);
+      document.getElementById('mode-preview').classList.toggle('active', isPreview);
+      if (isPreview) refreshPreview();
+    }
+    document.getElementById('mode-write').addEventListener('click', () => setMode('write'));
+    document.getElementById('mode-preview').addEventListener('click', () => setMode('preview'));
+
+    document.getElementById('log-body').addEventListener('input', renderLinkPanel);
+
+    // ---- Per-link thumbnails ----
+    // Every [text](url) in the entry gets a row below the textarea with its
+    // own upload control. Uploading rewrites that link to the
+    // `[text](url | /api/log-thumb/…)` form; Remove strips it back.
+
+    const AUTO_PREVIEW_HOSTS = ['lingofable.com', 'sklonuj.com'];
+    // Keep in sync with renderLogHtml in src/lib/logs-server.ts — forgiving
+    // syntax: optional space before (, optional https:// scheme.
+    const LINK_RE = /\[([^\]]+)\]\s*\(\s*((?:https?:\/\/)?[^\s)|]+\.[^\s)|]+)(?:\s*\|\s*([^)]+?)\s*)?\)/g;
+    let pendingThumbIdx = null;
+
+    function linkHost(url) {
+      const full = /^https?:\/\//.test(url) ? url : 'https://' + url;
+      try { return new URL(full).hostname.replace(/^www\./, ''); } catch { return ''; }
+    }
+
+    function parseLinks(text) {
+      const out = [];
+      const re = new RegExp(LINK_RE.source, 'g');
+      let m;
+      while ((m = re.exec(text))) {
+        out.push({ text: m[1], url: m[2], thumb: m[3] || null, start: m.index, end: m.index + m[0].length });
+      }
+      return out;
+    }
+
+    function renderLinkPanel() {
+      const links = parseLinks(document.getElementById('log-body').value);
+      const wrap = document.getElementById('log-links');
+      const list = document.getElementById('log-links-list');
+      wrap.style.display = links.length ? '' : 'none';
+      list.innerHTML = '';
+      links.forEach((ln, idx) => {
+        const row = document.createElement('div');
+        row.className = 'log-link-row';
+
+        const host = linkHost(ln.url);
+        const isAuto = AUTO_PREVIEW_HOSTS.includes(host);
+
+        if (ln.thumb) {
+          const img = document.createElement('img');
+          img.className = 'log-link-thumb';
+          img.src = ln.thumb;
+          img.alt = '';
+          row.appendChild(img);
+        } else {
+          const ph = document.createElement('div');
+          ph.className = 'log-link-thumb is-empty';
+          ph.textContent = isAuto ? 'auto' : 'none';
+          row.appendChild(ph);
+        }
+
+        const info = document.createElement('div');
+        info.className = 'log-link-info';
+        const textEl = document.createElement('div');
+        textEl.className = 'log-link-text';
+        textEl.textContent = ln.text;
+        if (isAuto && !ln.thumb) {
+          const tag = document.createElement('span');
+          tag.className = 'log-link-auto';
+          tag.textContent = 'AUTO PREVIEW';
+          textEl.appendChild(tag);
+        }
+        const hostEl = document.createElement('div');
+        hostEl.className = 'log-link-host';
+        hostEl.textContent = host || ln.url;
+        info.appendChild(textEl);
+        info.appendChild(hostEl);
+        row.appendChild(info);
+
+        const actions = document.createElement('div');
+        actions.className = 'log-link-actions';
+        const upload = document.createElement('button');
+        upload.type = 'button';
+        upload.className = 'btn-upload';
+        upload.textContent = ln.thumb ? 'Replace thumbnail' : 'Upload thumbnail';
+        upload.addEventListener('click', () => {
+          pendingThumbIdx = idx;
+          document.getElementById('thumb-file').click();
+        });
+        actions.appendChild(upload);
+        if (ln.thumb) {
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'btn-thumb-remove';
+          remove.textContent = 'Remove';
+          remove.addEventListener('click', () => setLinkThumb(idx, null));
+          actions.appendChild(remove);
+        }
+        row.appendChild(actions);
+
+        list.appendChild(row);
+      });
+    }
+
+    function setLinkThumb(idx, path) {
+      const ta = document.getElementById('log-body');
+      const links = parseLinks(ta.value);
+      const ln = links[idx];
+      if (!ln) return;
+      const replacement = '[' + ln.text + '](' + ln.url + (path ? ' | ' + path : '') + ')';
+      ta.value = ta.value.slice(0, ln.start) + replacement + ta.value.slice(ln.end);
+      renderLinkPanel();
+    }
+
+    document.getElementById('thumb-file').addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = '';
+      const idx = pendingThumbIdx;
+      pendingThumbIdx = null;
+      if (!file || idx === null) return;
+      try {
+        const dataUrl = await resizeImage(file, 640);
+        const res = await fetch('/api/admin/log-thumbs', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dataUrl }),
+        });
+        if (!res.ok) throw new Error('upload failed');
+        const { path } = await res.json();
+        setLinkThumb(idx, path);
+      } catch {
+        alert('Thumbnail upload failed');
+      }
+    });
+
+    function resizeImage(file, maxW) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          const scale = Math.min(1, maxW / img.width);
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('bad image')); };
+        img.src = url;
+      });
+    }
+
+    document.getElementById('publish-btn').addEventListener('click', async () => {
+      const ta = document.getElementById('log-body');
+      const body = ta.value.trim();
+      if (!body) return;
+      const btn = document.getElementById('publish-btn');
+      const status = document.getElementById('log-status');
+      btn.disabled = true;
+      btn.textContent = 'Publishing…';
+      const res = await fetch('/api/admin/logs', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body }),
+      });
+      btn.disabled = false;
+      btn.textContent = 'Publish to /home';
+      if (res.ok) {
+        status.textContent = 'Live!';
+        setTimeout(() => { status.textContent = ''; }, 2500);
+        ta.value = '';
+        renderLinkPanel();
+        setMode('write');
+        loadLogs();
+      } else {
+        status.textContent = 'Failed';
+        status.style.color = '#ef4444';
+        setTimeout(() => { status.textContent = ''; status.style.color = ''; }, 2500);
       }
     });
 

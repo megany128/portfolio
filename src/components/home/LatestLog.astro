@@ -9,7 +9,8 @@ const { date } = Astro.props;
 <article
   data-latest-log
   data-collapsed="false"
-  class="latest-log group bg-[var(--color-ink)] text-[var(--color-ink-inverted)] rounded-[12px] p-4 flex flex-col gap-2 transition-all duration-[var(--duration-base)] ease-[var(--ease-out-soft)]"
+  data-settled
+  class="latest-log group bg-[var(--color-ink)] text-[var(--color-ink-inverted)] rounded-[12px] p-4 flex flex-col gap-2"
 >
   <header
     data-toggle
@@ -38,29 +39,69 @@ const { date } = Astro.props;
     </span>
   </header>
 
-  <div data-body class="latest-log__body grid transition-all duration-[var(--duration-base)] ease-[var(--ease-out-soft)] grid-rows-[1fr] opacity-100">
+  <div data-body class="latest-log__body grid grid-rows-[1fr] opacity-100">
     <div class="latest-log__clip">
       <p class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-mute)]">
         <slot />
       </p>
+      <a
+        href="/logs"
+        data-cursor="link"
+        data-astro-prefetch="hover"
+        class="latest-log__all-link font-[family-name:var(--font-mono)]"
+      >all logs →</a>
     </div>
   </div>
 </article>
 
 <style>
-  /* Default: let hoverable preview popups inside the body escape the log
-     box. Only clip when the log is collapsed so the grid-rows animation
-     still hides the text cleanly. */
-  .latest-log__clip {
-    overflow: visible;
+  /* Transition only the properties that change — transitioning `all` here
+     made unrelated layout writes animate too, which read as judder. */
+  .latest-log__body {
+    transition:
+      grid-template-rows var(--duration-base) var(--ease-out-soft),
+      opacity var(--duration-base) var(--ease-out-soft),
+      margin-top var(--duration-base) var(--ease-out-soft);
   }
-  .latest-log[data-collapsed="true"] .latest-log__clip {
+
+  /* Clip while the grid-rows animation runs (otherwise the overflowing text
+     shows at full height on frame one of an expand — a visible pop). Once the
+     expand settles, release overflow so hover preview popups inside the body
+     can escape the log box. */
+  .latest-log__clip {
     overflow: hidden;
+  }
+  .latest-log[data-collapsed="false"][data-settled] .latest-log__clip {
+    overflow: visible;
   }
   .latest-log[data-collapsed="true"] .latest-log__body {
     grid-template-rows: 0fr;
     opacity: 0;
     margin-top: -8px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .latest-log__body {
+      transition: none;
+    }
+  }
+
+  /* Quiet archive link tucked under the log text. */
+  .latest-log__all-link {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: color-mix(in oklab, var(--color-ink-mute) 70%, transparent);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-out-soft);
+  }
+  .latest-log__all-link:hover,
+  .latest-log__all-link:focus-visible {
+    color: var(--color-ink-inverted);
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 
   /* Chevron rotates to indicate state. */
@@ -105,11 +146,30 @@ const { date } = Astro.props;
       article.dataset.logWired = "1";
 
       const toggle = article.querySelector<HTMLElement>("[data-toggle]");
+      const body = article.querySelector<HTMLElement>("[data-body]");
       if (!toggle) return;
+
+      // `data-settled` gates overflow: the clip stays hidden while the
+      // grid-rows animation runs, then releases so hover previews can escape.
+      let settleTimer = 0;
+      function settleLater() {
+        window.clearTimeout(settleTimer);
+        // Fallback in case transitionend never fires (reduced motion).
+        settleTimer = window.setTimeout(() => article.setAttribute("data-settled", ""), 450);
+      }
+      body?.addEventListener("transitionend", (e) => {
+        if (e.propertyName !== "grid-template-rows") return;
+        if (article.dataset.collapsed === "false") {
+          window.clearTimeout(settleTimer);
+          article.setAttribute("data-settled", "");
+        }
+      });
 
       function flip() {
         const collapsed = article.dataset.collapsed === "true";
         article.dataset.collapsed = String(!collapsed);
+        article.removeAttribute("data-settled");
+        if (collapsed) settleLater();
         toggle!.setAttribute("aria-expanded", String(collapsed));
         toggle!.setAttribute("aria-label", collapsed ? "Collapse log" : "Expand log");
       }

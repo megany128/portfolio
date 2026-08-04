@@ -1,24 +1,13 @@
 import type { APIContext } from "astro";
-import { env } from "cloudflare:workers";
 import {
   listPendingVisitors,
   approveVisitor,
   approveAllVisitors,
   rejectVisitor,
 } from "../../../lib/visitor-server";
+import { isAdminAuthorized as isAuthorized } from "../../../lib/admin-server";
 
 export const prerender = false;
-
-function getAdminToken(_ctx: APIContext): string | null {
-  return env.ADMIN_TOKEN ?? null;
-}
-
-function isAuthorized(ctx: APIContext): boolean {
-  const expected = getAdminToken(ctx);
-  if (!expected) return false;
-  const auth = ctx.request.headers.get("authorization");
-  return auth === `Bearer ${expected}`;
-}
 
 /** GET — list pending cards. */
 export async function GET(ctx: APIContext) {

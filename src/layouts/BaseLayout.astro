@@ -102,6 +102,38 @@ const ogImageUrl = new URL(image, Astro.site).href;
       ::view-transition-new(footer) {
         animation: none !important;
       }
+
+      /* /home ↔ /logs: a quick cross-fade instead of the instant swap.
+         Only one side has the sidebar/footer, so without this the sidebar
+         snapshot just blinks out at swap time — the fade lets it (and the
+         rest of the page) dissolve together. `data-vt-fade` is set by the
+         script below for exactly this route pair. */
+      html[data-vt-fade]::view-transition-old(root),
+      html[data-vt-fade]::view-transition-old(sidebar),
+      html[data-vt-fade]::view-transition-old(footer) {
+        animation: vt-fade-out 160ms ease-out both !important;
+      }
+      html[data-vt-fade]::view-transition-new(root),
+      html[data-vt-fade]::view-transition-new(sidebar),
+      html[data-vt-fade]::view-transition-new(footer) {
+        animation: vt-fade-in 220ms ease-out both !important;
+      }
+      @keyframes vt-fade-out {
+        to { opacity: 0; }
+      }
+      @keyframes vt-fade-in {
+        from { opacity: 0; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html[data-vt-fade]::view-transition-old(root),
+        html[data-vt-fade]::view-transition-old(sidebar),
+        html[data-vt-fade]::view-transition-old(footer),
+        html[data-vt-fade]::view-transition-new(root),
+        html[data-vt-fade]::view-transition-new(sidebar),
+        html[data-vt-fade]::view-transition-new(footer) {
+          animation: none !important;
+        }
+      }
     </style>
   </head>
   <body class={bodyClass}>
@@ -248,6 +280,25 @@ const ogImageUrl = new URL(image, Astro.site).href;
         // cancels a pending timer (fast load → no skeleton) and clears any shown
         // skeleton. Also a no-op when the destination wasn't the gallery.
         document.addEventListener("astro:page-load", hide);
+
+        // /home ↔ /logs cross-fade: arm `data-vt-fade` before the transition
+        // starts so the CSS above softens the sidebar/footer disappearing.
+        const FADE_PAIR = new Set(["/home", "/logs"]);
+        document.addEventListener("astro:before-preparation", ((
+          event: Event & { to?: URL; from?: URL },
+        ) => {
+          const to = event.to?.pathname ?? "";
+          const from = event.from?.pathname ?? "";
+          if (FADE_PAIR.has(to) && FADE_PAIR.has(from) && to !== from) {
+            document.documentElement.setAttribute("data-vt-fade", "");
+          }
+        }) as EventListener);
+        document.addEventListener("astro:page-load", () => {
+          // Let the incoming fade finish before disarming.
+          window.setTimeout(() => {
+            document.documentElement.removeAttribute("data-vt-fade");
+          }, 300);
+        });
       })();
     </script>
   </body>

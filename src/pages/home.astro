@@ -5,12 +5,19 @@ import LatestLog from "../components/home/LatestLog.astro";
 import ProjectIndexCard from "../components/home/ProjectIndexCard.astro";
 import Footer from "../components/home/Footer.astro";
 import CustomCursor from "../components/home/CustomCursor.astro";
+import SitePreviewLinks from "../components/home/SitePreviewLinks.astro";
 import { getCurrentVisitor } from "../lib/visitor-server";
+import { getLatestLog, renderLogHtml, formatLogDate, FALLBACK_LOG } from "../lib/logs-server";
 
 export const prerender = false;
 
-const visitor = await getCurrentVisitor(Astro);
+const [visitor, latestLog] = await Promise.all([
+  getCurrentVisitor(Astro),
+  getLatestLog(Astro),
+]);
 const cursorColor = visitor?.color ?? "pink";
+const log = latestLog ?? FALLBACK_LOG;
+const logHtml = renderLogHtml(log.body, { previews: true });
 ---
 
 <BaseLayout
@@ -37,44 +44,8 @@ const cursorColor = visitor?.color ?? "pink";
 
     <main class="flex flex-col gap-6 sm:gap-8 p-4 sm:p-6 md:p-12 flex-1 min-w-0" data-home-main>
       <div class="flex flex-col gap-8" data-home-stack>
-        <LatestLog date="Apr 12, 2026">
-          <a
-            href="https://simonilincev.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="latest-log__site-link">@Simon Ilincev</a
-          >{" "}and I have just launched{" "}<a
-            href="https://lingofable.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            data-site-preview
-            class="latest-log__site-link"
-            >Lingofable<span class="latest-log__preview" aria-hidden="true">
-              <span class="site-preview__chrome">
-                <span class="site-preview__dots"><i></i><i></i><i></i></span>
-                <span class="site-preview__url">lingofable.com</span>
-              </span>
-              <span
-                class="site-preview__thumb"
-                style="background-image: url(/images/projects/lingofable.png);"></span>
-            </span></a
-          >, a language learning app based on comprehensible input! Currently, I'm also building{" "}<a
-            href="https://sklonuj.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            data-site-preview
-            class="latest-log__site-link"
-            >Skloňuj<span class="latest-log__preview" aria-hidden="true">
-              <span class="site-preview__chrome">
-                <span class="site-preview__dots"><i></i><i></i><i></i></span>
-                <span class="site-preview__url">sklonuj.com</span>
-              </span>
-              <span
-                class="site-preview__thumb"
-                style="background-image: url(/images/projects/sklonuj.png);"></span>
-            </span></a
-          >, a tool for Czech learners to practice noun declension — it's being piloted by four
-          universities.
+        <LatestLog date={formatLogDate(log.createdAt)}>
+          <Fragment set:html={logHtml} />
         </LatestLog>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
@@ -189,95 +160,7 @@ const cursorColor = visitor?.color ?? "pink";
 
   <CustomCursor color={cursorColor} />
 
-  <style is:global>
-    /*
-      Inline site-preview chips — hovering "Lingofable" / "Skloňuj" inside the
-      LatestLog surfaces a mini browser window with the site thumbnail.
-    */
-    .latest-log__site-link {
-      position: relative;
-      color: var(--color-ink-inverted);
-      text-decoration: underline;
-      text-underline-offset: 2px;
-      text-decoration-thickness: 1px;
-      text-decoration-color: color-mix(in oklab, var(--color-ink-inverted) 40%, transparent);
-      transition: text-decoration-color var(--duration-fast) var(--ease-out-soft);
-    }
-    .latest-log__site-link:hover {
-      text-decoration-color: var(--color-ink-inverted);
-    }
-    .latest-log__preview {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 240px;
-      padding: 8px;
-      border-radius: 10px;
-      background: var(--color-bg-light);
-      border: 1px solid color-mix(in oklab, var(--color-ink) 10%, transparent);
-      box-shadow:
-        0 18px 36px -16px rgba(36, 36, 36, 0.55),
-        0 4px 10px -4px rgba(36, 36, 36, 0.35);
-      pointer-events: none;
-      opacity: 0;
-      transform: translate(var(--preview-x, 0px), calc(var(--preview-y, 0px) + 6px)) scale(0.97);
-      transform-origin: bottom center;
-      transition:
-        opacity 200ms var(--ease-out-soft),
-        transform 240ms var(--ease-out-soft);
-      z-index: 50;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .latest-log__site-link:hover .latest-log__preview,
-    .latest-log__site-link:focus-visible .latest-log__preview {
-      opacity: 1;
-      transform: translate(var(--preview-x, 0px), var(--preview-y, 0px)) scale(1);
-    }
-    .site-preview__chrome {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 0 2px;
-    }
-    .site-preview__dots {
-      display: inline-flex;
-      gap: 3px;
-    }
-    .site-preview__dots i {
-      display: block;
-      width: 5px;
-      height: 5px;
-      border-radius: 9999px;
-      background: color-mix(in oklab, var(--color-ink) 30%, transparent);
-    }
-    .site-preview__url {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: 0.02em;
-      text-transform: none;
-      color: var(--color-ink-dim);
-    }
-    .site-preview__thumb {
-      display: block;
-      width: 100%;
-      height: 120px;
-      border-radius: 6px;
-      background-size: cover;
-      background-position: center top;
-      background-color: var(--color-bg-neutral);
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .latest-log__preview {
-        transition: opacity 120ms var(--ease-out-soft);
-        transform: translate(var(--preview-x, 0px), var(--preview-y, 0px));
-      }
-      .latest-log__site-link:hover .latest-log__preview {
-        transform: translate(var(--preview-x, 0px), var(--preview-y, 0px));
-      }
-    }
-  </style>
+  <SitePreviewLinks />
 
   <style>
     /*
@@ -381,58 +264,6 @@ const cursorColor = visitor?.color ?? "pink";
   </style>
 
   <script>
-    /*
-      Position the Lingofable / Skloňuj preview cards via fixed coords clamped
-      to the viewport so long text doesn't push the popup off-screen.
-    */
-    function wireSitePreviews() {
-      const PREVIEW_W = 240;
-      const MARGIN = 12;
-      document
-        .querySelectorAll<HTMLElement>("[data-site-preview]:not([data-wired])")
-        .forEach((link) => {
-          link.dataset.wired = "1";
-          const preview = link.querySelector<HTMLElement>(".latest-log__preview");
-          if (!preview) return;
-          // Defer thumb image fetch until hover/focus — saves a request +
-          // decode on initial /home paint without changing visual behavior.
-          const thumb = preview.querySelector<HTMLElement>(".site-preview__thumb");
-          if (thumb && thumb.style.backgroundImage && thumb.style.backgroundImage !== "none") {
-            thumb.dataset.bg = thumb.style.backgroundImage;
-            thumb.style.backgroundImage = "none";
-          }
-          let pending = 0;
-          const place = () => {
-            if (pending) return;
-            pending = requestAnimationFrame(() => {
-              pending = 0;
-              const r = link.getBoundingClientRect();
-              const anchorX = r.left + r.width / 2;
-              const x = Math.max(
-                MARGIN,
-                Math.min(window.innerWidth - PREVIEW_W - MARGIN, anchorX - PREVIEW_W / 2),
-              );
-              const ph = preview.offsetHeight || 176;
-              let y = r.top - ph - MARGIN;
-              if (y < MARGIN) y = r.bottom + MARGIN;
-              preview.style.setProperty("--preview-x", `${x}px`);
-              preview.style.setProperty("--preview-y", `${y}px`);
-            });
-          };
-          const onEnter = () => {
-            if (thumb && thumb.dataset.bg) {
-              thumb.style.backgroundImage = thumb.dataset.bg;
-              delete thumb.dataset.bg;
-            }
-            place();
-          };
-          link.addEventListener("pointerenter", onEnter);
-          link.addEventListener("focus", onEnter);
-        });
-    }
-    wireSitePreviews();
-    document.addEventListener("astro:page-load", wireSitePreviews);
-
     /*
       Detect arrival from the wallet transition. The onboarding submit handler
       sets `wallet:arrival` in sessionStorage right before navigate(); we
