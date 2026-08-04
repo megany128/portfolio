@@ -48,7 +48,7 @@ const entryExplorations = [
   },
   {
     num: "02",
-    img: "/images/work/splunk/entry-02-separate-page.webp",
+    img: "/images/work/splunk/entry-02-separate-page.mp4",
     title: "Separate Investigations page",
     pros: ["Scalable and easier to navigate"],
     cons: ["Duplicated content \u2014 confusing for users", "Extra step in the workflow"],
@@ -110,7 +110,7 @@ const rootCauseExplorations = [
 const keyFlows = [
   {
     num: "01",
-    img: "/images/work/splunk/flow-01-create-investigations.webp",
+    img: "/images/work/splunk/flow-01-create-investigations.mp4",
     title: "Create investigations for alerts and monitor Splunk AI\u2019s progress",
     body: "Choose which alerts to begin investigations for, and initiate a long-latency task.",
   },
@@ -122,7 +122,7 @@ const keyFlows = [
   },
   {
     num: "03",
-    img: "/images/work/splunk/flow-03-auto-apply.webp",
+    img: "/images/work/splunk/flow-03-auto-apply.mp4",
     title: "Auto-apply a suggested solution",
     body: "Explore multiple recommended suggestions, and auto-apply one of choice.",
   },
@@ -275,12 +275,25 @@ const reflections = [
               solutionPillars.map((pillar) => (
                 <div class="flex flex-col gap-2 text-left">
                   <div class="cs-pillar-img-wrap rounded-[12px] overflow-hidden bg-[var(--color-bg-light)] flex items-center justify-center">
-                    <img
-                      src={pillar.img}
-                      alt={pillar.title}
-                      loading="lazy"
-                      class="max-w-full max-h-full object-contain"
-                    />
+                    {pillar.img.endsWith(".mp4") ? (
+                      <video
+                        src={pillar.img}
+                        autoplay
+                        loop
+                        muted
+                        playsinline
+                        preload="metadata"
+                        aria-label={pillar.title}
+                        class="max-w-full max-h-full object-contain"
+                      />
+                    ) : (
+                      <img
+                        src={pillar.img}
+                        alt={pillar.title}
+                        loading="lazy"
+                        class="max-w-full max-h-full object-contain"
+                      />
+                    )}
                   </div>
                   <h3 class="font-[family-name:var(--font-display)] font-light text-[16px] text-[var(--color-ink)]">
                     {pillar.title}
@@ -317,7 +330,20 @@ const reflections = [
             entryExplorations.map((exp) => (
               <div class="cs-exploration">
                 <div class="cs-exploration-img-wrap">
-                  <img src={exp.img} alt={exp.title} loading="lazy" class="cs-exploration-img" />
+                  {exp.img.endsWith(".mp4") ? (
+                    <video
+                      src={exp.img}
+                      autoplay
+                      loop
+                      muted
+                      playsinline
+                      preload="metadata"
+                      aria-label={exp.title}
+                      class="cs-exploration-img"
+                    />
+                  ) : (
+                    <img src={exp.img} alt={exp.title} loading="lazy" class="cs-exploration-img" />
+                  )}
                 </div>
                 <div class="cs-exploration-details">
                   <div class="flex flex-col gap-1.5">
@@ -442,12 +468,16 @@ const reflections = [
           </h2>
           <div class="cs-exploration mt-3">
             <div class="cs-exploration-img-wrap">
-              <img
-                src="/images/work/splunk/content-initial-handoff.webp"
-                alt="Initial prototype handoff with critique annotations"
-                loading="lazy"
+              <video
+                src="/images/work/splunk/content-initial-handoff.mp4"
+                autoplay
+                loop
+                muted
+                playsinline
+                preload="metadata"
+                aria-label="Initial prototype handoff with critique annotations"
                 class="cs-exploration-img"
-              />
+              ></video>
             </div>
             <div class="cs-exploration-details">
               <span
@@ -633,7 +663,20 @@ const reflections = [
             rootCauseExplorations.map((exp) => (
               <div class="cs-exploration">
                 <div class="cs-exploration-img-wrap">
-                  <img src={exp.img} alt={exp.title} loading="lazy" class="cs-exploration-img" />
+                  {exp.img.endsWith(".mp4") ? (
+                    <video
+                      src={exp.img}
+                      autoplay
+                      loop
+                      muted
+                      playsinline
+                      preload="metadata"
+                      aria-label={exp.title}
+                      class="cs-exploration-img"
+                    />
+                  ) : (
+                    <img src={exp.img} alt={exp.title} loading="lazy" class="cs-exploration-img" />
+                  )}
                 </div>
                 <div class="cs-exploration-details">
                   <div class="flex flex-col gap-1.5">
@@ -728,7 +771,20 @@ const reflections = [
             keyFlows.map((flow) => (
               <div class="cs-exploration">
                 <div class="cs-exploration-img-wrap cs-exploration-img-wrap--wide">
-                  <img src={flow.img} alt={flow.title} loading="lazy" class="cs-exploration-img" />
+                  {flow.img.endsWith(".mp4") ? (
+                    <video
+                      src={flow.img}
+                      autoplay
+                      loop
+                      muted
+                      playsinline
+                      preload="metadata"
+                      aria-label={flow.title}
+                      class="cs-exploration-img"
+                    />
+                  ) : (
+                    <img src={flow.img} alt={flow.title} loading="lazy" class="cs-exploration-img" />
+                  )}
                 </div>
                 <div class="cs-exploration-details">
                   <div class="flex flex-col gap-1.5">
