@@ -789,6 +789,11 @@ const reflections = [
 </style>
 
 <script>
+  import { initVideoBlobs } from "../../lib/video-blob";
+
+  initVideoBlobs();
+  document.addEventListener("astro:page-load", initVideoBlobs);
+
   /*
     Section-entry fade. Uses a scroll listener (rAF-throttled) to mark each
     section visible once it enters the viewport from below. IntersectionObserver

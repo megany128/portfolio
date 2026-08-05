@@ -1035,6 +1035,11 @@ const reflections = [
 </style>
 
 <script>
+  import { initVideoBlobs } from "../../lib/video-blob";
+
+  initVideoBlobs();
+  document.addEventListener("astro:page-load", initVideoBlobs);
+
   /* Section-entry fade — same pattern as splunk/lingofable */
   function initCaseStudyEntries() {
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;

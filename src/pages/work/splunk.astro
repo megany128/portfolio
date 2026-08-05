@@ -1080,6 +1080,8 @@ const reflections = [
 </style>
 
 <script>
+  import { initVideoBlobs } from "../../lib/video-blob";
+
   /* Section-entry fade — same pattern as lingofable */
   function initCaseStudyEntries() {
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -1129,4 +1131,7 @@ const reflections = [
   }
   initCaseStudyEntries();
   document.addEventListener("astro:page-load", initCaseStudyEntries);
+
+  initVideoBlobs();
+  document.addEventListener("astro:page-load", initVideoBlobs);
 </script>
