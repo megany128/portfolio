@@ -166,7 +166,13 @@ export function formatLogDate(iso: string, timeZone?: string): string {
   }
 }
 
-/** The viewer's IANA timezone from Cloudflare's request geo, if present. */
+/** The viewer's IANA timezone from Cloudflare's request geo, if present.
+ * (`locals.runtime.cf` is a throwing getter since the v6 adapter — the geo
+ * object lives on `request.cf` now.) */
 export function viewerTimeZone(ctx: APIContext): string | undefined {
-  return (ctx.locals as any)?.runtime?.cf?.timezone as string | undefined;
+  try {
+    return (ctx.request as { cf?: { timezone?: string } }).cf?.timezone;
+  } catch {
+    return undefined;
+  }
 }
