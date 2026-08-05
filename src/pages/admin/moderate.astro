@@ -41,6 +41,8 @@ export const prerender = false;
     .badge { display: inline-block; background: #ef4444; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
     .color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle; }
     .count { font-size: 14px; color: #888; margin-bottom: 16px; }
+    .btn-top { display: none; margin-top: 24px; padding: 8px 16px; border: 1px solid #ddd; border-radius: 8px; background: #f5f5f5; color: #1a1a1a; font-weight: 600; font-size: 13px; cursor: pointer; }
+    .btn-top:hover { background: #eee; }
 
     /* Logs tab */
     .log-section { max-width: 720px; }
@@ -127,6 +129,7 @@ export const prerender = false;
         <button type="button" class="btn-approve-all" id="approve-all-btn" style="display:none;">Approve All</button>
       </div>
       <div class="queue" id="queue"></div>
+      <button type="button" class="btn-top" id="scroll-top-btn">↑ Back to top</button>
     </section>
 
     <section id="tab-logs" role="tabpanel" hidden>
@@ -252,6 +255,7 @@ export const prerender = false;
       updateQueueBadge(cards.length);
       if (!cards.length) {
         q.innerHTML = '<p class="empty">Nothing to review.</p>';
+        requestAnimationFrame(updateTopBtn);
         return;
       }
       q.innerHTML = '';
@@ -314,6 +318,7 @@ export const prerender = false;
 
         q.appendChild(row);
       }
+      requestAnimationFrame(updateTopBtn);
     }
 
     async function act(id, action, btn) {
@@ -336,6 +341,7 @@ export const prerender = false;
           if (remaining <= 0) {
             document.getElementById('queue').innerHTML = '<p class="empty">Nothing to review.</p>';
           }
+          updateTopBtn();
         }, 350);
       }
     }
@@ -359,6 +365,7 @@ export const prerender = false;
           document.getElementById('count').textContent = '0 pending';
           updateApproveAllBtn(0);
           updateQueueBadge(0);
+          updateTopBtn();
         }, 350);
       } else {
         btn.disabled = false;
@@ -366,12 +373,25 @@ export const prerender = false;
       }
     });
 
+    // ---- Back to top (moderation queue) ----
+    // Only shown when the queue actually makes the page scroll.
+
+    function updateTopBtn() {
+      const btn = document.getElementById('scroll-top-btn');
+      btn.style.display =
+        document.documentElement.scrollHeight > window.innerHeight + 100 ? 'inline-block' : 'none';
+    }
+    document.getElementById('scroll-top-btn').addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    window.addEventListener('resize', updateTopBtn, { passive: true });
+
     // ---- Latest Log ----
 
     function fmtLogDate(iso) {
       const d = new Date(iso);
       if (isNaN(d)) return iso;
-      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
 
     async function loadLogs() {
@@ -496,7 +516,11 @@ export const prerender = false;
     // own upload control. Uploading rewrites that link to the
     // `[text](url | /api/log-thumb/…)` form; Remove strips it back.
 
-    const AUTO_PREVIEW_HOSTS = ['lingofable.com', 'sklonuj.com'];
+    // Keep in sync with PREVIEW_SITES in src/lib/logs-server.ts.
+    const AUTO_PREVIEW_IMAGES = {
+      'lingofable.com': '/images/projects/lingofable.png',
+      'sklonuj.com': '/images/projects/sklonuj.png',
+    };
     // Keep in sync with renderLogHtml in src/lib/logs-server.ts — forgiving
     // syntax: optional space before (, optional https:// scheme.
     const LINK_RE = /\[([^\]]+)\]\s*\(\s*((?:https?:\/\/)?[^\s)|]+\.[^\s)|]+)(?:\s*\|\s*([^)]+?)\s*)?\)/g;
@@ -528,18 +552,20 @@ export const prerender = false;
         row.className = 'log-link-row';
 
         const host = linkHost(ln.url);
-        const isAuto = AUTO_PREVIEW_HOSTS.includes(host);
+        const autoImg = AUTO_PREVIEW_IMAGES[host];
+        const isAuto = !!autoImg;
 
-        if (ln.thumb) {
+        const thumbSrc = ln.thumb || autoImg;
+        if (thumbSrc) {
           const img = document.createElement('img');
           img.className = 'log-link-thumb';
-          img.src = ln.thumb;
+          img.src = thumbSrc;
           img.alt = '';
           row.appendChild(img);
         } else {
           const ph = document.createElement('div');
           ph.className = 'log-link-thumb is-empty';
-          ph.textContent = isAuto ? 'auto' : 'none';
+          ph.textContent = 'none';
           row.appendChild(ph);
         }
 

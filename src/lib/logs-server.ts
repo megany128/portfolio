@@ -150,11 +150,23 @@ export function renderLogHtml(body: string, opts: { previews?: boolean } = {}): 
   return linked.replace(/\n/g, "<br />");
 }
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-/** "2026-04-12T12:00:00Z" → "Apr 12, 2026" */
-export function formatLogDate(iso: string): string {
+/** "2026-04-12T12:00:00Z" → "Apr 12, 2026".
+ * Timestamps are stored in UTC; formatting in UTC showed the next day for
+ * evening posts. Renders in the viewer's timezone when known (Cloudflare's
+ * `cf.timezone` per request), falling back to Eastern. */
+export function formatLogDate(iso: string, timeZone?: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+  const opts = { month: "short", day: "numeric", year: "numeric" } as const;
+  try {
+    return d.toLocaleDateString("en-US", { ...opts, timeZone: timeZone || "America/New_York" });
+  } catch {
+    // Unrecognized timezone string — fall back rather than 500 the page.
+    return d.toLocaleDateString("en-US", { ...opts, timeZone: "America/New_York" });
+  }
+}
+
+/** The viewer's IANA timezone from Cloudflare's request geo, if present. */
+export function viewerTimeZone(ctx: APIContext): string | undefined {
+  return (ctx.locals as any)?.runtime?.cf?.timezone as string | undefined;
 }

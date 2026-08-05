@@ -6,6 +6,7 @@ import {
   deleteLog,
   renderLogHtml,
   formatLogDate,
+  viewerTimeZone,
 } from "../../../lib/logs-server";
 
 export const prerender = false;
@@ -49,7 +50,7 @@ export async function POST(ctx: APIContext) {
   if ((payload as { preview?: unknown }).preview === true) {
     return Response.json({
       html: renderLogHtml(body, { previews: true }),
-      date: formatLogDate(new Date().toISOString()),
+      date: formatLogDate(new Date().toISOString(), viewerTimeZone(ctx)),
     });
   }
 

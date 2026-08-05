@@ -2,7 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import CustomCursor from "../components/home/CustomCursor.astro";
 import SitePreviewLinks from "../components/home/SitePreviewLinks.astro";
-import { listLogs, renderLogHtml, formatLogDate, FALLBACK_LOG } from "../lib/logs-server";
+import { listLogs, renderLogHtml, formatLogDate, viewerTimeZone, FALLBACK_LOG } from "../lib/logs-server";
 import { getCurrentVisitor } from "../lib/visitor-server";
 
 export const prerender = false;
@@ -36,7 +36,7 @@ const logs = rows.length ? rows : [FALLBACK_LOG];
           <li class="logs-page__entry">
             <div class="logs-page__marker" aria-hidden="true" />
             <p class="logs-page__date font-[family-name:var(--font-mono)]">
-              {formatLogDate(log.createdAt)}
+              {formatLogDate(log.createdAt, viewerTimeZone(Astro))}
             </p>
             <p class="logs-page__body font-[family-name:var(--font-body)]">
               <Fragment set:html={renderLogHtml(log.body, { previews: true })} />

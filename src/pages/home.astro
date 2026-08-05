@@ -7,7 +7,7 @@ import Footer from "../components/home/Footer.astro";
 import CustomCursor from "../components/home/CustomCursor.astro";
 import SitePreviewLinks from "../components/home/SitePreviewLinks.astro";
 import { getCurrentVisitor } from "../lib/visitor-server";
-import { getLatestLog, renderLogHtml, formatLogDate, FALLBACK_LOG } from "../lib/logs-server";
+import { getLatestLog, renderLogHtml, formatLogDate, viewerTimeZone, FALLBACK_LOG } from "../lib/logs-server";
 
 export const prerender = false;
 
@@ -44,7 +44,7 @@ const logHtml = renderLogHtml(log.body, { previews: true });
 
     <main class="flex flex-col gap-6 sm:gap-8 p-4 sm:p-6 md:p-12 flex-1 min-w-0 w-full max-w-[1240px] mx-auto" data-home-main>
       <div class="flex flex-col gap-8" data-home-stack>
-        <LatestLog date={formatLogDate(log.createdAt)}>
+        <LatestLog date={formatLogDate(log.createdAt, viewerTimeZone(Astro))}>
           <Fragment set:html={logHtml} />
         </LatestLog>
 
