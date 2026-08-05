@@ -57,21 +57,18 @@ const solutionPillars = [
 
 const entryExplorations = [
   {
-    num: "01",
     img: "/images/work/splunk/entry-01-semi-separated.png",
     title: "Semi-separated investigations section",
     pros: ["Eye-catching (perfect for completed long latency tasks)"],
     cons: ["Not scalable", "Takes up a lot of real estate"],
   },
   {
-    num: "02",
     img: "/images/work/splunk/entry-02-separate-page.mp4",
     title: "Separate Investigations page",
     pros: ["Scalable and easier to navigate"],
     cons: ["Duplicated content \u2014 confusing for users", "Extra step in the workflow"],
   },
   {
-    num: "03",
     img: "/images/work/splunk/entry-03-filter-cards.png",
     title: "Filter cards",
     pros: ["Latency problem solved without information redundancy"],
@@ -97,7 +94,6 @@ const contentExplorations = [
 
 const rootCauseExplorations = [
   {
-    num: "01",
     img: "/images/work/splunk/rootcause-01-multiple-pages.png",
     title: "Multiple pages for root causes and solutions",
     pros: [
@@ -110,7 +106,6 @@ const rootCauseExplorations = [
     ],
   },
   {
-    num: "02",
     img: "/images/work/splunk/rootcause-02-three-column.png",
     title: "Three-column view",
     pros: [
@@ -126,19 +121,16 @@ const rootCauseExplorations = [
 
 const keyFlows = [
   {
-    num: "01",
     img: "/images/work/splunk/flow-01-create-investigations.mp4",
     title: "Create investigations for alerts and monitor Splunk AI\u2019s progress",
     body: "Choose which alerts to begin investigations for, and initiate a long-latency task.",
   },
   {
-    num: "02",
     img: "/images/work/splunk/flow-02-examine-root-cause.png",
     title: "Examine the root cause and associated details",
     body: "View important information about the root cause of the issue, how this has affected related entities, and the checks performed by Splunk AI.",
   },
   {
-    num: "03",
     img: "/images/work/splunk/flow-03-auto-apply.mp4",
     title: "Auto-apply a suggested solution",
     body: "Explore multiple recommended suggestions, and auto-apply one of choice.",
@@ -161,11 +153,16 @@ const reflections = [
 ];
 ---
 
-<BaseLayout title="Splunk — Megan Yap" description="Designed AI-powered root cause analysis and remediation for data ingestion alerts. Showcased to 6,000+ Splunk users during .conf25.">
+<BaseLayout
+  title="Splunk — Megan Yap"
+  description="Designed AI-powered root cause analysis and remediation for data ingestion alerts. Showcased to 6,000+ Splunk users during .conf25."
+>
   <div class="flex items-stretch min-h-screen" id="top">
     <CaseStudySidebar sections={tocSections} active="context" />
 
-    <main class="flex-1 min-w-0 w-full max-w-[1100px] mx-auto p-4 sm:p-6 md:p-10 flex flex-col gap-8 sm:gap-10 lg:gap-14">
+    <main
+      class="flex-1 min-w-0 w-full max-w-[1100px] mx-auto p-4 sm:p-6 md:p-10 flex flex-col gap-8 sm:gap-10 lg:gap-14"
+    >
       <!-- Hero banner -->
       <section class="cs-hero-wrap">
         <div class="cs-hero rounded-[24px] overflow-hidden h-[360px]">
@@ -365,18 +362,15 @@ const reflections = [
                   )}
                 </div>
                 <div class="cs-exploration-details">
-                  <div class="flex flex-col gap-1.5">
-                    <Tag>{exp.num}</Tag>
-                    <span class="font-[family-name:var(--font-display)] font-light text-[16px] text-[var(--color-ink)]">
-                      {exp.title}
-                    </span>
-                  </div>
+                  <span class="font-[family-name:var(--font-display)] font-light text-[18px] text-[var(--color-ink)]">
+                    {exp.title}
+                  </span>
                   {exp.pros.map((pro) => (
                     <div class="cs-pro-con">
                       <span class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]">
                         +
                       </span>
-                      <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                      <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug">
                         {pro}
                       </span>
                     </div>
@@ -386,7 +380,7 @@ const reflections = [
                       <span class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-orange)]">
                         -
                       </span>
-                      <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                      <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug">
                         {con}
                       </span>
                     </div>
@@ -495,12 +489,11 @@ const reflections = [
                 playsinline
                 preload="metadata"
                 aria-label="Initial prototype handoff with critique annotations"
-                class="cs-exploration-img"
-              ></video>
+                class="cs-exploration-img"></video>
             </div>
             <div class="cs-exploration-details">
               <span
-                class="font-[family-name:var(--font-display)] font-light text-[16px] text-[var(--color-ink)]"
+                class="font-[family-name:var(--font-display)] font-light text-[18px] text-[var(--color-ink)]"
               >
                 Initial prototype handoff &amp; critique
               </span>
@@ -510,7 +503,7 @@ const reflections = [
                   >+</span
                 >
                 <span
-                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug"
+                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug"
                 >
                   Completely integrates into current flow
                 </span>
@@ -521,7 +514,7 @@ const reflections = [
                   >+</span
                 >
                 <span
-                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug"
+                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug"
                 >
                   Extremely specific about checks performed
                 </span>
@@ -532,7 +525,7 @@ const reflections = [
                   >-</span
                 >
                 <span
-                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug"
+                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug"
                 >
                   Limited real estate for comprehensive results, especially for exploring multiple
                   root causes
@@ -544,7 +537,7 @@ const reflections = [
                   >-</span
                 >
                 <span
-                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug"
+                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug"
                 >
                   Heavy focus on alert details, which are less important
                 </span>
@@ -555,7 +548,7 @@ const reflections = [
                   >-</span
                 >
                 <span
-                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug"
+                  class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug"
                 >
                   No consideration for remediation
                 </span>
@@ -698,18 +691,15 @@ const reflections = [
                   )}
                 </div>
                 <div class="cs-exploration-details">
-                  <div class="flex flex-col gap-1.5">
-                    <Tag>{exp.num}</Tag>
-                    <span class="font-[family-name:var(--font-display)] font-light text-[16px] text-[var(--color-ink)]">
-                      {exp.title}
-                    </span>
-                  </div>
+                  <span class="font-[family-name:var(--font-display)] font-light text-[18px] text-[var(--color-ink)]">
+                    {exp.title}
+                  </span>
                   {exp.pros.map((pro) => (
                     <div class="cs-pro-con">
                       <span class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-green)]">
                         +
                       </span>
-                      <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                      <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug">
                         {pro}
                       </span>
                     </div>
@@ -719,7 +709,7 @@ const reflections = [
                       <span class="font-[family-name:var(--font-mono)] text-[16px] font-medium text-[var(--color-orange)]">
                         -
                       </span>
-                      <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                      <span class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug">
                         {con}
                       </span>
                     </div>
@@ -741,7 +731,8 @@ const reflections = [
             <p
               class="font-[family-name:var(--font-display)] font-light text-[16px] text-[var(--color-ink)] text-center"
             >
-              We decided to reduce the scope to just one root cause per issue.
+              We decided to reduce the scope to just high confidence one root cause per issue to
+              avoid overwhelming users.
             </p>
           </div>
           <img
@@ -750,12 +741,6 @@ const reflections = [
             loading="lazy"
             class="w-full max-w-[637px] mx-auto h-auto rounded-[8px]"
           />
-          <p
-            class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] text-center leading-snug"
-          >
-            Because of engineering scope constraints, and for the sake of simplicity, we stuck with
-            the linear format.
-          </p>
         </div>
 
         <!-- Design consideration -->
@@ -802,17 +787,19 @@ const reflections = [
                       class="cs-exploration-img"
                     />
                   ) : (
-                    <img src={flow.img} alt={flow.title} loading="lazy" class="cs-exploration-img" />
+                    <img
+                      src={flow.img}
+                      alt={flow.title}
+                      loading="lazy"
+                      class="cs-exploration-img"
+                    />
                   )}
                 </div>
                 <div class="cs-exploration-details">
-                  <div class="flex flex-col gap-1.5">
-                    <Tag>{flow.num}</Tag>
-                    <span class="font-[family-name:var(--font-display)] font-light text-[16px] text-[var(--color-ink)]">
-                      {flow.title}
-                    </span>
-                  </div>
-                  <p class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink)] leading-snug">
+                  <span class="font-[family-name:var(--font-display)] font-light text-[18px] text-[var(--color-ink)]">
+                    {flow.title}
+                  </span>
+                  <p class="font-[family-name:var(--font-body)] text-[14px] text-[var(--color-ink-dim)] leading-snug">
                     {flow.body}
                   </p>
                 </div>
