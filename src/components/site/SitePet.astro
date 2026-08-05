@@ -1369,10 +1369,16 @@
       if (shift !== 0) bubble.style.setProperty("--bubble-shift-x", `${shift}px`);
     }
 
+    let lastSpokenPhrase = "";
     function saySomething(pet: HTMLElement, pool: string[], ms = 1800) {
       const bubble = pet.querySelector<HTMLElement>("[data-pet-bubble]");
       if (!bubble) return;
-      const phrase = pool[Math.floor(Math.random() * pool.length)];
+      let phrase = pool[Math.floor(Math.random() * pool.length)];
+      // Re-roll once so the pet doesn't repeat itself back-to-back.
+      if (pool.length > 1 && phrase === lastSpokenPhrase) {
+        phrase = pool[Math.floor(Math.random() * pool.length)];
+      }
+      lastSpokenPhrase = phrase;
       if (phrase.includes("\n")) {
         bubble.innerHTML = phrase.replace(/\n/g, "<br>");
       } else {
@@ -2047,14 +2053,21 @@
         return IDLE_PHRASES;
       }
       let lastIdleQuipAt = 0;
+      // Backoff so the pet doesn't chatter forever on a long read: each idle
+      // quip stretches the next delay, capped at ~4x (roughly 1-2 min).
+      let idleQuipCount = 0;
       function scheduleIdle() {
         if (idleTimeoutId) window.clearTimeout(idleTimeoutId);
-        const delay = 18000 + Math.random() * 16000;
+        const backoff = Math.min(4, 1 + idleQuipCount * 0.5);
+        const delay = (18000 + Math.random() * 16000) * backoff;
         idleTimeoutId = window.setTimeout(() => {
           const now = Date.now();
-          if (!hovered && !dragging && !dizzy && now - lastIdleQuipAt >= 15_000) {
+          const bubble = pet.querySelector<HTMLElement>("[data-pet-bubble]");
+          const bubbleBusy = bubble?.hasAttribute("data-show") ?? false;
+          if (!hovered && !dragging && !dizzy && !bubbleBusy && now - lastIdleQuipAt >= 15_000) {
             saySomething(pet, idlePool(), 2200);
             lastIdleQuipAt = now;
+            idleQuipCount += 1;
           }
           scheduleIdle();
         }, delay);
@@ -2064,6 +2077,7 @@
         if (!hovered && !dragging && !dizzy) {
           saySomething(pet, idlePool(), 2200);
           lastIdleQuipAt = Date.now();
+          idleQuipCount = 1;
         }
         scheduleIdle();
       }, 12000);

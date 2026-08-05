@@ -78,16 +78,82 @@ const reflections = [
   <div class="flex items-stretch min-h-screen" id="top">
     <CaseStudySidebar sections={tocSections} active="context" />
 
-    <main class="flex-1 min-w-0 w-full max-w-[1100px] mx-auto p-4 sm:p-6 md:p-10 flex flex-col gap-8 sm:gap-10 lg:gap-14">
-      <!-- Hero banner -->
+    <main
+      class="flex-1 min-w-0 w-full max-w-[1100px] mx-auto p-4 sm:p-6 md:p-10 flex flex-col gap-8 sm:gap-10 lg:gap-14"
+    >
+      <!-- Hero: dark stage panel ported from the GCal Wrapped landing page -->
       <section class="cs-hero-wrap">
-        <div class="cs-hero rounded-[24px] overflow-hidden h-[360px]">
-          <img
-            src="/images/work/gcal-wrapped/hero-banner.png"
-            alt="GCal Wrapped — three phone screens previewing the experience"
-            loading="eager"
-            class="block w-full h-full object-cover object-center"
-          />
+        <div
+          class="gw-stage relative flex min-h-[320px] w-full flex-col items-center justify-center overflow-hidden rounded-[24px] px-6 py-12 text-center"
+        >
+          <div class="gw-stage-glow pointer-events-none absolute inset-0 z-0" aria-hidden="true">
+          </div>
+
+          <div class="relative z-10 flex flex-col items-center gap-7">
+            <h2 class="gw-hero-title" aria-label="Your GCal Wrapped">
+              <span aria-hidden="true">
+                Your
+                <span class="font-semibold"
+                  ><span class="gw-blue">G</span><span class="gw-yellow">C</span><span
+                    class="gw-red">a</span
+                  ><span class="gw-green">l</span></span
+                >
+              </span>
+              <span class="block font-semibold" aria-hidden="true">Wrapped.</span>
+            </h2>
+          </div>
+
+          <!-- Static event cards peeking from the bottom corners -->
+          <div class="pointer-events-none absolute inset-0 z-[5]" aria-hidden="true">
+            <div
+              class="gw-card absolute -left-8 bottom-2 hidden md:block"
+              style="--gw-rot: -8deg; --gw-rot-hover: -12deg; --gw-rise: -26px"
+            >
+              <div class="gw-card-inner">
+                <img src="/images/work/gcal-wrapped/event-icon.png" alt="" class="gw-card-icon" />
+                <div class="gw-card-text">
+                  <p class="gw-card-title">Wines (only class I attend)</p>
+                  <p class="gw-card-meta">Statler Aud &bull; 10:10 AM</p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="gw-card absolute left-[12%] -bottom-8"
+              style="--gw-rot: 5deg; --gw-rot-hover: 9deg; --gw-rise: -22px"
+            >
+              <div class="gw-card-inner">
+                <img src="/images/work/gcal-wrapped/event-icon.png" alt="" class="gw-card-icon" />
+                <div class="gw-card-text">
+                  <p class="gw-card-title">LOCK IN OR ELSE</p>
+                  <p class="gw-card-meta">Duffield Atrium &bull; 11:00 PM</p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="gw-card absolute right-[8%] -bottom-7 hidden sm:block"
+              style="--gw-rot: -5deg; --gw-rot-hover: -9deg; --gw-rise: -18px"
+            >
+              <div class="gw-card-inner">
+                <img src="/images/work/gcal-wrapped/event-icon.png" alt="" class="gw-card-icon" />
+                <div class="gw-card-text">
+                  <p class="gw-card-title">Project due (started 3 hrs ago)</p>
+                  <p class="gw-card-meta">Upson Lounge &bull; 11:59 PM</p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="gw-card absolute -right-10 bottom-6 hidden lg:block"
+              style="--gw-rot: 9deg; --gw-rot-hover: 13deg; --gw-rise: -32px"
+            >
+              <div class="gw-card-inner">
+                <img src="/images/work/gcal-wrapped/event-icon.png" alt="" class="gw-card-icon" />
+                <div class="gw-card-text">
+                  <p class="gw-card-title">Swim test (year 3 of hiding)</p>
+                  <p class="gw-card-meta">Teagle Pool &bull; someday</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -117,7 +183,12 @@ const reflections = [
           11K+ users across 350+ colleges and 100+ countries — 2K in the first two weeks after
           launch.
         </p>
-        <Button href="https://gcalwrapped.com" variant="outline" target="_blank" class="cs-fill-btn self-start">
+        <Button
+          href="https://gcalwrapped.com"
+          variant="outline"
+          target="_blank"
+          class="cs-fill-btn w-full max-w-[58rem]"
+        >
           <span class="cs-fill-btn-label">Try it out <span aria-hidden="true">→</span></span>
         </Button>
       </section>
@@ -204,67 +275,95 @@ const reflections = [
           />
         </div>
 
-        <!-- Sneak peek -->
+        <!-- Sneak peek slideshow (frames captured from the landing page's live preview) -->
         <div class="flex flex-col gap-2 mt-6">
-          <h2 class="cs-section-heading">A sneak peek (watch out &mdash; it goes by fast)!</h2>
-          <div class="flex justify-center mt-2">
-            <div class="cs-sneak-wrap w-full rounded-[16px] overflow-hidden relative" data-sneak-wrap>
+          <h2 class="cs-section-heading">A sneak peek!</h2>
+          <div class="flex flex-col items-center gap-3 mt-2" data-peek>
+            <div
+              class="gw-peek-stage relative w-full overflow-hidden rounded-[16px] border border-[#cac4d0]"
+            >
               <video
-                data-sneak-video
-                src="/images/work/gcal-wrapped/sneak-peek.mp4"
-                autoplay
+                src="/images/work/gcal-wrapped/preview-roast-chat.mp4"
+                poster="/images/work/gcal-wrapped/preview-roast-chat-poster.jpg"
+                data-peek-img
                 loop
                 muted
                 playsinline
                 preload="auto"
-                class="cs-sneak-video block w-full h-full object-cover"></video>
+                aria-label="Roast chat screen — GCal Wrapped roasting Megan over iMessage"
+                class="gw-peek-img is-active"></video>
+              <video
+                src="/images/work/gcal-wrapped/preview-unusual-event.mp4"
+                poster="/images/work/gcal-wrapped/preview-unusual-event-poster.jpg"
+                data-peek-img
+                loop
+                muted
+                playsinline
+                preload="auto"
+                aria-label="Craziest event screen — interrogation lamp over 'return the traffic cone (day 47)'"
+                class="gw-peek-img"></video>
+              <video
+                src="/images/work/gcal-wrapped/preview-hell-week.mp4"
+                poster="/images/work/gcal-wrapped/preview-hell-week-poster.jpg"
+                data-peek-img
+                loop
+                muted
+                playsinline
+                preload="auto"
+                aria-label="Hell week screen — craziest week with 30 events, Mar 9-15"
+                class="gw-peek-img"></video>
               <button
                 type="button"
-                data-sneak-unmute
-                aria-label="Unmute video"
-                class="cs-sneak-unmute"
+                data-peek-prev
+                aria-label="Previous screen"
+                class="gw-peek-arrow left-4"
               >
                 <svg
-                  data-sneak-icon-muted
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
-                  width="20"
-                  height="20"
+                  width="22"
+                  height="22"
                   fill="none"
                   stroke="currentColor"
-                  stroke-width="2"
+                  stroke-width="2.5"
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   aria-hidden="true"
                 >
-                  <polygon
-                    points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"
-                    fill="currentColor"
-                    stroke="none"></polygon>
-                  <line x1="22" y1="9" x2="16" y2="15"></line>
-                  <line x1="16" y1="9" x2="22" y2="15"></line>
+                  <path d="M15 18l-6-6 6-6"></path>
                 </svg>
+              </button>
+              <button
+                type="button"
+                data-peek-next
+                aria-label="Next screen"
+                class="gw-peek-arrow right-4"
+              >
                 <svg
-                  data-sneak-icon-unmuted
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
-                  width="20"
-                  height="20"
+                  width="22"
+                  height="22"
                   fill="none"
                   stroke="currentColor"
-                  stroke-width="2"
+                  stroke-width="2.5"
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   aria-hidden="true"
-                  class="hidden"
                 >
-                  <polygon
-                    points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"
-                    fill="currentColor"
-                    stroke="none"></polygon>
-                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                  <path d="M9 6l6 6-6 6"></path>
                 </svg>
+              </button>
+            </div>
+            <div class="flex items-center gap-1">
+              <button type="button" data-peek-dot aria-label="Roast chat preview" class="gw-peek-dotbtn">
+                <span class="gw-peek-dot is-active"></span>
+              </button>
+              <button type="button" data-peek-dot aria-label="Craziest event preview" class="gw-peek-dotbtn">
+                <span class="gw-peek-dot"></span>
+              </button>
+              <button type="button" data-peek-dot aria-label="Hell week preview" class="gw-peek-dotbtn">
+                <span class="gw-peek-dot"></span>
               </button>
             </div>
           </div>
@@ -599,23 +698,16 @@ const reflections = [
           keep the momentum.
         </p>
 
-        <!-- Network effects -->
+        <!-- Virality -->
         <div class="flex flex-col gap-2 mt-8">
           <p class="cs-section-label">Hitting a plateau&hellip;</p>
-          <h2 class="cs-section-heading">Taking advantage of network effects.</h2>
+          <h2 class="cs-section-heading">Leveraging virality.</h2>
           <p class="cs-section-body">
             Each time a new user generated a Wrapped, they opened up a whole new group of friends
-            they could potentially share to. At first, this worked amazingly at Cornell &mdash;
-            after all we had started off with our organizations of 100+ members, all of whom were
-            more likely to share GCal Wrapped since they knew us personally.
+            they could potentially share to.
           </p>
           <p class="cs-section-body">
-            But eventually, our growth slowed down. Although GCal Wrapped was spreading organically
-            at Cornell, progress was becoming slower and slower at other universities. We
-            hadn&rsquo;t managed to hit critical mass there before momentum died off.
-          </p>
-          <p class="cs-section-body">
-            So to boost our reach, we introduced a referral program to the beginning of the flow,
+            To boost our reach, we also introduced a referral program to the beginning of the flow,
             promising our exclusive stickers to anyone who referred a certain number of friends to
             our website. But there was a catch: they had to refer the website to non-Cornellians.
           </p>
@@ -631,19 +723,21 @@ const reflections = [
         <!-- Final result -->
         <div class="cs-final-block flex flex-col gap-2 mt-10">
           <p class="cs-section-label">The final result</p>
-          <h2 class="cs-section-heading">A fun, engaging recap of the school semester.</h2>
+          <h2 class="cs-section-heading">A fun, engaging recap of the semester.</h2>
           <p class="cs-section-body">
             Students are able to dive into their Google Calendar insights in a fun, Wrapped-style
             medium, highlighting their most memorable moments throughout the semester and urging
             them to share with friends.
           </p>
-          <div class="flex justify-center mt-4">
-            <img
-              src="/images/work/gcal-wrapped/final-phones.png"
-              alt="Four GCal Wrapped phone screens showing the final experience"
-              loading="lazy"
-              class="w-full max-w-[860px] h-auto rounded-[16px]"
-            />
+          <div data-cursor-bg="green" class="w-full max-w-[58rem] mt-4">
+            <Button
+              href="https://gcalwrapped.com"
+              variant="primary"
+              target="_blank"
+              class="gw-try-btn w-full"
+            >
+              Try it yourself <span aria-hidden="true">→</span>
+            </Button>
           </div>
         </div>
       </section>
@@ -737,6 +831,152 @@ const reflections = [
 </BaseLayout>
 
 <style>
+  @import url("https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,100..1000&display=swap");
+
+  /* === Hero dark stage (ported from gcalwrapped.com landing) === */
+  .gw-stage {
+    --gw-stage-dark: #0e0e0e;
+    --gw-stage-glow: #a9afff;
+    --gw-blue-wrapped: #3186ff;
+    --gw-yellow-wrapped: #ffcc01;
+    --gw-red-wrapped: #fb423e;
+    --gw-green-wrapped: #0ebc5f;
+    --gw-event-meta: #767676;
+    --gw-font-flex:
+      "Google Sans Flex", "Google Sans", "Roboto", ui-sans-serif, system-ui, sans-serif;
+    background: var(--gw-stage-dark);
+  }
+  /* Lilac U-wash: short floor + edge-hugging arms, center stays clear */
+  .gw-stage-glow {
+    overflow: hidden;
+    mix-blend-mode: screen;
+    background:
+      radial-gradient(
+        ellipse 140% 40% at 50% 100%,
+        color-mix(in srgb, var(--gw-stage-glow) 40%, transparent) 0%,
+        color-mix(in srgb, var(--gw-stage-glow) 16%, transparent) 45%,
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 28% 95% at 0% 85%,
+        color-mix(in srgb, var(--gw-stage-glow) 32%, transparent) 0%,
+        color-mix(in srgb, var(--gw-stage-glow) 12%, transparent) 42%,
+        transparent 68%
+      ),
+      radial-gradient(
+        ellipse 28% 95% at 100% 85%,
+        color-mix(in srgb, var(--gw-stage-glow) 32%, transparent) 0%,
+        color-mix(in srgb, var(--gw-stage-glow) 12%, transparent) 42%,
+        transparent 68%
+      ),
+      radial-gradient(
+        ellipse 36% 36% at 0% 100%,
+        color-mix(in srgb, var(--gw-stage-glow) 36%, transparent) 0%,
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 36% 36% at 100% 100%,
+        color-mix(in srgb, var(--gw-stage-glow) 36%, transparent) 0%,
+        transparent 70%
+      ),
+      linear-gradient(
+        to top,
+        color-mix(in srgb, var(--gw-stage-glow) 20%, transparent) 0%,
+        transparent 18%
+      );
+  }
+  .gw-hero-title {
+    font-family: var(--gw-font-flex);
+    font-size: clamp(2.5rem, 1.6rem + 3.4vw, 4.25rem);
+    line-height: 1.06;
+    letter-spacing: -0.25px;
+    font-weight: 400;
+    color: white;
+  }
+  .gw-blue {
+    color: var(--gw-blue-wrapped);
+  }
+  .gw-yellow {
+    color: var(--gw-yellow-wrapped);
+  }
+  .gw-red {
+    color: var(--gw-red-wrapped);
+  }
+  .gw-green {
+    color: var(--gw-green-wrapped);
+  }
+  /* Cards rise + tilt on banner hover — per-card amounts via custom props,
+     `rotate`/`translate` properties so they animate independently */
+  .gw-card {
+    rotate: var(--gw-rot, 0deg);
+    transition: rotate 350ms var(--ease-out-soft);
+  }
+  .gw-card .gw-card-inner {
+    translate: 0 0;
+    transition: translate 350ms var(--ease-out-soft);
+  }
+  .gw-stage:hover .gw-card {
+    rotate: var(--gw-rot-hover, var(--gw-rot, 0deg));
+  }
+  .gw-stage:hover .gw-card .gw-card-inner {
+    translate: 0 var(--gw-rise, -20px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gw-card,
+    .gw-card .gw-card-inner {
+      transition: none;
+    }
+    .gw-stage:hover .gw-card {
+      rotate: var(--gw-rot, 0deg);
+    }
+    .gw-stage:hover .gw-card .gw-card-inner {
+      translate: none;
+    }
+  }
+  .gw-card-inner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: min(320px, 70vw);
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    text-align: left;
+    font-family: var(--gw-font-flex);
+    filter: drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.15)) drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.3));
+  }
+  .gw-card-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    object-fit: cover;
+  }
+  .gw-card-text {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .gw-card-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 500;
+    letter-spacing: 0.15px;
+    color: #1d1b20;
+  }
+  .gw-card-meta {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.1px;
+    color: var(--gw-event-meta);
+  }
+
   /* === Shared section typography === */
   .cs-section-label {
     font-family: var(--font-mono);
@@ -864,74 +1104,78 @@ const reflections = [
     transform: translateY(-1px);
   }
 
-  /* Sneak peek frame — reserves the video's 16:9 box and shows a shimmer
-     skeleton until the first frame is decodable, so the section never sits
-     as a blank cream gap while the 19MB file streams in. */
-  .cs-sneak-wrap {
-    aspect-ratio: 1920 / 1080;
-    background: linear-gradient(
-      100deg,
-      var(--color-bg-neutral) 40%,
-      var(--color-bg-neutral-2) 50%,
-      var(--color-bg-neutral) 60%
-    );
-    background-size: 200% 100%;
-    animation: cs-sneak-shimmer 1.4s linear infinite;
+  /* Sneak peek slideshow — 16:9 stage, crossfading frames, floating arrows */
+  .gw-peek-stage {
+    aspect-ratio: 16 / 9;
+    background: #0e0e0e;
   }
-  .cs-sneak-wrap[data-loaded] {
-    animation: none;
-    background: var(--color-bg-neutral);
-  }
-  .cs-sneak-video {
+  .gw-peek-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     opacity: 0;
-    transition: opacity var(--duration-slow) var(--ease-out-soft);
+    transition: opacity 400ms var(--ease-out-soft);
   }
-  .cs-sneak-wrap[data-loaded] .cs-sneak-video {
+  .gw-peek-img.is-active {
     opacity: 1;
   }
-  @keyframes cs-sneak-shimmer {
-    to {
-      background-position: -200% 0;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .cs-sneak-wrap {
-      animation: none;
-    }
-    .cs-sneak-video {
-      transition: none;
-    }
-  }
-
-  /* Sneak peek unmute button */
-  .cs-sneak-unmute {
+  .gw-peek-arrow {
     position: absolute;
-    bottom: 16px;
-    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
     z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 44px;
     height: 44px;
     border: 0;
     border-radius: 9999px;
-    background: rgba(0, 0, 0, 0.55);
-    color: white;
-    font-size: 18px;
-    line-height: 1;
+    background: rgba(29, 27, 32, 0.32);
+    color: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(4px);
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(6px);
     transition:
       background var(--duration-fast) var(--ease-out-soft),
       transform var(--duration-fast) var(--ease-out-soft);
   }
-  .cs-sneak-unmute:hover {
-    background: rgba(0, 0, 0, 0.75);
-    transform: scale(1.05);
+  .gw-peek-arrow:hover {
+    background: rgba(29, 27, 32, 0.5);
   }
-  .cs-sneak-unmute .hidden {
-    display: none;
+  .gw-peek-arrow:active {
+    transform: translateY(-50%) scale(0.94);
+  }
+  .gw-peek-dotbtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+  .gw-peek-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+    background: #cac4d0;
+    transition:
+      background 200ms var(--ease-out-soft),
+      transform 200ms var(--ease-out-soft);
+  }
+  .gw-peek-dot.is-active {
+    background: var(--color-ink);
+    transform: scale(1.25);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gw-peek-img,
+    .gw-peek-arrow,
+    .gw-peek-dot {
+      transition: none;
+    }
   }
 
   .cs-callout-pink {
@@ -982,6 +1226,11 @@ const reflections = [
     display: inline-flex;
     align-items: center;
     gap: 8px;
+  }
+
+  /* Final "Try it yourself" — dark fill, green on hover (variant default is pink) */
+  :global(.gw-try-btn:hover) {
+    background: var(--color-green) !important;
   }
 
   /* Final result block (green tinted) */
@@ -1035,11 +1284,6 @@ const reflections = [
 </style>
 
 <script>
-  import { initVideoBlobs } from "../../lib/video-blob";
-
-  initVideoBlobs();
-  document.addEventListener("astro:page-load", initVideoBlobs);
-
   /* Section-entry fade — same pattern as splunk/lingofable */
   function initCaseStudyEntries() {
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -1090,46 +1334,58 @@ const reflections = [
   initCaseStudyEntries();
   document.addEventListener("astro:page-load", initCaseStudyEntries);
 
-  /* Sneak peek unmute toggle */
-  function initSneakUnmute() {
-    const btn = document.querySelector<HTMLButtonElement>("[data-sneak-unmute]:not([data-wired])");
-    const video = document.querySelector<HTMLVideoElement>("[data-sneak-video]");
-    if (!btn || !video) return;
-    btn.setAttribute("data-wired", "1");
-    const iconMuted = btn.querySelector<HTMLElement>("[data-sneak-icon-muted]");
-    const iconUnmuted = btn.querySelector<HTMLElement>("[data-sneak-icon-unmuted]");
+  /* Sneak peek slideshow */
+  function initSneakPeek() {
+    const wrap = document.querySelector<HTMLElement>("[data-peek]:not([data-wired])");
+    if (!wrap) return;
+    wrap.setAttribute("data-wired", "1");
 
-    function syncIcons() {
-      iconMuted?.classList.toggle("hidden", !video!.muted);
-      iconUnmuted?.classList.toggle("hidden", video!.muted);
-      btn!.setAttribute("aria-label", video!.muted ? "Unmute video" : "Mute video");
+    const imgs = Array.from(wrap.querySelectorAll<HTMLVideoElement>("[data-peek-img]"));
+    const dots = Array.from(wrap.querySelectorAll<HTMLButtonElement>("[data-peek-dot]"));
+    const prev = wrap.querySelector<HTMLButtonElement>("[data-peek-prev]");
+    const next = wrap.querySelector<HTMLButtonElement>("[data-peek-next]");
+    if (imgs.length === 0) return;
+
+    let active = 0;
+    function goTo(i: number) {
+      active = (i + imgs.length) % imgs.length;
+      imgs.forEach((vid, idx) => {
+        const isActive = idx === active;
+        vid.classList.toggle("is-active", isActive);
+        if (isActive) {
+          // After a ClientRouter swap the swapped-in <video> can sit stalled
+          // with nothing fetched — kick load() before playing.
+          if (vid.readyState === 0) vid.load();
+          vid.currentTime = 0;
+          vid.play().catch(() => {});
+        } else {
+          vid.pause();
+        }
+      });
+      dots.forEach((dot, idx) => {
+        dot.querySelector(".gw-peek-dot")?.classList.toggle("is-active", idx === active);
+        dot.setAttribute("aria-current", idx === active ? "true" : "false");
+      });
     }
 
-    btn.addEventListener("click", () => {
-      video.muted = !video.muted;
-      video.play().catch(() => {});
-      syncIcons();
-    });
-    syncIcons();
-  }
-  initSneakUnmute();
-  document.addEventListener("astro:page-load", initSneakUnmute);
+    prev?.addEventListener("click", () => goTo(active - 1));
+    next?.addEventListener("click", () => goTo(active + 1));
+    dots.forEach((dot, idx) => dot.addEventListener("click", () => goTo(idx)));
 
-  /* Sneak peek load/reveal. After a ClientRouter swap the browser can leave
-     the swapped-in <video> stalled with autoplay never firing — kick load()
-     and play() explicitly, and reveal the frame once data is decodable. */
-  function initSneakVideo() {
-    const wrap = document.querySelector<HTMLElement>("[data-sneak-wrap]");
-    const video = document.querySelector<HTMLVideoElement>("[data-sneak-video]");
-    if (!wrap || !video) return;
-    const reveal = () => wrap.setAttribute("data-loaded", "");
-    if (video.readyState >= 2) reveal();
-    else video.addEventListener("loadeddata", reveal, { once: true });
-    if (video.readyState === 0) video.load();
-    video.play().catch(() => {});
+    /* Arrow keys page through the screens (skipped while typing in a field) */
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      if (!document.body.contains(wrap)) return;
+      goTo(e.key === "ArrowLeft" ? active - 1 : active + 1);
+    });
+
+    goTo(0);
   }
-  initSneakVideo();
-  document.addEventListener("astro:page-load", initSneakVideo);
+  initSneakPeek();
+  document.addEventListener("astro:page-load", initSneakPeek);
 
   /* Ideation pare-down toggle */
   function initPareToggle() {
