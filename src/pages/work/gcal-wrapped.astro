@@ -78,7 +78,7 @@ const reflections = [
   <div class="flex items-stretch min-h-screen" id="top">
     <CaseStudySidebar sections={tocSections} active="context" />
 
-    <main class="flex-1 min-w-0 p-4 sm:p-6 md:p-10 flex flex-col gap-8 sm:gap-10">
+    <main class="flex-1 min-w-0 w-full max-w-[1100px] mx-auto p-4 sm:p-6 md:p-10 flex flex-col gap-8 sm:gap-10 lg:gap-14">
       <!-- Hero banner -->
       <section class="cs-hero-wrap">
         <div class="cs-hero rounded-[24px] overflow-hidden h-[360px]">
@@ -111,20 +111,20 @@ const reflections = [
           GCal Wrapped &mdash; Google Calendar Analytics
         </h1>
         <p
-          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed max-w-[58rem]"
         >
           Deep dive into Google Calendar analytics, specially built for college students. Gained
           11K+ users across 350+ colleges and 100+ countries — 2K in the first two weeks after
           launch.
         </p>
-        <Button href="https://gcalwrapped.com" variant="outline" target="_blank" class="cs-fill-btn">
+        <Button href="https://gcalwrapped.com" variant="outline" target="_blank" class="cs-fill-btn self-start">
           <span class="cs-fill-btn-label">Try it out <span aria-hidden="true">→</span></span>
         </Button>
       </section>
 
       <!-- Meta grid: role, team, timeline, skills -->
       <section
-        class="grid grid-cols-2 md:grid-cols-4 gap-[60px] p-4 bg-[var(--color-green)] rounded-[12px]"
+        class="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-10 md:gap-[60px] p-4 bg-[var(--color-green)] rounded-[12px]"
         data-cursor-bg="green"
       >
         <div class="flex flex-col gap-2">
@@ -751,6 +751,7 @@ const reflections = [
     font-size: 22px;
     color: var(--color-ink);
     line-height: 1.2;
+    max-width: 58rem;
   }
   @media (min-width: 640px) {
     .cs-section-heading {
@@ -768,6 +769,7 @@ const reflections = [
     font-size: 14px;
     color: var(--color-ink);
     line-height: 1.55;
+    max-width: 58rem;
   }
 
   /* Section entry */

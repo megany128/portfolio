@@ -96,7 +96,7 @@ const reflections = [
   <div class="flex items-stretch min-h-screen" id="top">
     <CaseStudySidebar sections={tocSections} active="context" />
 
-    <main class="flex-1 min-w-0 p-4 sm:p-6 md:p-10 flex flex-col gap-8 sm:gap-10">
+    <main class="flex-1 min-w-0 w-full max-w-[1100px] mx-auto p-4 sm:p-6 md:p-10 flex flex-col gap-8 sm:gap-10 lg:gap-14">
       <!-- Hero image -->
       <section class="cs-hero-wrap">
         <div class="cs-hero rounded-[24px] overflow-hidden max-h-[360px]">
@@ -127,7 +127,7 @@ const reflections = [
           Building Lingofable from 0-1
         </h1>
         <p
-          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed max-w-[58rem]"
         >
           I designed &amp; built Lingofable together with
           <a
@@ -143,7 +143,7 @@ const reflections = [
           Speaking of Language
           podcast!
         </p>
-        <Button href="https://lingofable.com" variant="outline" target="_blank">
+        <Button href="https://lingofable.com" variant="outline" target="_blank" class="self-start">
           Visit Lingofable <span aria-hidden="true">→</span>
         </Button>
       </section>
@@ -192,7 +192,7 @@ const reflections = [
           Language learning is tricky
         </h2>
         <p
-          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed max-w-[58rem]"
         >
           Having learned Mandarin Chinese over the pandemic, I know from experience that language
           learning is tough. Engaging in native media is no doubt the best way to learn, but
@@ -213,7 +213,7 @@ const reflections = [
           Comprehensible input at scale, delivered through stories
         </h2>
         <p
-          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed max-w-[58rem]"
         >
           The main thing that prevents learners from reading books in their target language is that
           most of the time, content is either:
@@ -227,7 +227,7 @@ const reflections = [
           <li>Boring and written for children.</li>
         </ol>
         <p
-          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed max-w-[58rem]"
         >
           As a solution, we built Lingofable to generate engaging stories that are exactly tailored
           towards readers — using the specific vocabulary they know, and written to complement their
@@ -289,7 +289,7 @@ const reflections = [
           Designed to help learners make real progress
         </h2>
         <p
-          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed max-w-[58rem]"
         >
           Users are able to browse a library of stories in their target language, and track weekly
           goals to keep on track with their learning. The library refreshes regularly to keep the
@@ -365,7 +365,7 @@ const reflections = [
           Teaching users how to interact
         </h2>
         <p
-          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed max-w-[58rem]"
         >
           During our beta testing, users told us that interacting with the reading page was
           confusing. Although this is a standard interaction pattern in other apps such as Du
@@ -439,7 +439,7 @@ const reflections = [
           Crafting the perfect onboarding
         </h2>
         <p
-          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed max-w-[58rem]"
         >
           The longer the onboarding, the higher the conversion rate. But at the same time, we had to
           ensure that users felt engaged and like they were making progress. To do this, I wove
@@ -525,7 +525,7 @@ const reflections = [
           What I&rsquo;ve learned
         </h2>
         <p
-          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed"
+          class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-relaxed max-w-[58rem]"
         >
           Building an app for real users is very different from working on a design case study or
           even a small side project.
@@ -587,6 +587,16 @@ const reflections = [
     transform: translateY(0);
   }
 
+  /* Typography containment — long-form text keeps a readable measure on
+     wide screens instead of stretching the full column. */
+  .cs-section > h2 {
+    max-width: 58rem;
+  }
+  .cs-section > p,
+  .cs-section > ol {
+    max-width: 58rem;
+  }
+
   /* Hero */  .cs-hero img {
     transition: transform 600ms var(--ease-out-soft);
   }
@@ -627,30 +637,45 @@ const reflections = [
     padding: 8px;
     box-shadow: 0 18px 48px -24px rgba(36, 36, 36, 0.4);
   }
+  /* The stack reserves the videos' exact 992×2160 box up-front (all feature
+     recordings share that size), and shows a shimmer skeleton until the
+     active video has decodable data — so the phone never renders as a
+     collapsed dark box while the files stream in. */
   .cs-features-phone-stack {
     position: relative;
     width: 100%;
+    aspect-ratio: 992 / 2160;
     border-radius: 24px;
     overflow: hidden;
+    background: linear-gradient(
+      100deg,
+      var(--color-bg-neutral) 40%,
+      var(--color-bg-neutral-2) 50%,
+      var(--color-bg-neutral) 60%
+    );
+    background-size: 200% 100%;
+    animation: cs-phone-shimmer 1.4s linear infinite;
+  }
+  .cs-features-phone-stack[data-loaded] {
+    animation: none;
+    background: var(--color-bg-neutral);
+  }
+  @keyframes cs-phone-shimmer {
+    to {
+      background-position: -200% 0;
+    }
   }
   .cs-features-phone-video {
-    display: block;
-    width: 100%;
-    height: auto;
-    border-radius: 24px;
-  }
-  .cs-features-phone-video:not(:first-child) {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-  }
-  .cs-features-phone-video {
+    border-radius: 24px;
     opacity: 0;
     transition: opacity 200ms var(--ease-out-soft);
   }
-  .cs-features-phone-video.is-active {
+  .cs-features-phone-video.is-active[data-ready] {
     opacity: 1;
   }
 
@@ -731,6 +756,9 @@ const reflections = [
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .cs-features-phone-stack {
+      animation: none;
+    }
     .cs-section,
     .cs-hero img,
     .cs-emph,
@@ -852,6 +880,34 @@ const reflections = [
   }
   initFeatureSelector();
   document.addEventListener("astro:page-load", initFeatureSelector);
+
+  /*
+    Feature video load/reveal. After a ClientRouter swap the browser can leave
+    the swapped-in <video> elements stalled with autoplay never firing — kick
+    load() and play() explicitly. Each video gets data-ready once its first
+    frame is decodable (the CSS only fades in a ready video), and the stack
+    drops its shimmer skeleton once the active video is ready.
+  */
+  function initFeatureVideos() {
+    const stack = document.querySelector<HTMLElement>(".cs-features-phone-stack");
+    const videos = Array.from(
+      document.querySelectorAll<HTMLVideoElement>("[data-feature-video-el]"),
+    );
+    if (!stack || !videos.length) return;
+
+    videos.forEach((v) => {
+      const ready = () => {
+        v.setAttribute("data-ready", "");
+        if (v.classList.contains("is-active")) stack.setAttribute("data-loaded", "");
+      };
+      if (v.readyState >= 2) ready();
+      else v.addEventListener("loadeddata", ready, { once: true });
+      if (v.readyState === 0) v.load();
+      if (v.classList.contains("is-active")) v.play().catch(() => {});
+    });
+  }
+  initFeatureVideos();
+  document.addEventListener("astro:page-load", initFeatureVideos);
 
   /*
     Interaction carousel — prev/next arrows cycle through demo gifs.

@@ -83,8 +83,10 @@ const { color = "pink" } = Astro.props;
       border 0.22s var(--ease-out-soft, cubic-bezier(0.22,1,0.36,1)),
       border-radius 0.22s var(--ease-out-soft, cubic-bezier(0.22,1,0.36,1)),
       padding 0.22s var(--ease-out-soft, cubic-bezier(0.22,1,0.36,1)),
-      background-color 0.18s ease-out;
-    will-change: width, height, margin;
+      background-color 0.18s ease-out,
+      filter 0.18s ease-out,
+      scale 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
+    will-change: width, height, margin, scale;
   }
 
   /* Returning to the dot form is snappier so the circle reads clearly
@@ -221,15 +223,27 @@ const { color = "pink" } = Astro.props;
     color: var(--color-ink-inverted);
   }
 
-  /* Pressed state — quick brightness pop on the inner shape only,
-     so position is never affected. */
+  /* Pressed state — the shape squishes down and stays squished for as long
+     as the pointer is held; releasing springs it back via the overshooting
+     `scale` transition on the base shape. `scale` composes with the photo
+     pill's translateX transform, and only affects the inner shape, so
+     position is never affected. Press-in is fast; release rebounds. */
   .custom-cursor[data-pressed] .custom-cursor__shape {
-    animation: cursor-press 0.22s var(--ease-out-soft, cubic-bezier(0.22,1,0.36,1));
+    scale: 0.84;
+    filter: brightness(1.15);
+    transition-duration: 0.22s, 0.22s, 0.22s, 0.22s, 0.22s, 0.22s, 0.18s, 0.18s, 0.2s;
+    transition-timing-function: var(--ease-out-soft, cubic-bezier(0.22, 1, 0.36, 1));
   }
-  @keyframes cursor-press {
-    0%   { filter: brightness(1); }
-    35%  { filter: brightness(1.5); }
-    100% { filter: brightness(1); }
+  /* Pen tip sits at (4px, 28px) inside the shape box — squish around the tip
+     so the drawing point stays put. */
+  .custom-cursor[data-mode="pen"] .custom-cursor__shape {
+    transform-origin: 4px 28px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .custom-cursor[data-pressed] .custom-cursor__shape {
+      scale: none;
+    }
   }
 
   /* Hide native cursor — rule lives here (always loaded) rather than

@@ -6,7 +6,6 @@
 //   - FlowerArt scales up (~1.85×) and sits behind the content as a watercolor
 //     silhouette (right-of-center so the quote drifts across it).
 //   - Glimmer dots near the cursor get a brighter halo via --cursor-boost.
-//   - Clicking anywhere in the footer spawns a small sparkle burst (canvas).
 //   - Paul Graham quote's emphasized words ("Discoveries" / "by you?") bloom on
 //     hover with an underline draw + color shift.
 
@@ -75,9 +74,9 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
     <div class="flex gap-10 sm:gap-14 md:gap-20 font-[family-name:var(--font-mono)] text-[15px] sm:text-[16px] md:text-[18px] uppercase">
       <ul class="flex flex-col gap-1 w-auto md:w-[162px]" style="color: var(--footer-tint);">
         <li><a data-footer-link href="mailto:may52@cornell.edu" class="footer-link">Email</a></li>
-        <li><a data-footer-link href="https://www.linkedin.com/in/megan-qz-yap/" class="footer-link">LinkedIn</a></li>
-        <li><a data-footer-link href="https://github.com/megany128" class="footer-link">GitHub</a></li>
-        <li><a data-footer-link href="https://x.com/maqzyap" class="footer-link">X</a></li>
+        <li><a data-footer-link href="https://www.linkedin.com/in/megan-qz-yap/" target="_blank" rel="noopener noreferrer" class="footer-link">LinkedIn</a></li>
+        <li><a data-footer-link href="https://github.com/megany128" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a></li>
+        <li><a data-footer-link href="https://x.com/maqzyap" target="_blank" rel="noopener noreferrer" class="footer-link">X</a></li>
         <li><a data-footer-link href="https://drive.google.com/file/d/1P7hNfuNp0-RYu6j4RtvulAVfVpvHy9-1/view?usp=sharing" target="_blank" rel="noopener" class="footer-link">Resume</a></li>
       </ul>
       <ul class="flex flex-col gap-1" style="color: var(--footer-tint);">
@@ -346,7 +345,7 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
       { passive: true }
     );
 
-    // --- Click burst ------------------------------------------------------
+    // --- Particle canvas --------------------------------------------------
     const particles: Particle[] = [];
     let dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
 
@@ -369,53 +368,7 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
       }
     }
 
-    function spawnBurst(clientX: number, clientY: number) {
-      if (!canvas || !ctx) return;
-      const rect = footer!.getBoundingClientRect();
-      const x = clientX - rect.left;
-      const y = clientY - rect.top;
-      if (reduced) {
-        particles.push({
-          x,
-          y,
-          vx: 0,
-          vy: 0,
-          life: 0,
-          ttl: 500,
-          size: 18,
-          alt: false,
-        });
-        return;
-      }
-      const count = 14 + Math.floor(Math.random() * 8); // 14..21
-      for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 80 + Math.pow(Math.random(), 0.6) * 220;
-        particles.push({
-          x,
-          y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          life: 0,
-          ttl: 520 + Math.random() * 280,
-          size: 1 + Math.random() * 1.8,
-          alt: Math.random() < 0.35,
-        });
-      }
-    }
-
-    footer.addEventListener(
-      "pointerdown",
-      (e) => {
-        if (e.pointerType === "mouse" && e.button !== 0) return;
-        // No burst on the "Back to space" link — it navigates into the dark
-        // scene immediately, so particles would just flash and get cut off.
-        const link = (e.target as HTMLElement).closest?.("a");
-        if (link?.getAttribute("href") === "/") return;
-        spawnBurst(e.clientX, e.clientY);
-      },
-      { passive: true }
-    );
+    // (Click burst removed — clicks no longer spawn sparkle particles.)
 
     // --- Cached spark colors (avoid getComputedStyle every frame) ----------
     let cachedRgbMain = "255, 255, 255";
@@ -513,10 +466,9 @@ const spaceLink = { label: "✦ Back to space", href: "/" };
       }
     }
     startLoop();
-    // Wake the loop on input — pointermove sets mx/my, pointerdown spawns particles.
+    // Wake the loop on input — pointermove sets mx/my.
     footer.addEventListener("pointermove", startLoop, { passive: true });
     footer.addEventListener("pointerleave", startLoop, { passive: true });
-    footer.addEventListener("pointerdown", startLoop, { passive: true });
 
     // Pause RAF when page is hidden (tab/window switch) — resume on return.
     document.addEventListener("visibilitychange", () => {

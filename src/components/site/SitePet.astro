@@ -581,19 +581,24 @@
   }
 
   /* ============ Hat rack ============
-     Positioned by JS to sit on top of the sidebar's "Explore" nav —
-     `--rack-x` / `--rack-y` are the left/top anchors in viewport coords.
-  */
-  /*
-    Rack is fixed-positioned so it tracks the sticky sidebar.
-    JS sets --rack-x / --rack-y in viewport coordinates.
-  */
+     JS parents the rack into the sidebar's "Explore" nav ([data-toc]);
+     it's positioned absolutely so the toggle's bottom edge sits on the
+     nav's top edge (the stand looks planted on the box). Because it's
+     in the nav's DOM it moves with the sticky sidebar on the compositor
+     — anchored even during fast scrolling / overscroll bounce.
+     Toggle sprite is 26×22; top offset = -22px plants it flush. */
   .hat-rack {
-    position: fixed;
-    left: var(--rack-x, 40px);
-    top: var(--rack-y, 40px);
+    position: absolute;
+    right: 12px;
+    top: -22px;
     z-index: 85;
     pointer-events: none;
+    /* Hidden until JS adopts it into the nav — avoids a flash at the
+       page corner before anchoring. */
+    visibility: hidden;
+  }
+  [data-toc] .hat-rack {
+    visibility: visible;
   }
   /*
     Toggle — transparent chip, the SVG is the sole visible element.
@@ -2113,10 +2118,11 @@
     }
 
     /*
-      Anchor the rack on top of the sidebar "Explore" nav (`[data-toc]`).
-      The toggle rests so that its bottom edge sits on the nav's top
-      edge (half overlapping so the hat looks like it's sitting on the
-      box). Re-measures on resize + page-load.
+      Anchor the rack on top of the sidebar "Explore" nav (`[data-toc]`)
+      by parenting it INTO the nav and positioning absolutely. The rack
+      then rides the sidebar on the compositor — no per-scroll JS, so it
+      can never lag behind during fast scrolling or rubber-band overscroll
+      (the old fixed-position + scroll-handler approach bounced).
     */
     function positionRack(rack: HTMLElement) {
       const toc = document.querySelector<HTMLElement>("[data-toc]");
@@ -2127,18 +2133,10 @@
         return;
       }
       rack.style.display = "";
-      const r = toc.getBoundingClientRect();
-      if (r.width === 0) return;
-      // Toggle is 26×22 (sprite = sprout on a shelf). Shelf brackets
-      // meet the toggle's bottom edge, so aligning toggle bottom with
-      // the nav top plants the stand flush on the Explore box. Sidebar
-      // is position:sticky so we use viewport coords (fixed positioning).
-      const TOGGLE_W = 26;
-      const TOGGLE_H = 22;
-      const left = r.left + r.width - TOGGLE_W - 12;
-      const top = r.top - TOGGLE_H;
-      rack.style.setProperty("--rack-x", `${Math.round(left)}px`);
-      rack.style.setProperty("--rack-y", `${Math.round(top)}px`);
+      if (getComputedStyle(toc).position === "static") toc.style.position = "relative";
+      // Re-adopt after every ClientRouter swap (persist re-slots the rack
+      // back at its original top-level position).
+      if (rack.parentElement !== toc) toc.appendChild(rack);
     }
 
     function wireRack() {
@@ -2191,13 +2189,6 @@
         if (target instanceof Node && rack.contains(target)) return;
         rack.removeAttribute("data-open");
       });
-      // Re-measure on resize and sidebar internal scroll (sticky sidebar
-      // with overflow-y: auto can scroll its content independently).
-      window.addEventListener("resize", () => positionRack(rack), { passive: true });
-      window.addEventListener("scroll", () => positionRack(rack), { passive: true });
-      const sidebar = document.querySelector<HTMLElement>("[data-sidebar]");
-      if (sidebar) sidebar.addEventListener("scroll", () => positionRack(rack), { passive: true });
-      window.setTimeout(() => positionRack(rack), 300);
       applyHat(readHat());
     }
 

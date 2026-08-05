@@ -7,39 +7,7 @@
   data-status-clock
 >
   <p data-clock>--:--:-- --</p>
-  <p><span class="status-dot" aria-hidden="true"></span>all systems operational</p>
 </div>
-
-<style>
-  /* Softly-pulsing green dot alongside "all systems operational" — a tiny
-     sign of life that doesn't fight the rest of the scene. Inlined with
-     the text so it aligns with the first line of type even on narrow
-     layouts where the label wraps. */
-  .status-dot {
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    border-radius: 9999px;
-    background: var(--color-green-1);
-    margin-right: 6px;
-    transform: translateY(-2px);
-    box-shadow: 0 0 0 0 var(--color-green-1);
-    animation: status-dot-pulse 2.4s ease-in-out infinite;
-  }
-  @keyframes status-dot-pulse {
-    0%, 100% {
-      opacity: 0.9;
-      box-shadow: 0 0 0 0 rgba(125, 181, 146, 0.55);
-    }
-    50% {
-      opacity: 0.5;
-      box-shadow: 0 0 0 4px rgba(125, 181, 146, 0);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .status-dot { animation: none; }
-  }
-</style>
 
 <script>
   function tick() {

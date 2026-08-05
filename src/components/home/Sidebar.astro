@@ -74,16 +74,14 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
     <p
       class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-snug"
     >
-      I am a designer who loves building delightful software that solves real problems.
+      I am a designer who loves building and tinkering. Looking for jobs starting Feb 2027.
     </p>
     <p
       class="font-[family-name:var(--font-body)] text-base text-[var(--color-ink-dim)] leading-snug"
     >
       Interning <span class="text-[var(--color-ink)]">@Google</span>, previously at <span
         class="text-[var(--color-ink)]">@Splunk</span
-      >, <span class="text-[var(--color-ink)]">@RxPost</span>, and <span
-        class="text-[var(--color-ink)]">@Clear</span
-      > (YC W21).
+      > and various startups.
     </p>
   </div>
 
@@ -101,16 +99,22 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
       >,
       <a
         href="https://www.linkedin.com/in/megan-qz-yap/"
+        target="_blank"
+        rel="noopener noreferrer"
         class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline"
         >LinkedIn</a
       >,
       <a
         href="https://github.com/megany128"
+        target="_blank"
+        rel="noopener noreferrer"
         class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline"
         >GitHub</a
       >,
       <a
         href="https://x.com/maqzyap"
+        target="_blank"
+        rel="noopener noreferrer"
         class="text-[var(--color-ink-dim)] hover:text-[var(--color-ink)] underline-offset-4 hover:underline"
         >X</a
       >,
@@ -181,12 +185,9 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
   }
 
   <div
-    class="sidebar-status mt-auto font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)] leading-snug"
+    class="sidebar-status mt-auto -mb-3 font-[family-name:var(--font-mono)] text-base uppercase text-[var(--color-ink-dim)] leading-snug"
   >
     <p data-sidebar-clock>--:--:-- --</p>
-    <p>
-      <span class="sidebar-status-dot" aria-hidden="true"></span>all systems operational
-    </p>
   </div>
 </aside>
 
@@ -594,37 +595,6 @@ const { active = "work", anon = false, visitorCard = null } = Astro.props;
     }
   }
 
-  /* Status pulse — matching the welcome/onboarding scene's green dot.
-     Inlined with the text so it sits on the first line's cap-height even
-     when "ALL SYSTEMS OPERATIONAL" wraps to two lines. Margin-right gives
-     the old gap-1.5 spacing without relying on flex. Translate nudges the
-     dot up a touch to sit at the optical center of the uppercase glyphs. */
-  .sidebar-status-dot {
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    border-radius: 9999px;
-    background: var(--color-green-1);
-    margin-right: 6px;
-    transform: translateY(-2px);
-    animation: sidebar-status-pulse 2.4s ease-in-out infinite;
-  }
-  @keyframes sidebar-status-pulse {
-    0%,
-    100% {
-      opacity: 0.9;
-      box-shadow: 0 0 0 0 rgba(125, 181, 146, 0.55);
-    }
-    50% {
-      opacity: 0.5;
-      box-shadow: 0 0 0 4px rgba(125, 181, 146, 0);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .sidebar-status-dot {
-      animation: none;
-    }
-  }
 </style>
 
 <script>
