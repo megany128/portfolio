@@ -130,7 +130,8 @@
   </div>
 </div>
 
-<div data-site-pet transition:persist="site-pet" aria-hidden="true" class="site-pet">
+<div data-pet-anchor transition:persist="site-pet" class="site-pet-anchor">
+<div data-site-pet aria-hidden="true" class="site-pet">
   <div class="site-pet__bubble" data-pet-bubble aria-hidden="true"></div>
   <div class="site-pet__emotes" data-pet-emotes aria-hidden="true"></div>
   <button
@@ -219,10 +220,32 @@
     </span>
   </button>
 </div>
+</div>
 
 <style is:global>
-  .site-pet {
+  /* ============ Anchor ============
+     Zero-height strip that owns the pet's vertical baseline. JS parents it
+     just before the page footer; [data-anchored] then flips it to sticky so
+     the strip rides the viewport bottom until the footer scrolls in, at
+     which point normal flow rests it on the footer's top edge — all on the
+     compositor. Same class of fix as the hat rack: the pet can no longer
+     lag into the footer during fast scrolling or rubber-band overscroll,
+     because no per-frame JS measuring is involved. Pages without a footer
+     keep the fixed fallback (identical to the old behavior). */
+  .site-pet-anchor {
     position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 0;
+    z-index: 80;
+    pointer-events: none;
+  }
+  .site-pet-anchor[data-anchored] {
+    position: sticky;
+  }
+  .site-pet {
+    position: absolute;
     left: 0;
     bottom: 0;
     z-index: 80;
@@ -746,7 +769,7 @@
 <script>
   /*
     SitePet runtime. Walks, bumps off walls, speaks, and supports
-    pointer-drag. The pet element carries `transition:persist` so one
+    pointer-drag. The anchor element carries `transition:persist` so one
     RAF loop + global pointer listeners cover the whole site session.
   */
   (function setup() {
@@ -757,6 +780,41 @@
 
     function el(): HTMLElement | null {
       return document.querySelector<HTMLElement>("[data-site-pet]");
+    }
+
+    function anchorEl(): HTMLElement | null {
+      return document.querySelector<HTMLElement>("[data-pet-anchor]");
+    }
+
+    /*
+      Parent the anchor just before the page footer (same trick as the hat
+      rack). Once in flow with [data-anchored], sticky bottom:0 keeps it on
+      the viewport's bottom edge until the footer scrolls in, then the
+      footer pushes it up in normal flow — the compositor owns the motion,
+      so the pet can't lag into the footer no matter how fast the scroll.
+      Re-run on every ClientRouter swap: persist re-slots the anchor back
+      to its original body-level position.
+    */
+    function anchorPet() {
+      const a = anchorEl();
+      if (!a) return;
+      const footer = document.querySelector<HTMLElement>("footer[data-footer-root]");
+      if (footer && footer.parentElement) {
+        if (a.nextElementSibling !== footer) footer.parentElement.insertBefore(a, footer);
+        a.setAttribute("data-anchored", "");
+      } else {
+        a.removeAttribute("data-anchored"); // fixed fallback on footer-less pages
+      }
+    }
+
+    // Viewport-Y of the pet's resting baseline: the anchor's bottom edge —
+    // the viewport bottom normally, the footer's top when the footer is in
+    // view. Re-measured once per frame in tick(); every viewport-coordinate
+    // conversion below uses this instead of window.innerHeight.
+    let groundBase = window.innerHeight;
+    function measureGroundBase() {
+      const a = anchorEl();
+      groundBase = a ? a.getBoundingClientRect().bottom : window.innerHeight;
     }
 
     const PET_W = 44;
@@ -979,7 +1037,7 @@
     let y = 0; // height above ground, px
     let yVel = 0; // vertical velocity (px/sec) — gravity-based
     let xVel = 0; // horizontal launch velocity after a throw
-    let groundOffset = 0; // height of the footer-top above viewport bottom
+    let groundOffset = 0; // lift above the anchor baseline (ledge height when perched)
     let dir: 1 | -1 = 1;
     let lastT = performance.now();
     let hovered = false;
@@ -1138,19 +1196,10 @@
       const ledgeAltitude = groundOffset; // ledgeGroundY was already in groundOffset
       currentLedge = null;
       ledgeGroundY = 0;
-      // Compute new ground (footer)
-      const footer = document.querySelector<HTMLElement>("footer[data-footer-root]");
-      let newGround = 0;
-      if (footer) {
-        const fr = footer.getBoundingClientRect();
-        if (fr.top < window.innerHeight && fr.bottom > 0) {
-          newGround = Math.max(0, window.innerHeight - fr.top);
-        }
-      }
-      groundOffset = newGround;
-      // Pet's absolute altitude = ledgeAltitude (was y=0 on ledge surface)
-      // New y = absolute altitude - new ground
-      y = Math.max(0, ledgeAltitude - newGround);
+      groundOffset = 0;
+      // Altitude above the anchor baseline is unchanged — the sticky anchor
+      // already accounts for the footer, so no footer math here.
+      y = Math.max(0, ledgeAltitude);
       // Calculate arc velocity — time-of-flight ~0.45s
       const tFlight = 0.45;
       xVel = (hDist / tFlight) * direction;
@@ -1230,40 +1279,11 @@
         }
       }
       lastLedgeTop = newTop;
-      // Ground offset from viewport bottom to the ledge's top edge
-      ledgeGroundY = window.innerHeight - r.top;
+      // Ground offset from the anchor baseline up to the ledge's top edge
+      ledgeGroundY = groundBase - r.top;
       // Walk walls = ledge horizontal bounds (with padding)
       ledgeLeftWall = Math.max(0, r.left + 4);
       ledgeRightWall = Math.max(ledgeLeftWall + 4, r.right - PET_W - 4);
-    }
-
-    // Cached footer element + rect for measureGround() — avoids per-frame DOM queries.
-    let cachedFooter: HTMLElement | null | undefined = undefined; // undefined = not yet looked up
-    let cachedFooterRect: DOMRect | null = null;
-    let footerRectDirty = true;
-
-    function invalidateFooterCache() {
-      cachedFooter = undefined;
-      cachedFooterRect = null;
-      footerRectDirty = true;
-    }
-    function markFooterRectDirty() {
-      footerRectDirty = true;
-    }
-    document.addEventListener("astro:page-load", invalidateFooterCache);
-    window.addEventListener("scroll", markFooterRectDirty, { passive: true });
-    window.addEventListener("resize", markFooterRectDirty, { passive: true });
-
-    function getFooterRect(): DOMRect | null {
-      if (cachedFooter === undefined) {
-        cachedFooter = document.querySelector<HTMLElement>("footer[data-footer-root]");
-      }
-      if (!cachedFooter) return null;
-      if (footerRectDirty) {
-        cachedFooterRect = cachedFooter.getBoundingClientRect();
-        footerRectDirty = false;
-      }
-      return cachedFooterRect;
     }
 
     let fallSuspended = false; // true during the "hang time" before a ledge fall
@@ -1283,21 +1303,13 @@
       lastDismountAt = performance.now();
       const pet = el();
       if (pet) pet.removeAttribute("data-on-clickable");
-      // Compute what the new groundOffset will be (footer-based)
-      const footer = document.querySelector<HTMLElement>("footer[data-footer-root]");
-      let newGround = 0;
-      if (footer) {
-        const fr = footer.getBoundingClientRect();
-        if (fr.top < window.innerHeight && fr.bottom > 0) {
-          newGround = Math.max(0, window.innerHeight - fr.top);
-        }
-      }
-      // Pet was at y=0 relative to ledge ground. Its absolute viewport-bottom
-      // distance was oldGroundOffset. New y = oldGroundOffset - newGround.
-      const rawY = Math.max(0, oldGroundOffset - newGround + y);
+      // Pet was at y=0 relative to the ledge surface, oldGroundOffset above
+      // the anchor baseline — that altitude carries over unchanged (the
+      // sticky anchor owns the footer offset now).
+      const rawY = Math.max(0, oldGroundOffset + y);
       // If pet would start above viewport, give it initial downward velocity
       // so it enters the screen already moving fast (no appearing-then-falling).
-      const viewportTop = window.innerHeight - PET_H - newGround;
+      const viewportTop = groundBase - PET_H;
       if (rawY > viewportTop) {
         y = rawY;
         // Pre-calculate velocity needed to look like it's been falling
@@ -1321,9 +1333,12 @@
       time, `freeRoam` unlocks and the walls expand to the full viewport.
     */
     function measureWalls() {
+      // clientWidth, not innerWidth — the pet is clipped at the body's edge
+      // (overflow-x: clip), which excludes any classic scrollbar gutter.
+      const vw = document.documentElement.clientWidth;
       if (freeRoam) {
         leftWall = 8;
-        rightWall = window.innerWidth - PET_W - 8;
+        rightWall = vw - PET_W - 8;
         return;
       }
       const sidebar = document.querySelector<HTMLElement>(".site-sidebar");
@@ -1331,9 +1346,9 @@
       let R = 240;
       if (sidebar) {
         const r = sidebar.getBoundingClientRect();
-        if (r.right > 0 && r.left < window.innerWidth) {
+        if (r.right > 0 && r.left < vw) {
           L = Math.max(8, r.left + 8);
-          R = Math.min(window.innerWidth - PET_W - 8, r.right - PET_W - 8);
+          R = Math.min(vw - PET_W - 8, r.right - PET_W - 8);
         }
       }
       leftWall = L;
@@ -1365,7 +1380,8 @@
       const PAD = 8;
       let shift = 0;
       if (r.left < PAD) shift = PAD - r.left;
-      else if (r.right > window.innerWidth - PAD) shift = (window.innerWidth - PAD) - r.right;
+      else if (r.right > document.documentElement.clientWidth - PAD)
+        shift = document.documentElement.clientWidth - PAD - r.right;
       if (shift !== 0) bubble.style.setProperty("--bubble-shift-x", `${shift}px`);
     }
 
@@ -1429,15 +1445,12 @@
       }
     }
 
+    /*
+      Ground = the anchor baseline (y=0) unless perched on a ledge. The
+      footer no longer contributes here — the sticky anchor handles it in
+      CSS, which is the whole point of the fix.
+    */
     function measureGround() {
-      const fr = getFooterRect();
-      let footerOffset = 0;
-      if (fr) {
-        if (fr.top < window.innerHeight && fr.bottom > 0) {
-          footerOffset = Math.max(0, window.innerHeight - fr.top);
-        }
-      }
-
       if (currentLedge) {
         updateLedgeBounds();
         const r = currentLedge.getBoundingClientRect();
@@ -1453,12 +1466,12 @@
             lastLedgeFallSpokenAt = performance.now();
           }
           dismountLedge();
-          groundOffset = footerOffset;
+          groundOffset = 0;
           return;
         }
         groundOffset = ledgeGroundY;
       } else {
-        groundOffset = footerOffset;
+        groundOffset = 0;
       }
     }
 
@@ -1472,6 +1485,7 @@
         petRafId = requestAnimationFrame(tick);
         return;
       }
+      measureGroundBase();
       measureGround();
       pet.style.setProperty("--pet-ground", `${groundOffset}px`);
       const now2 = now;
@@ -1584,12 +1598,12 @@
           // through fall-quips on dense pages.
           const recentDismount = performance.now() - lastDismountAt < 700;
           if (!currentLedge && yVel < 0 && !dizzy && !recentDismount && ledgeScanFrame === 0) {
-            const petFeetVP = window.innerHeight - groundOffset - y;
+            const petFeetVP = groundBase - groundOffset - y;
             const ledge = findLedgeAtPosition(x, petFeetVP);
             if (ledge) {
               const r = ledge.getBoundingClientRect();
               // Only catch if pet is descending past the top edge (not rising through it)
-              const ledgeTopFromBottom = window.innerHeight - r.top;
+              const ledgeTopFromBottom = groundBase - r.top;
               const petAltitude = groundOffset + y;
               // Pet should be within ~20px of ledge surface to "land"
               if (Math.abs(petAltitude - ledgeTopFromBottom) < 20) {
@@ -1628,12 +1642,12 @@
 
       // Eye tracking toward the cursor.
       // Pet position is known from x, y, groundOffset — no need for getBoundingClientRect().
-      // The pet is position:fixed at bottom:0, translated by (x, -(y + groundOffset)).
-      // Viewport coords: left = x, top = window.innerHeight - groundOffset - y - PET_H.
+      // The pet sits at the anchor baseline, translated by (x, -(y + groundOffset)).
+      // Viewport coords: left = x, top = groundBase - groundOffset - y - PET_H.
       const eyes = pet.querySelector<SVGGElement>(".site-pet__eyes");
       if (eyes && lastPointerX > -9999) {
         const cx = x + PET_W / 2;
-        const cy = window.innerHeight - groundOffset - y - PET_H / 2;
+        const cy = groundBase - groundOffset - y - PET_H / 2;
         const dx = lastPointerX - cx;
         const dy = lastPointerY - cy;
         const d = Math.hypot(dx, dy) || 1;
@@ -1800,7 +1814,7 @@
               const oldGround = groundOffset;
               currentLedge = null;
               ledgeGroundY = 0;
-              // Convert y to be relative to viewport bottom (no ledge)
+              // Convert y to be relative to the anchor baseline (no ledge)
               y = y + oldGround;
               groundOffset = 0;
             }
@@ -1814,14 +1828,14 @@
             return;
           }
         }
-        // Drag active — track the grab point against the cursor, with
-        // the pet's ground raised to the top of the footer (if visible)
-        // so it can't be dragged under it.
+        // Drag active — track the grab point against the cursor. The anchor
+        // baseline (groundBase) already sits on the footer top when the
+        // footer is visible, so the pet can't be dragged under it.
         const newLeft = e.clientX - dragOffsetX;
         const newTop = e.clientY - dragOffsetY;
-        x = clamp(newLeft, 4, window.innerWidth - PET_W - 4);
-        const yFromGround = window.innerHeight - newTop - PET_H - groundOffset;
-        y = clamp(yFromGround, 0, Math.max(0, window.innerHeight - PET_H - groundOffset - 4));
+        x = clamp(newLeft, 4, document.documentElement.clientWidth - PET_W - 4);
+        const yFromGround = groundBase - newTop - PET_H - groundOffset;
+        y = clamp(yFromGround, 0, Math.max(0, groundBase - PET_H - groundOffset - 4));
 
         // Shake detection — count rapid horizontal direction flips.
         const rawDx = e.movementX ?? 0;
@@ -1875,7 +1889,7 @@
 
           // Ledge detection — check if pet was dropped onto a DOM element.
           // Pet feet position in viewport coords:
-          const petFeetY = window.innerHeight - groundOffset - y;
+          const petFeetY = groundBase - groundOffset - y;
           const ledge = findLedgeAtPosition(x, petFeetY);
           if (ledge && !dizzy) {
             // Land on ledge — cancel velocity, snap to surface.
@@ -1978,7 +1992,7 @@
           pet.removeAttribute("data-dragging");
           pet.removeAttribute("data-paused");
           // Check for ledge landing even on safety-net drop
-          const petFeetY = window.innerHeight - groundOffset - y;
+          const petFeetY = groundBase - groundOffset - y;
           const ledge = findLedgeAtPosition(x, petFeetY);
           if (ledge && !dizzy) {
             xVel = 0;
@@ -2193,6 +2207,7 @@
     }
 
     function init() {
+      anchorPet();
       measureWalls();
       const pet = el();
       if (pet) wire(pet);
