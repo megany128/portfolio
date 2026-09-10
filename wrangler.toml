@@ -10,3 +10,8 @@ binding = "DB"
 database_name = "portfolio"
 database_id = "094909fb-d7ab-42a1-8459-aefdf118f45d"
 migrations_dir = "migrations"
+
+# Persist per-request logs (Workers Logs) so traffic spikes can be attributed
+# to routes/user agents after the fact. Free tier keeps 200k events/day.
+[observability]
+enabled = true

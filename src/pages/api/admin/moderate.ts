@@ -4,6 +4,7 @@ import {
   approveVisitor,
   approveAllVisitors,
   rejectVisitor,
+  resyncGalleryStats,
 } from "../../../lib/visitor-server";
 import { isAdminAuthorized as isAuthorized } from "../../../lib/admin-server";
 
@@ -18,7 +19,7 @@ export async function GET(ctx: APIContext) {
   return Response.json({ pending });
 }
 
-/** POST — approve or reject a card. Body: { id, action: "approve"|"reject" } */
+/** POST — moderate. Body: { id, action: "approve"|"reject" } | { action: "approve-all"|"resync-stats" } */
 export async function POST(ctx: APIContext) {
   if (!isAuthorized(ctx)) {
     return new Response("Unauthorized", { status: 401 });
@@ -36,6 +37,13 @@ export async function POST(ctx: APIContext) {
   if (action === "approve-all") {
     const count = await approveAllVisitors(ctx);
     return Response.json({ ok: true, count });
+  }
+
+  // Rebuild the incrementally maintained gallery stats counters from a full
+  // scan (see migrations/0008). Use if the counters ever drift from the data.
+  if (action === "resync-stats") {
+    const stats = await resyncGalleryStats(ctx);
+    return Response.json({ ok: true, stats });
   }
 
   if (typeof id !== "string" || !["approve", "reject"].includes(action ?? "")) {

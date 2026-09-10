@@ -10,7 +10,7 @@
  *   youId   — current visitor ID (for "That's you!" pill)
  */
 import MiniLibraryCard from "../../components/gallery/MiniLibraryCard.astro";
-import { listVisitorsLite } from "../../lib/visitor-server";
+import { listVisitorsLite, GALLERY_CACHE_TTL_SECONDS } from "../../lib/visitor-server";
 import { SEED_VISITORS } from "../../lib/seed-visitors";
 
 export const partial = true;
@@ -22,7 +22,12 @@ const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit") ?? 
 const youId = url.searchParams.get("youId") ?? undefined;
 
 const seedCount = SEED_VISITORS.length;
+// Metadata only — no signature_png. Signatures are lazy-loaded per card via
+// /api/signature/:id when a card is opened.
 const realVisitors = await listVisitorsLite(Astro, limit, offset);
+// `youId` is part of the URL, so a shared cache can't leak the "That's you!"
+// pill between visitors. Lets browsers/edge absorb repeat "load more" pages.
+Astro.response.headers.set("Cache-Control", `public, max-age=${GALLERY_CACHE_TTL_SECONDS}`);
 const visitors = realVisitors.map((v) => ({ ...v, number: v.number + seedCount }));
 ---
 {visitors.map((v) => (

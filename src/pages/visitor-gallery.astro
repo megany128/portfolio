@@ -12,13 +12,14 @@ export const prerender = false;
 
 const PAGE_SIZE = 48;
 
-const visitor = await getCurrentVisitor(Astro);
-const cursorColor = visitor?.color ?? "pink";
-
-const [realVisitors, galleryStats] = await Promise.all([
+// All three reads are independent (the visitor lookup only needs the cookie),
+// so issue them together — one D1 round trip instead of two in series.
+const [visitor, realVisitors, galleryStats] = await Promise.all([
+  getCurrentVisitor(Astro),
   listVisitorsLite(Astro, PAGE_SIZE),
   getGalleryStats(Astro),
 ]);
+const cursorColor = visitor?.color ?? "pink";
 // `withSignature` is the same indexed COUNT the old countVisitors ran — the
 // number of real gallery cards, used for Grid's "load more" pagination.
 const realTotal = galleryStats.withSignature;
