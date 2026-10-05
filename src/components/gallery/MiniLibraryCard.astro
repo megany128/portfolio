@@ -59,6 +59,7 @@ const {
       id={id ? `gallery-card-${id}` : undefined}
       signature={signature}
       glimmerSeedSalt={(number * 2654435761) ^ (id ? id.charCodeAt(0) * 131 + id.length : 0)}
+      deferArt
     />
 
     <!-- glossy highlight that follows the cursor on hover -->
@@ -81,14 +82,21 @@ const {
     scale the inner .mini-card via CSS transform and give the wrap a matching
     layout box so flex sees the scaled size (3-4 cards fit per row).
 
-    The scale is set via the --mini-card-scale custom property, which is
-    populated by JS (ResizeObserver) in Grid.astro. The CSS trig identity
+    The scale is set via the --mini-card-scale custom property on the inner
+    .mini-card, populated by JS (ResizeObserver) in Grid.astro. The CSS trig identity
     `tan(atan2(100cqi, 388px))` is the fallback, but some mobile browsers
     fail to evaluate it when combined with cqi units, leaving cards at full
     388px (which busts the layout on narrow viewports). overflow: hidden on
     the wrap is a final safety net so any layout breakage is clipped instead
     of pushing the page sideways.
   */
+  /* Non-inheriting so setting the scale only restyles .mini-card itself, not
+     the ~1k braille-art nodes beneath it. Universal syntax keeps it
+     guaranteed-invalid until JS sets it, so the var() fallback still applies. */
+  @property --mini-card-scale {
+    syntax: "*";
+    inherits: false;
+  }
   .mini-card-wrap {
     container-type: inline-size;
     width: 100%;
