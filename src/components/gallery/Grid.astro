@@ -270,6 +270,33 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       card.appendChild(img);
     }
 
+    /* ---------- deferred braille art ----------------------------------- */
+    // Cards ship their art in an inert <template> (LibraryCard `deferArt`):
+    // laying out every visible card's ~600 font-fallback braille glyphs in
+    // the first frame blocked the main thread for the first few seconds.
+    // Cards are hydrated as they near the viewport, one per frame, so the
+    // cost is spread out; hover and the detail view hydrate on demand.
+    function hydrateArt(wrap: HTMLElement) {
+      if (wrap.dataset.artReady !== undefined) return;
+      wrap.dataset.artReady = "";
+      wrap.querySelectorAll<HTMLTemplateElement>("template[data-library-card-art]").forEach((tpl) => {
+        tpl.replaceWith(tpl.content);
+      });
+    }
+    const artQueue: HTMLElement[] = [];
+    let artRaf = 0;
+    function drainArtQueue() {
+      artRaf = 0;
+      const wrap = artQueue.shift();
+      if (wrap) hydrateArt(wrap);
+      if (artQueue.length) artRaf = requestAnimationFrame(drainArtQueue);
+    }
+    function queueArt(wrap: HTMLElement) {
+      if (wrap.dataset.artReady !== undefined) return;
+      artQueue.push(wrap);
+      if (!artRaf) artRaf = requestAnimationFrame(drainArtQueue);
+    }
+
     /* ---------- hover tilt + gloss (delegated) ------------------------- */
     // Single grid-level listeners instead of per-card to avoid 200+ listeners.
     type TiltState = { raf: number; pending: { x: number; y: number } | null };
@@ -320,6 +347,7 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
         }
 
         if (!wrap || wrap.dataset.flying !== undefined) return;
+        if (hoveredWrap !== wrap) hydrateArt(wrap);
         hoveredWrap = wrap;
         const state = getTiltState(wrap);
         state.pending = { x: e.clientX, y: e.clientY };
@@ -391,6 +419,7 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       const left = window.innerWidth / 2 - W / 2;
       const top = window.innerHeight / 2 - H / 2;
 
+      hydrateArt(source);
       const clone = source.cloneNode(true) as HTMLElement;
       clone.dataset.flying = "";
       delete clone.dataset.tilting;
@@ -480,6 +509,7 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       const endLeft = window.innerWidth / 2 - W / 2;
       const endTop = window.innerHeight / 2 - H / 2;
 
+      hydrateArt(wrap);
       const clone = wrap.cloneNode(true) as HTMLElement;
       clone.dataset.flying = "";
       delete clone.dataset.tilting;
@@ -952,13 +982,14 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       open.clone.style.transform = `perspective(1200px) scale(${target.scale})`;
     });
 
-    /* ---------- lazy-load signatures for visible mini cards ---------- */
+    /* ---------- lazy-load signatures + art for visible mini cards ------ */
     const sigObserver = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
           const wrap = entry.target as HTMLElement;
           sigObserver.unobserve(wrap);
+          queueArt(wrap);
           const cardId = wrap.dataset.id;
           if (cardId) lazyLoadSignature(wrap, cardId);
         }
@@ -1000,22 +1031,38 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
        The CSS `tan(atan2(100cqi, 388px))` trick scales each card to its
        container width but fails on some mobile browsers, leaving cards at
        full 388px and busting the layout. We mirror the math here so every
-       wrap reliably gets a numeric --mini-card-scale. */
+       card reliably gets a numeric --mini-card-scale.
+
+       The property is written on the inner [data-mini-card] (registered
+       with `inherits: false` in MiniLibraryCard), not the wrap: an
+       inherited custom property would restyle every one of the card's
+       ~1k descendants (the braille art), and doing that for a page of
+       cards was a ~400ms style recalc at load. */
     const CARD_BASE_W = 388;
-    function rescaleCard(wrap: HTMLElement) {
-      const w = wrap.clientWidth;
+    function setCardScale(wrap: HTMLElement, w: number) {
       if (w <= 0) return;
-      wrap.style.setProperty("--mini-card-scale", String(w / CARD_BASE_W));
+      const scale = String(w / CARD_BASE_W);
+      const card = wrap.querySelector<HTMLElement>("[data-mini-card]");
+      if (card && card.style.getPropertyValue("--mini-card-scale") !== scale) {
+        card.style.setProperty("--mini-card-scale", scale);
+      }
     }
+    // ResizeObserver hands us the size it already measured — no forced layout.
     const scaleObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) rescaleCard(entry.target as HTMLElement);
+      for (const entry of entries) {
+        setCardScale(entry.target as HTMLElement, entry.contentRect.width);
+      }
     });
     function observeCardScales() {
-      grid!.querySelectorAll<HTMLElement>(
-        "[data-mini-card-wrap]:not([data-scale-queued])",
-      ).forEach((wrap) => {
+      const wraps = Array.from(
+        grid!.querySelectorAll<HTMLElement>("[data-mini-card-wrap]:not([data-scale-queued])"),
+      );
+      // Read every width before writing any scale. Interleaving the two
+      // forced a style + layout flush per card.
+      const widths = wraps.map((wrap) => wrap.clientWidth);
+      wraps.forEach((wrap, i) => {
         wrap.dataset.scaleQueued = "";
-        rescaleCard(wrap);
+        setCardScale(wrap, widths[i]);
         scaleObserver.observe(wrap);
       });
     }

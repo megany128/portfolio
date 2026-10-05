@@ -61,6 +61,10 @@
   /* === Typography === */
   --font-display: "Gelica", "Cormorant Garamond", "Times New Roman", serif;
   --font-mono: "Source Code Pro", ui-monospace, "SF Mono", Menlo, monospace;
+  /* --font-mono minus the web font, for the braille card art. Source Code Pro
+     has no braille glyphs, so it never draws the art — but listing it makes
+     every SCP weight that arrives on a cold cache re-shape all of it. */
+  --font-art: ui-monospace, "SF Mono", Menlo, monospace;
   --font-body: "Segoe UI", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, Roboto, "Noto Sans", sans-serif;
 
   /* H1 — Gelica Light 36 / 100% line-height */
