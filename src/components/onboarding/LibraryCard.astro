@@ -17,8 +17,9 @@ interface Props {
   /** Optional override so multiple cards of the same color pick distinct glimmer dots + timings. */
   glimmerSeedSalt?: number;
   /**
-   * Ship the braille art inside an inert <template> instead of live DOM. The
-   * caller hydrates it later (see Grid.astro) — laying out a page of these
+   * Ship the braille art inside <noscript> instead of live DOM. With JS on,
+   * that's inert text (never styled or laid out) and the caller hydrates it
+   * later (see Grid.astro); with JS off, the art still renders as before — laying out a page of these
    * ~600-glyph font-fallback text blocks in one go was most of the gallery's
    * first-load jank.
    */
@@ -313,7 +314,7 @@ const showFallback = !signable && !signature;
   <!-- Decorative braille-dot illustration — one <pre> per color; CSS reveals
        only the one whose data-for matches the card's current data-color. -->
   {deferArt ? (
-    <template data-library-card-art>
+    <noscript data-library-card-art>
       {rendered.map((r) => (
         <pre
           aria-hidden="true"
@@ -324,7 +325,7 @@ const showFallback = !signable && !signature;
           set:html={r.html}
         />
       ))}
-    </template>
+    </noscript>
   ) : (
     rendered.map((r) => (
       <pre
@@ -498,9 +499,17 @@ const showFallback = !signable && !signature;
     opacity: 0;
     transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  /* Deferred art fades in when it's hydrated instead of popping. */
+  /* Deferred art fades in when it's hydrated instead of popping. Needs to
+     out-specify the `.library-card .library-card__flower` color transition
+     above, which would otherwise drop opacity from the transition list. */
+  .library-card .library-card__flower[data-art-deferred] {
+    transition:
+      color 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  /* Out-specifies the per-color reveal rules below so the start value wins. */
   @starting-style {
-    .library-card__flower[data-art-deferred] {
+    .library-card[data-color] .library-card__flower[data-for][data-art-deferred] {
       opacity: 0;
     }
   }
@@ -648,7 +657,7 @@ const showFallback = !signable && !signature;
     .library-card__flower .glimmer {
       animation: none;
     }
-    .library-card__flower[data-art-deferred] {
+    .library-card .library-card__flower[data-art-deferred] {
       transition: none;
     }
   }

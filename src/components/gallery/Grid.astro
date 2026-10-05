@@ -271,7 +271,8 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
     }
 
     /* ---------- deferred braille art ----------------------------------- */
-    // Cards ship their art in an inert <template> (LibraryCard `deferArt`):
+    // Cards ship their art in <noscript> (LibraryCard `deferArt`), which is
+    // inert text while JS runs:
     // laying out every visible card's ~600 font-fallback braille glyphs in
     // the first frame blocked the main thread for the first few seconds.
     // Cards are hydrated as they near the viewport, one per frame, so the
@@ -279,15 +280,21 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
     function hydrateArt(wrap: HTMLElement) {
       if (wrap.dataset.artReady !== undefined) return;
       wrap.dataset.artReady = "";
-      wrap.querySelectorAll<HTMLTemplateElement>("template[data-library-card-art]").forEach((tpl) => {
-        tpl.replaceWith(tpl.content);
+      wrap.querySelectorAll<HTMLElement>("noscript[data-library-card-art]").forEach((ns) => {
+        ns.insertAdjacentHTML("afterend", ns.textContent ?? "");
+        ns.remove();
       });
     }
     const artQueue: HTMLElement[] = [];
     let artRaf = 0;
     function drainArtQueue() {
       artRaf = 0;
-      const wrap = artQueue.shift();
+      // Skip entries hover/detail already hydrated (or that left the DOM) so
+      // they don't cost a frame ahead of cards that still need art.
+      let wrap: HTMLElement | undefined;
+      while ((wrap = artQueue.shift())) {
+        if (wrap.isConnected && wrap.dataset.artReady === undefined) break;
+      }
       if (wrap) hydrateArt(wrap);
       if (artQueue.length) artRaf = requestAnimationFrame(drainArtQueue);
     }
