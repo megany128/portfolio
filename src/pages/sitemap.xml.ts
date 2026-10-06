@@ -11,6 +11,8 @@ const routes = [
   { path: "/playground", priority: "0.7" },
   { path: "/visitor-gallery", priority: "0.6" },
   { path: "/work/splunk", priority: "0.8" },
+  { path: "/work/gcal-wrapped", priority: "0.8" },
+  { path: "/work/cu-reviews", priority: "0.8" },
 ];
 
 export const GET: APIRoute = () => {
