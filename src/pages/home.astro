@@ -22,7 +22,7 @@ const logHtml = renderLogHtml(log.body, { previews: true });
 
 <BaseLayout
   title="Megan Yap"
-  description="Megan Yap's portfolio — design engineer studying at Cornell. Currently building Lingofable and Skloňuj."
+  description="Megan Yap's portfolio — design engineer studying at Cornell. Currently building Skloňuj."
 >
   <!--
     Wallet finale veil. Shares `transition:name="wallet-veil"` with the
@@ -50,6 +50,7 @@ const logHtml = renderLogHtml(log.body, { previews: true });
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
           <div class="flex flex-col gap-8 md:pt-0">
+            {/* ARCHIVED — Lingofable
             <ProjectIndexCard
               title="Lingofable"
               role="Co-Founder, Design, Dev, Marketing"
@@ -68,6 +69,7 @@ const logHtml = renderLogHtml(log.body, { previews: true });
               href="/work/lingofable"
               tilt={-0.6}
             />
+            */}
             <ProjectIndexCard
               title="GCal Wrapped"
               role="Co-Creator, Design, Dev"
@@ -84,6 +86,24 @@ const logHtml = renderLogHtml(log.body, { previews: true });
               imageAspect="716 / 476"
               href="/work/gcal-wrapped"
               tilt={0.5}
+            />
+            <ProjectIndexCard
+              title="Skloňuj"
+              role="Design, Dev"
+              team="Solo"
+              shipped="March 2026 - present"
+              category="side-project"
+              description="Czech grammar platform piloting at Harvard, Brown, and more"
+              metrics={[
+                { value: "20K+", label: "drills done" },
+                { value: "500+", label: "unique users" },
+                { value: "5+", label: "college pilots" },
+              ]}
+              image="/images/projects/sklonuj.png"
+              imageHeight={210}
+              href="https://sklonuj.com"
+              external
+              tilt={-0.5}
             />
             {/* ARCHIVED — Loop
             <ProjectIndexCard
@@ -120,22 +140,19 @@ const logHtml = renderLogHtml(log.body, { previews: true });
               tilt={0.6}
             />
             <ProjectIndexCard
-              title="Skloňuj"
-              role="Design, Dev"
-              team="Solo"
-              shipped="March 2026 - present"
-              category="side-project"
-              description="Czech grammar platform piloting at Harvard, Brown, and more"
+              title="CU Reviews"
+              role="Product Manager, Designer"
+              team="1 PM, 2 designers, 3 developers, 1 PMM"
+              shipped="Feb 2024 - Jan 2025"
+              category="club-project"
+              description="Enhanced intuitiveness and efficiency of Cornell course metrics display for 3,000+ students. Now live on website!"
               metrics={[
-                { value: "20K+", label: "drills done" },
-                { value: "500+", label: "unique users" },
-                { value: "5+", label: "college pilots" },
+                { value: "3K+", label: "students" },
               ]}
-              image="/images/projects/sklonuj.png"
-              imageHeight={210}
-              href="https://sklonuj.com"
-              external
-              tilt={-0.5}
+              image="/images/projects/cu-reviews.gif"
+              imageHeight={230}
+              href="/work/cu-reviews"
+              tilt={-0.4}
             />
             {/* ARCHIVED — Microsoft Copilot for Sales
             <ProjectIndexCard
@@ -150,20 +167,6 @@ const logHtml = renderLogHtml(log.body, { previews: true });
               href="https://www.behance.net/gallery/229681695/Microsoft-x-DCC-SP25"
               external
               tilt={0.4}
-            />
-            */}
-            {/* ARCHIVED — CU Reviews
-            <ProjectIndexCard
-              title="CU Reviews"
-              role="Product Manager, Designer"
-              team="1 PM, 2 designers, 3 developers, 1 PMM"
-              shipped="Feb 2024 - Jan 2025"
-              category="club-project"
-              description="Enhanced inituitiveness and efficiency of Cornell course metrics display for 3,000+ students. Now live on website!"
-              image="/images/projects/cu-reviews.gif"
-              imageHeight={230}
-              href="/work/cu-reviews"
-              tilt={-0.4}
             />
             */}
           </div>
