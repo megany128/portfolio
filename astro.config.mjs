@@ -17,7 +17,10 @@ export default defineConfig({
   // /cu-reviews and /gcal-wrapped destinations once the matching /work pages
   // ship (currently they fall back to /home).
   redirects: {
-    "/lingofable": { status: 301, destination: "/work/lingofable" },
+    // Lingofable case study is archived (src/pages/work/_lingofable.astro) —
+    // temporary redirects so old links land on /home until it's restored.
+    "/lingofable": { status: 302, destination: "/home" },
+    "/work/lingofable": { status: 302, destination: "/home" },
     "/splunk-case-study": { status: 301, destination: "/work/splunk" },
     "/microsoft-copilot": {
       status: 301,

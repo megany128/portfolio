@@ -28,7 +28,7 @@ const PREVIEW_SITES: Record<string, string> = {
 /** Shown if the logs table is empty or unreachable, so /home never blanks. */
 export const FALLBACK_LOG: LogRecord = {
   id: 0,
-  body: "[@Simon Ilincev](https://simonilincev.com/) and I have just launched [Lingofable](https://lingofable.com), a language learning app based on comprehensible input! Currently, I'm also building [Skloňuj](https://sklonuj.com), a tool for Czech learners to practice noun declension — it's being piloted by four universities.",
+  body: "Currently building [Skloňuj](https://sklonuj.com), a tool for Czech learners to practice noun declension — it's being piloted by four universities.",
   createdAt: "2026-04-12T12:00:00Z",
 };
 
