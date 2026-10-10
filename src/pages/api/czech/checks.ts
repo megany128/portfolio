@@ -26,14 +26,17 @@ export async function POST(ctx: APIContext) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  let payload: { day?: unknown; task?: unknown; done?: unknown };
+  let payload: unknown;
   try {
     payload = await ctx.request.json();
   } catch {
     return new Response("Invalid JSON", { status: 400 });
   }
+  if (typeof payload !== "object" || payload === null) {
+    return new Response("Invalid request", { status: 400 });
+  }
 
-  const { day, task, done } = payload;
+  const { day, task, done } = payload as { day?: unknown; task?: unknown; done?: unknown };
   if (
     typeof day !== "string" ||
     !isIsoDay(day) ||

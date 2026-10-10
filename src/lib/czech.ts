@@ -57,7 +57,10 @@ export const CZECH_TASKS: readonly CzechTask[] = [
 export const CZECH_TASK_IDS: ReadonlySet<string> = new Set(CZECH_TASKS.map((t) => t.id));
 
 export function isIsoDay(s: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s));
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  // Date.parse rolls impossible days over (02-31 → March), so round-trip to reject them.
+  const t = Date.parse(s);
+  return !Number.isNaN(t) && new Date(t).toISOString().slice(0, 10) === s;
 }
 
 export type ActivityKind = "listen" | "watch" | "read" | "speak" | "write" | "grammar" | "prague";
