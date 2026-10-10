@@ -12,7 +12,6 @@ export type CzechTask = {
   id: string;
   cz: string;
   en: string;
-  hint: string;
   href?: string;
 };
 
@@ -21,36 +20,31 @@ export const CZECH_TASKS: readonly CzechTask[] = [
     id: "anki",
     cz: "Anki",
     en: "Clear today's Anki reviews",
-    hint: "All due cards, then a few new ones.",
     href: "https://ankiweb.net/decks",
   },
   {
     id: "podcast",
     cz: "Podcast",
     en: "Listen to a podcast",
-    hint: "Any length — Radio Wave, Easy Czech, Český rozhlas.",
     href: "https://www.mujrozhlas.cz/",
   },
   {
     id: "sklonuj",
     cz: "Skloňuj",
     en: "Do Skloňuj drills",
-    hint: "One round of declension practice.",
     href: "https://www.sklonuj.cz/",
   },
   {
     id: "video",
     cz: "Video",
     en: "Watch a YouTube video",
-    hint: "Czech audio, Czech subtitles if you can.",
     href: "https://www.youtube.com/@EasyCzech",
   },
   {
     id: "journal",
     cz: "Deník",
     en: "Write & correct a journal entry",
-    hint: "A few sentences about today, then fix the mistakes.",
-    href: "https://prirucka.ujc.cas.cz/",
+    href: "https://www.journalprompt.today/",
   },
 ];
 

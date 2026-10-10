@@ -137,7 +137,6 @@ const kindLabel = Object.fromEntries(ACTIVITY_KINDS.map((k) => [k.id, k.cz]));
                 <span class="cz-task-text">
                   <span class="cz-task-cz">{t.cz}</span>
                   <span class="cz-task-en">{t.en}</span>
-                  <span class="cz-task-hint">{t.hint}</span>
                 </span>
               </label>
               {t.href && (
@@ -360,7 +359,6 @@ const kindLabel = Object.fromEntries(ACTIVITY_KINDS.map((k) => [k.id, k.cz]));
   .cz-task-text { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
   .cz-task-cz { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.1; }
   .cz-task-en { font-size: var(--text-body); color: var(--color-ink); }
-  .cz-task-hint { font-size: var(--text-small); color: var(--color-ink-dim); }
   .cz-check:checked ~ .cz-task-text .cz-task-cz { text-decoration: line-through; text-decoration-thickness: 1px; color: var(--color-ink-dim); }
   .cz-task-link {
     font-family: var(--font-mono);
@@ -478,7 +476,10 @@ const kindLabel = Object.fromEntries(ACTIVITY_KINDS.map((k) => [k.id, k.cz]));
   const DAY_MS = 86_400_000;
 
   const pad = (n: number) => String(n).padStart(2, "0");
-  const localDay = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  /** The study day rolls over at 4am local, so late nights still count for the day before. */
+  const DAY_START_HOUR = 4;
+  const studyNow = () => new Date(Date.now() - DAY_START_HOUR * 3_600_000);
+  const localDay = (d = studyNow()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   const toUtc = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
   const addDays = (iso: string, n: number) => new Date(toUtc(iso) + n * DAY_MS).toISOString().slice(0, 10);
   const diffDays = (a: string, b: string) => Math.round((toUtc(b) - toUtc(a)) / DAY_MS);
@@ -546,7 +547,7 @@ const kindLabel = Object.fromEntries(ACTIVITY_KINDS.map((k) => [k.id, k.cz]));
         weekday: "long",
         day: "numeric",
         month: "long",
-      }).format(new Date());
+      }).format(studyNow());
     }
 
     // — Rendering
