@@ -1,0 +1,764 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import {
+  TRIP_DATE,
+  COUNTDOWN_START,
+  CZECH_TASKS,
+  CZECH_ACTIVITIES,
+  ACTIVITY_KINDS,
+} from "../lib/czech";
+
+export const prerender = false;
+
+const DAY_MS = 86_400_000;
+const toUtc = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
+const isoFromUtc = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+
+// Server-side first paint uses Prague's calendar date; the client script
+// re-renders with the browser's local date.
+const serverToday = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Prague" }).format(
+  new Date(),
+);
+const daysLeft = Math.max(0, Math.round((toUtc(TRIP_DATE) - toUtc(serverToday)) / DAY_MS));
+
+// Heatmap: Monday-aligned weeks covering COUNTDOWN_START → TRIP_DATE.
+const startMs = toUtc(COUNTDOWN_START);
+const tripMs = toUtc(TRIP_DATE);
+const mondayOffset = (new Date(startMs).getUTCDay() + 6) % 7;
+const gridStart = startMs - mondayOffset * DAY_MS;
+const totalCells = Math.ceil(((tripMs - gridStart) / DAY_MS + 1) / 7) * 7;
+const cells = Array.from({ length: totalCells }, (_, i) => {
+  const ms = gridStart + i * DAY_MS;
+  return { day: isoFromUtc(ms), inRange: ms >= startMs && ms <= tripMs, trip: ms === tripMs };
+});
+
+const tripLabel = new Intl.DateTimeFormat("cs-CZ", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+}).format(new Date(tripMs));
+
+const kindLabel = Object.fromEntries(ACTIVITY_KINDS.map((k) => [k.id, k.cz]));
+---
+
+<BaseLayout
+  title="Česky do Prahy"
+  description="Countdown and daily Czech practice before Prague."
+  showPet={false}
+  noindex
+  canonical="/czech"
+>
+  <main
+    class="cz"
+    data-cz-root
+    data-trip={TRIP_DATE}
+    data-start={COUNTDOWN_START}
+    data-tasks={JSON.stringify(CZECH_TASKS.map((t) => t.id))}
+  >
+    <header class="cz-header">
+      <p class="cz-eyebrow">Praha · {tripLabel}</p>
+      <h1 class="cz-title">Česky do Prahy</h1>
+    </header>
+
+    <div class="cz-top">
+      <!-- Countdown -->
+      <section class="cz-card cz-countdown" aria-labelledby="cz-countdown-label">
+        <p class="cz-label" id="cz-countdown-label">Odpočet</p>
+        <p class="cz-big"><span data-days-left>{daysLeft}</span></p>
+        <p class="cz-big-sub" data-days-word>dní do Prahy</p>
+        <div class="cz-progress" role="progressbar" aria-label="Time until Prague" data-progress>
+          <div class="cz-progress-fill" data-progress-fill></div>
+        </div>
+        <p class="cz-meta" data-days-meta></p>
+      </section>
+
+      <!-- Streak -->
+      <section class="cz-card cz-streak" aria-labelledby="cz-streak-label">
+        <p class="cz-label" id="cz-streak-label">Série</p>
+        <div class="cz-stats">
+          <div>
+            <p class="cz-stat" data-streak>0</p>
+            <p class="cz-meta">day streak</p>
+          </div>
+          <div>
+            <p class="cz-stat" data-full-days>0</p>
+            <p class="cz-meta">full days</p>
+          </div>
+          <div>
+            <p class="cz-stat" data-total-checks>0</p>
+            <p class="cz-meta">tasks done</p>
+          </div>
+        </div>
+        <div class="cz-heatmap" role="list" aria-label="Daily progress">
+          {
+            cells.map((c) => (
+              <span
+                class:list={["cz-cell", { "is-out": !c.inRange, "is-trip": c.trip }]}
+                data-day={c.inRange ? c.day : undefined}
+                title={c.inRange ? c.day : undefined}
+                role={c.inRange ? "listitem" : undefined}
+                aria-label={c.inRange ? c.day : undefined}
+                aria-hidden={c.inRange ? undefined : "true"}
+              />
+            ))
+          }
+        </div>
+        <p class="cz-meta cz-legend">
+          <span>Po → Ne</span>
+          <span class="cz-legend-scale">
+            méně
+            <span class="cz-cell" data-level="0"></span>
+            <span class="cz-cell" data-level="2"></span>
+            <span class="cz-cell" data-level="4"></span>
+            <span class="cz-cell" data-level="5"></span>
+            více
+          </span>
+        </p>
+      </section>
+    </div>
+
+    <!-- Today -->
+    <section class="cz-card cz-today" aria-labelledby="cz-today-label">
+      <div class="cz-row">
+        <div>
+          <p class="cz-label" id="cz-today-label">Dnes</p>
+          <p class="cz-today-date" data-today-label></p>
+        </div>
+        <p class="cz-count"><span data-done-count>0</span>/{CZECH_TASKS.length}</p>
+      </div>
+      <ul class="cz-tasks">
+        {
+          CZECH_TASKS.map((t) => (
+            <li class="cz-task">
+              <label class="cz-task-label">
+                <input type="checkbox" class="cz-check" data-task={t.id} />
+                <span class="cz-box" aria-hidden="true" />
+                <span class="cz-task-text">
+                  <span class="cz-task-cz">{t.cz}</span>
+                  <span class="cz-task-en">{t.en}</span>
+                </span>
+              </label>
+              {t.href && (
+                <a class="cz-task-link" href={t.href} target="_blank" rel="noopener noreferrer">
+                  open ↗
+                </a>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+      <p class="cz-meta cz-sync" data-sync aria-live="polite"></p>
+    </section>
+
+    <!-- Library -->
+    <section class="cz-library" aria-labelledby="cz-lib-label">
+      <div class="cz-row cz-lib-head">
+        <div>
+          <p class="cz-label" id="cz-lib-label">Knihovna aktivit</p>
+          <h2 class="cz-h2">Nevíš, co dělat?</h2>
+        </div>
+        <button type="button" class="cz-pick btn-springy" data-pick>Vyber mi něco</button>
+      </div>
+
+      <div class="cz-filters" role="group" aria-label="Filter activities">
+        <button type="button" class="cz-chip is-active" data-filter="all" aria-pressed="true">
+          Vše
+        </button>
+        {
+          ACTIVITY_KINDS.map((k) => (
+            <button type="button" class="cz-chip" data-filter={k.id} aria-pressed="false">
+              {k.cz} <span class="cz-chip-en">{k.label}</span>
+            </button>
+          ))
+        }
+      </div>
+
+      <ul class="cz-activities">
+        {
+          CZECH_ACTIVITIES.map((a) => (
+            <li class="cz-activity" data-kind={a.kind} data-kind-color={a.kind}>
+              <div class="cz-activity-meta">
+                <span>{kindLabel[a.kind]}</span>
+                <span>~{a.minutes} min</span>
+              </div>
+              <h3 class="cz-activity-title">{a.title}</h3>
+              <p class="cz-activity-detail">{a.detail}</p>
+              {a.href && (
+                <a class="cz-task-link" href={a.href} target="_blank" rel="noopener noreferrer">
+                  open ↗
+                </a>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .cz {
+    width: 100%;
+    max-width: var(--container-base);
+    margin: 0 auto;
+    padding: 2.5rem 1rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  @media (min-width: 640px) {
+    .cz { padding: 3.5rem 1.5rem 5rem; }
+  }
+
+  .cz-header { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 0.5rem; }
+  .cz-eyebrow,
+  .cz-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-subtitle-2);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-fg-neutral);
+  }
+  .cz-title {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(2.5rem, 8vw, var(--text-display));
+    line-height: var(--text-display--line-height);
+    letter-spacing: var(--text-display--letter-spacing);
+  }
+  .cz-h2 {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: var(--text-h1);
+    line-height: 1;
+    margin-top: 0.5rem;
+  }
+  .cz-meta { font-family: var(--font-mono); font-size: var(--text-small); color: var(--color-ink-dim); }
+
+  .cz-card {
+    background: var(--color-bg-light);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+  .cz-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+
+  .cz-top { display: grid; gap: 1.25rem; grid-template-columns: 1fr; }
+  @media (min-width: 768px) {
+    .cz-top { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
+  }
+
+  /* Countdown */
+  .cz-big {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(5rem, 18vw, 8rem);
+    line-height: 0.85;
+    color: var(--color-pink);
+    margin-top: 0.5rem;
+  }
+  .cz-big-sub { font-family: var(--font-display); font-size: var(--text-h2); font-weight: 300; }
+  .cz-progress {
+    height: 8px;
+    border-radius: var(--radius-pill);
+    background: var(--color-bg-neutral-2);
+    overflow: hidden;
+    margin-top: auto;
+  }
+  .cz-progress-fill {
+    height: 100%;
+    width: 0;
+    background: var(--color-pink);
+    border-radius: inherit;
+    transition: width var(--duration-slow) var(--ease-out-soft);
+  }
+
+  /* Streak + heatmap */
+  .cz-stats { display: flex; gap: 2rem; flex-wrap: wrap; }
+  .cz-stat { font-family: var(--font-display); font-weight: 300; font-size: 2.75rem; line-height: 1; }
+  .cz-heatmap {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(7, auto);
+    gap: 4px;
+    justify-content: start;
+    margin-top: 0.5rem;
+    padding: 3px; /* room for the today outline inside the scroll box */
+    overflow-x: auto;
+  }
+  .cz-cell {
+    --size: 18px;
+    width: var(--size);
+    height: var(--size);
+    border-radius: 4px;
+    background: var(--color-bg-neutral-2);
+    display: inline-block;
+  }
+  @media (min-width: 1024px) {
+    .cz-heatmap .cz-cell { --size: 22px; }
+  }
+  .cz-cell.is-out { background: transparent; }
+  .cz-cell[data-level="1"] { background: color-mix(in oklab, var(--color-green-1) 45%, var(--color-bg-neutral-2)); }
+  .cz-cell[data-level="2"] { background: color-mix(in oklab, var(--color-green-1) 70%, var(--color-bg-neutral-2)); }
+  .cz-cell[data-level="3"] { background: var(--color-green-1); }
+  .cz-cell[data-level="4"] { background: var(--color-green-0); }
+  .cz-cell[data-level="5"] { background: var(--color-green); }
+  .cz-cell.is-future { opacity: 0.5; }
+  .cz-cell.is-today { outline: 2px solid var(--color-ink); outline-offset: 1px; }
+  .cz-cell.is-trip { background: var(--color-pink); opacity: 1; }
+  .cz-legend { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .cz-legend-scale { display: inline-flex; align-items: center; gap: 4px; }
+  .cz-legend-scale .cz-cell { --size: 12px; }
+
+  /* Today */
+  .cz-today-date { font-family: var(--font-display); font-weight: 300; font-size: var(--text-h2); margin-top: 0.5rem; }
+  .cz-count { font-family: var(--font-display); font-weight: 300; font-size: 2.75rem; line-height: 1; }
+  .cz-tasks { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+  .cz-task {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.875rem 0;
+    border-top: 1px solid var(--color-bg-neutral-2);
+  }
+  .cz-task:first-child { border-top: none; }
+  .cz-task-label { display: flex; align-items: flex-start; gap: 1rem; flex: 1; min-width: 0; cursor: pointer; }
+  .cz-check { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .cz-box {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--color-fg-neutral);
+    background: var(--color-bg);
+    display: grid;
+    place-items: center;
+    transition:
+      background-color var(--duration-fast) var(--ease-out-soft),
+      border-color var(--duration-fast) var(--ease-out-soft),
+      transform var(--duration-base) var(--ease-out-soft);
+  }
+  .cz-box::after {
+    content: "";
+    width: 7px;
+    height: 12px;
+    border: solid var(--color-ink-inverted);
+    border-width: 0 2px 2px 0;
+    transform: translateY(-1px) rotate(45deg) scale(0);
+    transition: transform var(--duration-base) var(--ease-out-soft);
+  }
+  .cz-check:checked + .cz-box { background: var(--color-green); border-color: var(--color-green); }
+  .cz-check:checked + .cz-box::after { transform: translateY(-1px) rotate(45deg) scale(1); }
+  .cz-check:focus-visible + .cz-box { outline: 2px solid var(--color-pink); outline-offset: 2px; }
+  .cz-check:active + .cz-box { transform: scale(0.9); }
+  .cz-check:disabled + .cz-box { opacity: 0.5; }
+  .cz-task-text { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+  .cz-task-cz { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.1; }
+  .cz-task-en { font-size: var(--text-body); color: var(--color-ink); }
+  .cz-check:checked ~ .cz-task-text .cz-task-cz { text-decoration: line-through; text-decoration-thickness: 1px; color: var(--color-ink-dim); }
+  .cz-task-link {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    color: var(--color-ink-dim);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--color-bg-neutral-2);
+    align-self: flex-start;
+  }
+  .cz-task .cz-task-link { align-self: center; }
+  .cz-task-link:hover { color: var(--color-pink); border-color: currentColor; }
+  .cz-sync:empty { display: none; }
+  .cz-sync button {
+    font: inherit;
+    color: var(--color-pink);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  /* Library */
+  .cz-library { display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem; }
+  .cz-pick {
+    font-family: var(--font-mono);
+    font-size: var(--text-subtitle-2);
+    height: 44px;
+    padding: 0 1.25rem;
+    border-radius: var(--radius-pill);
+    border: none;
+    background: var(--color-ink);
+    color: var(--color-ink-inverted);
+    cursor: pointer;
+  }
+  .cz-pick:hover { background: var(--color-pink); }
+  .cz-filters { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .cz-chip {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    padding: 0.4rem 0.8rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--color-bg-neutral-2);
+    background: transparent;
+    color: var(--color-ink-dim);
+    cursor: pointer;
+    transition:
+      background-color var(--duration-fast) var(--ease-out-soft),
+      color var(--duration-fast) var(--ease-out-soft);
+  }
+  .cz-chip:hover { color: var(--color-ink); border-color: var(--color-ink-dim); }
+  .cz-chip.is-active { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-ink-inverted); }
+  .cz-chip-en { opacity: 0.6; }
+  @media (max-width: 480px) {
+    .cz-chip-en { display: none; }
+  }
+  .cz-activities {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  }
+  .cz-activity {
+    --accent: var(--color-fg-neutral);
+    background: var(--color-bg-light);
+    border-radius: var(--radius-lg);
+    border-top: 4px solid var(--accent);
+    padding: 1.1rem 1.25rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition:
+      transform var(--duration-base) var(--ease-out-soft),
+      box-shadow var(--duration-base) var(--ease-out-soft);
+  }
+  .cz-activity[hidden] { display: none; }
+  .cz-activity[data-kind-color="listen"] { --accent: var(--color-teal); }
+  .cz-activity[data-kind-color="watch"] { --accent: var(--color-orange); }
+  .cz-activity[data-kind-color="read"] { --accent: var(--color-green-0); }
+  .cz-activity[data-kind-color="speak"] { --accent: var(--color-pink); }
+  .cz-activity[data-kind-color="write"] { --accent: var(--color-teal-1); }
+  .cz-activity[data-kind-color="grammar"] { --accent: var(--color-orange-0); }
+  .cz-activity[data-kind-color="prague"] { --accent: var(--color-pink-0); }
+  .cz-activity.is-picked {
+    transform: translateY(-4px);
+    box-shadow: 0 0 0 2px var(--accent), 0 12px 28px -12px color-mix(in oklab, var(--color-ink) 40%, transparent);
+  }
+  .cz-activity-meta {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-fg-neutral);
+  }
+  .cz-activity-title { font-family: var(--font-display); font-weight: 400; font-size: 1.25rem; line-height: 1.15; }
+  .cz-activity-detail { font-size: 0.9375rem; line-height: 1.5; color: var(--color-ink-dim); flex: 1; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cz-progress-fill,
+    .cz-box,
+    .cz-box::after,
+    .cz-chip,
+    .cz-activity { transition: none; }
+    .cz-activity.is-picked { transform: none; }
+  }
+</style>
+
+<script>
+  const TOKEN_KEY = "admin_token";
+  const DAY_MS = 86_400_000;
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+  /** The study day rolls over at 4am local, so late nights still count for the day before. */
+  const DAY_START_HOUR = 4;
+  const studyNow = () => new Date(Date.now() - DAY_START_HOUR * 3_600_000);
+  const localDay = (d = studyNow()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const toUtc = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
+  const addDays = (iso: string, n: number) => new Date(toUtc(iso) + n * DAY_MS).toISOString().slice(0, 10);
+  const diffDays = (a: string, b: string) => Math.round((toUtc(b) - toUtc(a)) / DAY_MS);
+
+  /** Czech plural for "day": 1 den, 2–4 dny, 0/5+ dní. */
+  const daysWord = (n: number) => (n === 1 ? "den" : n >= 2 && n <= 4 ? "dny" : "dní");
+
+  function getToken(): string | null {
+    try {
+      return localStorage.getItem(TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  }
+  function setToken(t: string | null) {
+    try {
+      if (t) localStorage.setItem(TOKEN_KEY, t);
+      else localStorage.removeItem(TOKEN_KEY);
+    } catch {
+      /* storage blocked — token lives for this page only */
+    }
+  }
+
+  function init() {
+    const found = document.querySelector<HTMLElement>("[data-cz-root]");
+    if (!found || found.dataset.wired) return;
+    const root: HTMLElement = found;
+    root.dataset.wired = "1";
+
+    const trip = root.dataset.trip!;
+    const start = root.dataset.start!;
+    const taskIds: string[] = JSON.parse(root.dataset.tasks!);
+    let today = localDay();
+    const checks = new Map<string, Set<string>>();
+    let sessionToken = getToken();
+    let loading = false;
+    let loaded = false;
+    /** In-flight saves by task id — one at a time per task so they can't land out of order. */
+    const saving = new Map<string, Promise<void>>();
+
+    const $ = <T extends Element = HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
+    const sync = $("[data-sync]");
+    const inputs = Array.from(root.querySelectorAll<HTMLInputElement>("[data-task]"));
+    const dayLabel = new Intl.DateTimeFormat("cs-CZ", {
+      day: "numeric",
+      month: "long",
+      timeZone: "UTC",
+    });
+
+    // — Countdown
+    function renderClock() {
+      const left = Math.max(0, diffDays(today, trip));
+      $("[data-days-left]").textContent = String(left);
+      $("[data-days-word]").textContent =
+        left === 0 ? "Vítej v Praze!" : `${daysWord(left)} do Prahy`;
+      const span = Math.max(1, diffDays(start, trip));
+      const pct = Math.min(100, Math.max(0, (diffDays(start, today) / span) * 100));
+      $("[data-progress-fill]").style.width = `${pct}%`;
+      $("[data-progress]").setAttribute("aria-valuenow", String(Math.round(pct)));
+      const weeks = Math.floor(left / 7);
+      $("[data-days-meta]").textContent =
+        left > 0 ? `${weeks} wk ${left % 7} d · ${Math.round(pct)}% of the way there` : "";
+
+      $("[data-today-label]").textContent = new Intl.DateTimeFormat("cs-CZ", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      }).format(studyNow());
+    }
+
+    // — Rendering
+    function renderToday() {
+      const done = checks.get(today) ?? new Set();
+      inputs.forEach((el) => {
+        el.checked = done.has(el.dataset.task!);
+      });
+      $("[data-done-count]").textContent = String(done.size);
+    }
+
+    function renderStats() {
+      root.querySelectorAll<HTMLElement>(".cz-heatmap [data-day]").forEach((cell) => {
+        const day = cell.dataset.day!;
+        const n = checks.get(day)?.size ?? 0;
+        if (!cell.classList.contains("is-trip")) {
+          cell.dataset.level = String(Math.round((n / taskIds.length) * 5));
+        }
+        cell.classList.toggle("is-today", day === today);
+        cell.classList.toggle("is-future", day > today);
+        cell.title = `${day} · ${n}/${taskIds.length}`;
+        cell.setAttribute(
+          "aria-label",
+          `${dayLabel.format(toUtc(day))}: ${n}/${taskIds.length}${day === today ? " (dnes)" : ""}`,
+        );
+      });
+
+      const isFull = (d: string) => (checks.get(d)?.size ?? 0) >= taskIds.length;
+      let streak = 0;
+      let d = isFull(today) ? today : addDays(today, -1);
+      while (isFull(d)) {
+        streak++;
+        d = addDays(d, -1);
+      }
+      let full = 0;
+      let total = 0;
+      for (const set of checks.values()) {
+        total += set.size;
+        if (set.size >= taskIds.length) full++;
+      }
+      $("[data-streak]").textContent = String(streak);
+      $("[data-full-days]").textContent = String(full);
+      $("[data-total-checks]").textContent = String(total);
+    }
+
+    function renderSync(msg?: string) {
+      sync.textContent = "";
+      if (msg) {
+        sync.textContent = msg;
+        return;
+      }
+      if (!sessionToken) {
+        sync.append("View only. ");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = "Unlock to check things off";
+        btn.addEventListener("click", () => promptToken());
+        sync.append(btn);
+      }
+    }
+
+    function promptToken(): boolean {
+      const t = window.prompt("Admin token");
+      if (!t) return false;
+      sessionToken = t.trim();
+      setToken(sessionToken);
+      renderSync();
+      return true;
+    }
+
+    // — Data
+    function setEditable(on: boolean) {
+      inputs.forEach((el) => {
+        el.disabled = !on;
+      });
+    }
+
+    /** Edits stay locked while loading so a snapshot can never overwrite a newer check. */
+    async function load() {
+      if (loading) return;
+      loading = true;
+      setEditable(false);
+      await Promise.all(saving.values());
+      const from = start < today ? start : today;
+      try {
+        const res = await fetch(`/api/czech/checks?from=${from}`);
+        if (!res.ok) throw new Error(String(res.status));
+        const { days } = (await res.json()) as { days: Record<string, string[]> };
+        checks.clear();
+        for (const [day, tasks] of Object.entries(days)) checks.set(day, new Set(tasks));
+        loaded = true;
+        renderToday();
+        renderStats();
+        renderSync();
+        setEditable(true);
+      } catch {
+        loaded = false;
+        renderSync("Couldn't load progress — refresh to try again.");
+      } finally {
+        loading = false;
+      }
+    }
+
+    /** Re-anchor to the current local date if the tab outlived midnight. */
+    function syncDay(): boolean {
+      const now = localDay();
+      if (now === today) return false;
+      today = now;
+      renderClock();
+      renderToday();
+      renderStats();
+      load();
+      return true;
+    }
+
+    async function save(day: string, task: string, done: boolean, set: Set<string>) {
+      try {
+        const res = await fetch("/api/czech/checks", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${sessionToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ day, task, done }),
+        });
+        if (res.status === 401) {
+          sessionToken = null;
+          setToken(null);
+          throw new Error("unauthorized");
+        }
+        if (!res.ok) throw new Error(String(res.status));
+        renderSync(set.size === taskIds.length ? "Výborně! Všechno hotovo. 🎉" : undefined);
+      } catch (err) {
+        if (done) set.delete(task);
+        else set.add(task);
+        renderToday();
+        renderStats();
+        if ((err as Error).message === "unauthorized") renderSync();
+        else renderSync("Didn't save — check your connection and try again.");
+      }
+    }
+
+    function toggle(input: HTMLInputElement) {
+      const task = input.dataset.task!;
+      const done = input.checked;
+      // The click was made against yesterday's list; syncDay has already redrawn it.
+      if (syncDay()) return;
+      if (saving.has(task) || (!sessionToken && !promptToken())) {
+        input.checked = !done;
+        return;
+      }
+      const day = today;
+      const set = checks.get(day) ?? new Set<string>();
+      checks.set(day, set);
+      if (done) set.add(task);
+      else set.delete(task);
+      renderToday();
+      renderStats();
+
+      saving.set(
+        task,
+        save(day, task, done, set).finally(() => saving.delete(task)),
+      );
+    }
+
+    inputs.forEach((el) => {
+      el.addEventListener("change", () => toggle(el));
+    });
+
+    const onVisible = () => {
+      if (!root.isConnected) {
+        document.removeEventListener("visibilitychange", onVisible);
+        return;
+      }
+      if (document.visibilityState === "visible" && !syncDay() && !loaded) load();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    // — Library filters + random pick
+    const chips = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-filter]"));
+    const activities = Array.from(root.querySelectorAll<HTMLElement>(".cz-activity"));
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let lastPick: HTMLElement | null = null;
+
+    chips.forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const kind = chip.dataset.filter!;
+        chips.forEach((c) => {
+          const on = c === chip;
+          c.classList.toggle("is-active", on);
+          c.setAttribute("aria-pressed", String(on));
+        });
+        activities.forEach((a) => {
+          a.hidden = kind !== "all" && a.dataset.kind !== kind;
+          a.classList.remove("is-picked");
+        });
+      });
+    });
+
+    $("[data-pick]").addEventListener("click", () => {
+      const pool = activities.filter((a) => !a.hidden && a !== lastPick);
+      if (!pool.length) return;
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      activities.forEach((a) => a.classList.toggle("is-picked", a === pick));
+      lastPick = pick;
+      pick.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+    });
+
+    renderClock();
+    renderToday();
+    renderStats();
+    renderSync();
+    load();
+  }
+
+  document.addEventListener("astro:page-load", init);
+</script>

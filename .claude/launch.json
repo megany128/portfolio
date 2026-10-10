@@ -4,7 +4,7 @@
     {
       "name": "astro-dev",
       "runtimeExecutable": "/Users/meganyap/.nvm/versions/node/v22.22.1/bin/node",
-      "runtimeArgs": ["./node_modules/astro/astro.js", "dev"],
+      "runtimeArgs": ["./node_modules/astro/bin/astro.mjs", "dev"],
       "port": 4321
     }
   ]
