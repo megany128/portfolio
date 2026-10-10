@@ -13,6 +13,8 @@ interface Props {
   /** Override the canonical URL — pass a path (e.g. "/home") when the
    *  current page should consolidate SEO signals onto a different URL. */
   canonical?: string;
+  /** Keep the page out of search results (personal/utility pages). */
+  noindex?: boolean;
 }
 
 const {
@@ -23,6 +25,7 @@ const {
   darkHtml = false,
   showPet = true,
   canonical,
+  noindex = false,
 } = Astro.props;
 
 const canonicalUrl = new URL(canonical ?? Astro.url.pathname, Astro.site).href;
@@ -36,6 +39,7 @@ const ogImageUrl = new URL(image, Astro.site).href;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonicalUrl} />
 
     <!-- OpenGraph -->
