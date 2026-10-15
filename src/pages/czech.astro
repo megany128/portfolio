@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import TimeLeft from "../components/czech/TimeLeft.astro";
 import {
   TRIP_DATE,
   COUNTDOWN_START,
@@ -10,27 +11,7 @@ import {
 
 export const prerender = false;
 
-const DAY_MS = 86_400_000;
-const toUtc = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
-const isoFromUtc = (ms: number) => new Date(ms).toISOString().slice(0, 10);
-
-// Server-side first paint uses Prague's calendar date; the client script
-// re-renders with the browser's local date.
-const serverToday = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Prague" }).format(
-  new Date(),
-);
-const daysLeft = Math.max(0, Math.round((toUtc(TRIP_DATE) - toUtc(serverToday)) / DAY_MS));
-
-// Heatmap: Monday-aligned weeks covering COUNTDOWN_START → TRIP_DATE.
-const startMs = toUtc(COUNTDOWN_START);
-const tripMs = toUtc(TRIP_DATE);
-const mondayOffset = (new Date(startMs).getUTCDay() + 6) % 7;
-const gridStart = startMs - mondayOffset * DAY_MS;
-const totalCells = Math.ceil(((tripMs - gridStart) / DAY_MS + 1) / 7) * 7;
-const cells = Array.from({ length: totalCells }, (_, i) => {
-  const ms = gridStart + i * DAY_MS;
-  return { day: isoFromUtc(ms), inRange: ms >= startMs && ms <= tripMs, trip: ms === tripMs };
-});
+const tripMs = Date.parse(`${TRIP_DATE}T00:00:00Z`);
 
 const tripLabel = new Intl.DateTimeFormat("cs-CZ", {
   day: "numeric",
@@ -52,7 +33,6 @@ const kindLabel = Object.fromEntries(ACTIVITY_KINDS.map((k) => [k.id, k.cz]));
   <main
     class="cz"
     data-cz-root
-    data-trip={TRIP_DATE}
     data-start={COUNTDOWN_START}
     data-tasks={JSON.stringify(CZECH_TASKS.map((t) => t.id))}
   >
@@ -61,62 +41,22 @@ const kindLabel = Object.fromEntries(ACTIVITY_KINDS.map((k) => [k.id, k.cz]));
       <h1 class="cz-title">Česky do Prahy</h1>
     </header>
 
-    <div class="cz-top">
-      <!-- Countdown -->
-      <section class="cz-card cz-countdown" aria-labelledby="cz-countdown-label">
-        <p class="cz-label" id="cz-countdown-label">Odpočet</p>
-        <p class="cz-big"><span data-days-left>{daysLeft}</span></p>
-        <p class="cz-big-sub" data-days-word>dní do Prahy</p>
-        <div class="cz-progress" role="progressbar" aria-label="Time until Prague" data-progress>
-          <div class="cz-progress-fill" data-progress-fill></div>
+    <TimeLeft trip={TRIP_DATE} start={COUNTDOWN_START} totalTasks={CZECH_TASKS.length}>
+      <div slot="stats" class="cz-stats">
+        <div>
+          <p class="cz-stat" data-streak>0</p>
+          <p class="cz-meta">day streak</p>
         </div>
-        <p class="cz-meta" data-days-meta></p>
-      </section>
-
-      <!-- Streak -->
-      <section class="cz-card cz-streak" aria-labelledby="cz-streak-label">
-        <p class="cz-label" id="cz-streak-label">Série</p>
-        <div class="cz-stats">
-          <div>
-            <p class="cz-stat" data-streak>0</p>
-            <p class="cz-meta">day streak</p>
-          </div>
-          <div>
-            <p class="cz-stat" data-full-days>0</p>
-            <p class="cz-meta">full days</p>
-          </div>
-          <div>
-            <p class="cz-stat" data-total-checks>0</p>
-            <p class="cz-meta">tasks done</p>
-          </div>
+        <div>
+          <p class="cz-stat" data-full-days>0</p>
+          <p class="cz-meta">full days</p>
         </div>
-        <div class="cz-heatmap" role="list" aria-label="Daily progress">
-          {
-            cells.map((c) => (
-              <span
-                class:list={["cz-cell", { "is-out": !c.inRange, "is-trip": c.trip }]}
-                data-day={c.inRange ? c.day : undefined}
-                title={c.inRange ? c.day : undefined}
-                role={c.inRange ? "listitem" : undefined}
-                aria-label={c.inRange ? c.day : undefined}
-                aria-hidden={c.inRange ? undefined : "true"}
-              />
-            ))
-          }
+        <div>
+          <p class="cz-stat" data-total-checks>0</p>
+          <p class="cz-meta">tasks done</p>
         </div>
-        <p class="cz-meta cz-legend">
-          <span>Po → Ne</span>
-          <span class="cz-legend-scale">
-            méně
-            <span class="cz-cell" data-level="0"></span>
-            <span class="cz-cell" data-level="2"></span>
-            <span class="cz-cell" data-level="4"></span>
-            <span class="cz-cell" data-level="5"></span>
-            více
-          </span>
-        </p>
-      </section>
-    </div>
+      </div>
+    </TimeLeft>
 
     <!-- Today -->
     <section class="cz-card cz-today" aria-labelledby="cz-today-label">
@@ -247,72 +187,9 @@ const kindLabel = Object.fromEntries(ACTIVITY_KINDS.map((k) => [k.id, k.cz]));
   }
   .cz-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 
-  .cz-top { display: grid; gap: 1.25rem; grid-template-columns: 1fr; }
-  @media (min-width: 768px) {
-    .cz-top { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
-  }
-
-  /* Countdown */
-  .cz-big {
-    font-family: var(--font-display);
-    font-weight: 300;
-    font-size: clamp(5rem, 18vw, 8rem);
-    line-height: 0.85;
-    color: var(--color-pink);
-    margin-top: 0.5rem;
-  }
-  .cz-big-sub { font-family: var(--font-display); font-size: var(--text-h2); font-weight: 300; }
-  .cz-progress {
-    height: 8px;
-    border-radius: var(--radius-pill);
-    background: var(--color-bg-neutral-2);
-    overflow: hidden;
-    margin-top: auto;
-  }
-  .cz-progress-fill {
-    height: 100%;
-    width: 0;
-    background: var(--color-pink);
-    border-radius: inherit;
-    transition: width var(--duration-slow) var(--ease-out-soft);
-  }
-
-  /* Streak + heatmap */
+  /* Streak */
   .cz-stats { display: flex; gap: 2rem; flex-wrap: wrap; }
   .cz-stat { font-family: var(--font-display); font-weight: 300; font-size: 2.75rem; line-height: 1; }
-  .cz-heatmap {
-    display: grid;
-    grid-auto-flow: column;
-    grid-template-rows: repeat(7, auto);
-    gap: 4px;
-    justify-content: start;
-    margin-top: 0.5rem;
-    padding: 3px; /* room for the today outline inside the scroll box */
-    overflow-x: auto;
-  }
-  .cz-cell {
-    --size: 18px;
-    width: var(--size);
-    height: var(--size);
-    border-radius: 4px;
-    background: var(--color-bg-neutral-2);
-    display: inline-block;
-  }
-  @media (min-width: 1024px) {
-    .cz-heatmap .cz-cell { --size: 22px; }
-  }
-  .cz-cell.is-out { background: transparent; }
-  .cz-cell[data-level="1"] { background: color-mix(in oklab, var(--color-green-1) 45%, var(--color-bg-neutral-2)); }
-  .cz-cell[data-level="2"] { background: color-mix(in oklab, var(--color-green-1) 70%, var(--color-bg-neutral-2)); }
-  .cz-cell[data-level="3"] { background: var(--color-green-1); }
-  .cz-cell[data-level="4"] { background: var(--color-green-0); }
-  .cz-cell[data-level="5"] { background: var(--color-green); }
-  .cz-cell.is-future { opacity: 0.5; }
-  .cz-cell.is-today { outline: 2px solid var(--color-ink); outline-offset: 1px; }
-  .cz-cell.is-trip { background: var(--color-pink); opacity: 1; }
-  .cz-legend { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-  .cz-legend-scale { display: inline-flex; align-items: center; gap: 4px; }
-  .cz-legend-scale .cz-cell { --size: 12px; }
 
   /* Today */
   .cz-today-date { font-family: var(--font-display); font-weight: 300; font-size: var(--text-h2); margin-top: 0.5rem; }
@@ -462,7 +339,6 @@ const kindLabel = Object.fromEntries(ACTIVITY_KINDS.map((k) => [k.id, k.cz]));
   .cz-activity-detail { font-size: 0.9375rem; line-height: 1.5; color: var(--color-ink-dim); flex: 1; }
 
   @media (prefers-reduced-motion: reduce) {
-    .cz-progress-fill,
     .cz-box,
     .cz-box::after,
     .cz-chip,
@@ -482,10 +358,6 @@ const kindLabel = Object.fromEntries(ACTIVITY_KINDS.map((k) => [k.id, k.cz]));
   const localDay = (d = studyNow()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   const toUtc = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
   const addDays = (iso: string, n: number) => new Date(toUtc(iso) + n * DAY_MS).toISOString().slice(0, 10);
-  const diffDays = (a: string, b: string) => Math.round((toUtc(b) - toUtc(a)) / DAY_MS);
-
-  /** Czech plural for "day": 1 den, 2–4 dny, 0/5+ dní. */
-  const daysWord = (n: number) => (n === 1 ? "den" : n >= 2 && n <= 4 ? "dny" : "dní");
 
   function getToken(): string | null {
     try {
@@ -509,7 +381,6 @@ const kindLabel = Object.fromEntries(ACTIVITY_KINDS.map((k) => [k.id, k.cz]));
     const root: HTMLElement = found;
     root.dataset.wired = "1";
 
-    const trip = root.dataset.trip!;
     const start = root.dataset.start!;
     const taskIds: string[] = JSON.parse(root.dataset.tasks!);
     let today = localDay();
@@ -529,20 +400,7 @@ const kindLabel = Object.fromEntries(ACTIVITY_KINDS.map((k) => [k.id, k.cz]));
       timeZone: "UTC",
     });
 
-    // — Countdown
     function renderClock() {
-      const left = Math.max(0, diffDays(today, trip));
-      $("[data-days-left]").textContent = String(left);
-      $("[data-days-word]").textContent =
-        left === 0 ? "Vítej v Praze!" : `${daysWord(left)} do Prahy`;
-      const span = Math.max(1, diffDays(start, trip));
-      const pct = Math.min(100, Math.max(0, (diffDays(start, today) / span) * 100));
-      $("[data-progress-fill]").style.width = `${pct}%`;
-      $("[data-progress]").setAttribute("aria-valuenow", String(Math.round(pct)));
-      const weeks = Math.floor(left / 7);
-      $("[data-days-meta]").textContent =
-        left > 0 ? `${weeks} wk ${left % 7} d · ${Math.round(pct)}% of the way there` : "";
-
       $("[data-today-label]").textContent = new Intl.DateTimeFormat("cs-CZ", {
         weekday: "long",
         day: "numeric",
@@ -557,17 +415,17 @@ const kindLabel = Object.fromEntries(ACTIVITY_KINDS.map((k) => [k.id, k.cz]));
         el.checked = done.has(el.dataset.task!);
       });
       $("[data-done-count]").textContent = String(done.size);
+      root.dataset.done = String(done.size);
     }
 
     function renderStats() {
-      root.querySelectorAll<HTMLElement>(".cz-heatmap [data-day]").forEach((cell) => {
+      // Squares live in the TimeLeft grid, which owns their past/today/future state.
+      root.querySelectorAll<HTMLElement>("[data-cz-timeleft] [data-day]").forEach((cell) => {
         const day = cell.dataset.day!;
         const n = checks.get(day)?.size ?? 0;
         if (!cell.classList.contains("is-trip")) {
           cell.dataset.level = String(Math.round((n / taskIds.length) * 5));
         }
-        cell.classList.toggle("is-today", day === today);
-        cell.classList.toggle("is-future", day > today);
         cell.title = `${day} · ${n}/${taskIds.length}`;
         cell.setAttribute(
           "aria-label",
