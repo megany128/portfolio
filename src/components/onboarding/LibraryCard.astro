@@ -16,14 +16,6 @@ interface Props {
   existingSignature?: string | null;
   /** Optional override so multiple cards of the same color pick distinct glimmer dots + timings. */
   glimmerSeedSalt?: number;
-  /**
-   * Ship the braille art inside <noscript> instead of live DOM. With JS on,
-   * that's inert text (never styled or laid out) and the caller hydrates it
-   * later (see Grid.astro); with JS off, the art still renders as before — laying out a page of these
-   * ~600-glyph font-fallback text blocks in one go was most of the gallery's
-   * first-load jank.
-   */
-  deferArt?: boolean;
 }
 
 const {
@@ -36,7 +28,6 @@ const {
   signature = null,
   existingSignature = null,
   glimmerSeedSalt = 0,
-  deferArt = false,
 } = Astro.props;
 
 const issuedDate = new Date(issuedAt);
@@ -313,30 +304,15 @@ const showFallback = !signable && !signature;
 >
   <!-- Decorative braille-dot illustration — one <pre> per color; CSS reveals
        only the one whose data-for matches the card's current data-color. -->
-  {deferArt ? (
-    <noscript data-library-card-art>
-      {rendered.map((r) => (
-        <pre
-          aria-hidden="true"
-          data-for={r.key}
-          data-art-deferred
-          class="library-card__flower absolute pointer-events-none whitespace-pre"
-          style={r.style}
-          set:html={r.html}
-        />
-      ))}
-    </noscript>
-  ) : (
-    rendered.map((r) => (
-      <pre
-        aria-hidden="true"
-        data-for={r.key}
-        class="library-card__flower absolute pointer-events-none whitespace-pre"
-        style={r.style}
-        set:html={r.html}
-      />
-    ))
-  )}
+  {rendered.map((r) => (
+    <pre
+      aria-hidden="true"
+      data-for={r.key}
+      class="library-card__flower absolute pointer-events-none whitespace-pre"
+      style={r.style}
+      set:html={r.html}
+    />
+  ))}
 
   <h2
     class="font-[family-name:var(--font-display)] font-light text-[24px] leading-none normal-case relative"
@@ -499,20 +475,6 @@ const showFallback = !signable && !signature;
     opacity: 0;
     transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  /* Deferred art fades in when it's hydrated instead of popping. Needs to
-     out-specify the `.library-card .library-card__flower` color transition
-     above, which would otherwise drop opacity from the transition list. */
-  .library-card .library-card__flower[data-art-deferred] {
-    transition:
-      color 0.8s cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  /* Out-specifies the per-color reveal rules below so the start value wins. */
-  @starting-style {
-    .library-card[data-color] .library-card__flower[data-for][data-art-deferred] {
-      opacity: 0;
-    }
-  }
   /* Reveal the art that matches the card's current color. */
   .library-card[data-color="pink"] .library-card__flower[data-for="pink"],
   .library-card[data-color="teal"] .library-card__flower[data-for="teal"],
@@ -656,9 +618,6 @@ const showFallback = !signable && !signature;
   @media (prefers-reduced-motion: reduce) {
     .library-card__flower .glimmer {
       animation: none;
-    }
-    .library-card .library-card__flower[data-art-deferred] {
-      transition: none;
     }
   }
 </style>
