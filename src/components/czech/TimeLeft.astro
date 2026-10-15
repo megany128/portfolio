@@ -1,0 +1,261 @@
+---
+/*
+ * Scratch-off countdown for /czech: one square per study day from the
+ * countdown start to Prague. Past days are scratched off to an outline,
+ * future days stay solid, and today's square empties in real time until
+ * the 4am rollover. Reads today's task progress from the page root's data-done;
+ * the page colours each square by tasks done (data-level) and fills the stats slot.
+ */
+interface Props {
+  trip: string;
+  start: string;
+  totalTasks: number;
+}
+
+const { trip, start, totalTasks } = Astro.props;
+
+const DAY_MS = 86_400_000;
+const toUtc = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
+const days = Array.from(
+  { length: Math.round((toUtc(trip) - toUtc(start)) / DAY_MS) + 1 },
+  (_, i) => new Date(toUtc(start) + i * DAY_MS).toISOString().slice(0, 10),
+);
+---
+
+<section
+  class="tl"
+  data-cz-timeleft
+  data-trip={trip}
+  data-total={totalTasks}
+  data-state="calm"
+  aria-labelledby="tl-label"
+>
+  <div class="tl-head">
+    <p class="tl-label" id="tl-label">Zbývá</p>
+    <p class="tl-state" data-tl-state>klid</p>
+  </div>
+
+  <div class="tl-top">
+    <div class="tl-count">
+      <p class="tl-big"><span data-tl-days>–</span> <span class="tl-big-word" data-tl-days-word>dní</span></p>
+      <p class="tl-meta" data-tl-sub></p>
+    </div>
+    <slot name="stats" />
+  </div>
+
+  <div class="tl-grid" role="list" aria-label="Days until Prague">
+    {
+      days.map((d) => (
+        <span
+          class:list={["tl-day", { "is-trip": d === trip }]}
+          data-day={d}
+          title={d}
+          role="listitem"
+          aria-label={d}
+        >
+          <span class="tl-day-fill" />
+        </span>
+      ))
+    }
+  </div>
+  <p class="tl-meta tl-legend" aria-hidden="true">
+    <span>jeden čtvereček = jeden den</span>
+    <span class="tl-scale">
+      méně
+      <span class="tl-key" data-level="1"></span>
+      <span class="tl-key" data-level="3"></span>
+      <span class="tl-key" data-level="5"></span>
+      více
+      <span class="tl-key is-trip"></span>
+      Praha
+    </span>
+  </p>
+</section>
+
+<style>
+  .tl {
+    --accent: var(--color-teal);
+    background: var(--color-bg-light);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-width: 0;
+  }
+  .tl[data-state="warn"] { --accent: var(--color-orange); }
+  .tl[data-state="panic"] { --accent: var(--color-pink); }
+  .tl[data-state="done"] { --accent: var(--color-green); }
+
+  .tl-head,
+  .tl-legend {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .tl-label,
+  .tl-state {
+    font-family: var(--font-mono);
+    font-size: var(--text-subtitle-2);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-fg-neutral);
+  }
+  .tl-state {
+    color: var(--color-ink-inverted);
+    background: var(--accent);
+    border-radius: var(--radius-pill);
+    padding: 0.25rem 0.65rem;
+  }
+  .tl-meta { font-family: var(--font-mono); font-size: var(--text-small); color: var(--color-ink-dim); }
+  .tl-meta strong { font-weight: 500; color: var(--accent); }
+
+  .tl-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.25rem 2rem;
+  }
+  .tl-count { display: flex; flex-direction: column; gap: 0.6rem; }
+
+  .tl-big {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(3.5rem, 14vw, 6rem);
+    line-height: 0.9;
+    color: var(--color-pink);
+    margin-top: 0.5rem;
+  }
+  .tl-big-word { font-size: 0.45em; color: var(--color-ink); }
+
+  /* One square per day. Past days are scratched off; today drains from the left. */
+  .tl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(26px, 1fr));
+    gap: 4px;
+    margin-top: 0.75rem;
+  }
+  @media (max-width: 480px) {
+    .tl-grid { grid-template-columns: repeat(auto-fill, minmax(22px, 1fr)); gap: 3px; }
+  }
+  .tl-day {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    overflow: hidden;
+  }
+  .tl-day-fill {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transform-origin: right center;
+  }
+  .tl-day.is-past { border-color: var(--color-bg-neutral-2); }
+  .tl-day.is-past .tl-day-fill { transform: scaleX(0); }
+  .tl-day.is-today { border-color: var(--accent); }
+  .tl-day.is-trip { border-color: var(--color-pink); }
+  .tl-day.is-trip .tl-day-fill { background: transparent; }
+
+  /* What's been scratched off shows how much got done that day. */
+  .tl-day[data-level="1"],
+  .tl-key[data-level="1"] { background: color-mix(in oklab, var(--color-green-1) 45%, var(--color-bg-neutral-2)); }
+  .tl-day[data-level="2"] { background: color-mix(in oklab, var(--color-green-1) 70%, var(--color-bg-neutral-2)); }
+  .tl-day[data-level="3"],
+  .tl-key[data-level="3"] { background: var(--color-green-1); }
+  .tl-day[data-level="4"] { background: var(--color-green-0); }
+  .tl-day[data-level="5"],
+  .tl-key[data-level="5"] { background: var(--color-green); }
+  .tl-day.is-past[data-level]:not([data-level="0"]) { border-color: transparent; }
+
+  .tl-scale { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .tl-key { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .tl-key.is-trip { border: 1px solid var(--color-pink); margin-left: 0.75rem; }
+</style>
+
+<script>
+  const DAY_MS = 86_400_000;
+  const DAY_START_HOUR = 4;
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+  /** Czech plural: 1 / 2–4 / 0 & 5+. */
+  const plural = (n: number, one: string, few: string, many: string) =>
+    n === 1 ? one : n >= 2 && n <= 4 ? few : many;
+  const toUtc = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
+
+  function init() {
+    const found = document.querySelector<HTMLElement>("[data-cz-timeleft]");
+    if (!found || found.dataset.wired) return;
+    const el: HTMLElement = found;
+    el.dataset.wired = "1";
+
+    const trip = el.dataset.trip!;
+    const total = Number(el.dataset.total);
+    const page = document.querySelector<HTMLElement>("[data-cz-root]");
+    const $ = (sel: string) => el.querySelector<HTMLElement>(sel)!;
+    const daysEl = $("[data-tl-days]");
+    const daysWord = $("[data-tl-days-word]");
+    const sub = $("[data-tl-sub]");
+    const stateEl = $("[data-tl-state]");
+    const cells = Array.from(el.querySelectorAll<HTMLElement>("[data-day]"));
+
+    let timer = 0;
+
+    function tick() {
+      if (!el.isConnected) {
+        window.clearTimeout(timer);
+        return;
+      }
+      const now = new Date();
+
+      // The study day runs 4am → 4am local, matching the task list.
+      const end = new Date(now);
+      end.setHours(DAY_START_HOUR, 0, 0, 0);
+      if (end <= now) end.setDate(end.getDate() + 1);
+      const begin = new Date(end);
+      begin.setDate(begin.getDate() - 1);
+      const today = `${begin.getFullYear()}-${pad(begin.getMonth() + 1)}-${pad(begin.getDate())}`;
+      const leftMs = end.getTime() - now.getTime();
+      const keep = leftMs / (end.getTime() - begin.getTime()); // DST-safe 23–25h day
+
+      cells.forEach((c) => {
+        const day = c.dataset.day!;
+        const isToday = day === today;
+        c.classList.toggle("is-past", day < today);
+        c.classList.toggle("is-today", isToday);
+        (c.firstElementChild as HTMLElement).style.transform = isToday ? `scaleX(${keep})` : "";
+      });
+
+      const left = Math.max(0, Math.round((toUtc(trip) - toUtc(today)) / DAY_MS));
+      daysEl.textContent = left === 0 ? "" : String(left);
+      daysWord.textContent = left === 0 ? "Vítej v Praze!" : `${plural(left, "den", "dny", "dní")} do Prahy`;
+
+      const done = Number(page?.dataset.done ?? 0);
+      const open = Math.max(0, total - done);
+      const mins = Math.floor(leftMs / 60_000);
+      const strong = document.createElement("strong");
+      strong.textContent = `${Math.floor(mins / 60)} h ${pad(mins % 60)} min`;
+      sub.replaceChildren(
+        "dnes ještě ",
+        strong,
+        open === 0 ? " · vše hotovo ✓" : ` · ${open} ${plural(open, "úkol čeká", "úkoly čekají", "úkolů čeká")}`,
+      );
+
+      const state =
+        open === 0 ? "done" : leftMs <= 2 * 3_600_000 ? "panic" : leftMs <= 6 * 3_600_000 ? "warn" : "calm";
+      if (el.dataset.state !== state) {
+        el.dataset.state = state;
+        stateEl.textContent = { done: "hotovo", panic: "honem!", warn: "pozor", calm: "klid" }[state];
+      }
+
+      // Today's square loses a sliver every few minutes; a 10s tick keeps it and the minutes current.
+      timer = window.setTimeout(tick, 10_000);
+    }
+
+    tick();
+  }
+
+  document.addEventListener("astro:page-load", init);
+</script>
