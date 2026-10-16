@@ -1,9 +1,8 @@
 ---
 /*
- * Scratch-off countdown for /czech: one square per study day from the
- * countdown start to Prague. Past days are scratched off to an outline,
- * future days stay solid, and today's square empties in real time until
- * the 4am rollover. Reads today's task progress from the page root's data-done;
+ * Countdown for /czech: one square per study day from the countdown start
+ * to Prague, coloured by progress, with the time left in today's study day
+ * (4am → 4am) as text. Reads today's task progress from the page root's data-done;
  * the page colours each square by tasks done (data-level) and fills the stats slot.
  */
 interface Props {
@@ -52,22 +51,23 @@ const days = Array.from(
           title={d}
           role="listitem"
           aria-label={d}
-        >
-          <span class="tl-day-fill" />
-        </span>
+        />
       ))
     }
   </div>
   <p class="tl-meta tl-legend" aria-hidden="true">
     <span>jeden čtvereček = jeden den</span>
     <span class="tl-scale">
-      méně
-      <span class="tl-key" data-level="1"></span>
-      <span class="tl-key" data-level="3"></span>
-      <span class="tl-key" data-level="5"></span>
-      více
-      <span class="tl-key is-trip"></span>
-      Praha
+      <span><span class="tl-key is-left"></span> zbývá</span>
+      <span><span class="tl-key is-now"></span> dnes</span>
+      <span>
+        méně
+        <span class="tl-key" data-level="1"></span>
+        <span class="tl-key" data-level="3"></span>
+        <span class="tl-key" data-level="5"></span>
+        více
+      </span>
+      <span><span class="tl-key is-trip"></span> Praha</span>
     </span>
   </p>
 </section>
@@ -131,7 +131,6 @@ const days = Array.from(
   }
   .tl-big-word { font-size: 0.45em; color: var(--color-ink); }
 
-  /* One square per day. Past days are scratched off; today drains from the left. */
   .tl-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(26px, 1fr));
@@ -141,25 +140,20 @@ const days = Array.from(
   @media (max-width: 480px) {
     .tl-grid { grid-template-columns: repeat(auto-fill, minmax(22px, 1fr)); gap: 3px; }
   }
+  /*
+   * The grid only shows progress: days to come are beige slots, missed days
+   * are empty outlines, done days go green by tasks done, today is ringed.
+   */
   .tl-day {
     aspect-ratio: 1;
     border-radius: 4px;
     border: 1px solid transparent;
-    overflow: hidden;
+    background: var(--color-bg-neutral-2);
   }
-  .tl-day-fill {
-    display: block;
-    height: 100%;
-    background: var(--accent);
-    transform-origin: right center;
-  }
-  .tl-day.is-past { border-color: var(--color-bg-neutral-2); }
-  .tl-day.is-past .tl-day-fill { transform: scaleX(0); }
-  .tl-day.is-today { border-color: var(--accent); }
-  .tl-day.is-trip { border-color: var(--color-pink); }
-  .tl-day.is-trip .tl-day-fill { background: transparent; }
+  .tl-day.is-past { background: transparent; border-color: var(--color-bg-neutral-2); }
+  .tl-day.is-today { outline: 2px solid var(--color-ink); outline-offset: -2px; }
+  .tl-day.is-trip { background: transparent; border-color: var(--color-pink); }
 
-  /* What's been scratched off shows how much got done that day. */
   .tl-day[data-level="1"],
   .tl-key[data-level="1"] { background: color-mix(in oklab, var(--color-green-1) 45%, var(--color-bg-neutral-2)); }
   .tl-day[data-level="2"] { background: color-mix(in oklab, var(--color-green-1) 70%, var(--color-bg-neutral-2)); }
@@ -170,9 +164,12 @@ const days = Array.from(
   .tl-key[data-level="5"] { background: var(--color-green); }
   .tl-day.is-past[data-level]:not([data-level="0"]) { border-color: transparent; }
 
-  .tl-scale { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .tl-scale { display: inline-flex; align-items: center; gap: 0.25rem 0.9rem; flex-wrap: wrap; }
+  .tl-scale > span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
   .tl-key { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
-  .tl-key.is-trip { border: 1px solid var(--color-pink); margin-left: 0.75rem; }
+  .tl-key.is-left { background: var(--color-bg-neutral-2); }
+  .tl-key.is-now { background: var(--color-bg-neutral-2); outline: 2px solid var(--color-ink); outline-offset: -2px; }
+  .tl-key.is-trip { border: 1px solid var(--color-pink); }
 </style>
 
 <script>
@@ -203,11 +200,7 @@ const days = Array.from(
 
     let timer = 0;
 
-    function tick() {
-      if (!el.isConnected) {
-        window.clearTimeout(timer);
-        return;
-      }
+    function render() {
       const now = new Date();
 
       // The study day runs 4am → 4am local, matching the task list.
@@ -218,14 +211,11 @@ const days = Array.from(
       begin.setDate(begin.getDate() - 1);
       const today = `${begin.getFullYear()}-${pad(begin.getMonth() + 1)}-${pad(begin.getDate())}`;
       const leftMs = end.getTime() - now.getTime();
-      const keep = leftMs / (end.getTime() - begin.getTime()); // DST-safe 23–25h day
 
       cells.forEach((c) => {
         const day = c.dataset.day!;
-        const isToday = day === today;
         c.classList.toggle("is-past", day < today);
-        c.classList.toggle("is-today", isToday);
-        (c.firstElementChild as HTMLElement).style.transform = isToday ? `scaleX(${keep})` : "";
+        c.classList.toggle("is-today", day === today);
       });
 
       const left = Math.max(0, Math.round((toUtc(trip) - toUtc(today)) / DAY_MS));
@@ -250,9 +240,22 @@ const days = Array.from(
         stateEl.textContent = { done: "hotovo", panic: "honem!", warn: "pozor", calm: "klid" }[state];
       }
 
-      // Today's square loses a sliver every few minutes; a 10s tick keeps it and the minutes current.
+    }
+
+    function tick() {
+      if (!el.isConnected) {
+        window.clearTimeout(timer);
+        observer?.disconnect();
+        return;
+      }
+      render();
+      // A 10s tick keeps the minutes and the day rollover current.
       timer = window.setTimeout(tick, 10_000);
     }
+
+    // Re-render as soon as a task is checked off rather than on the next tick.
+    const observer = page ? new MutationObserver(render) : null;
+    observer?.observe(page!, { attributes: true, attributeFilter: ["data-done"] });
 
     tick();
   }
