@@ -5,6 +5,7 @@ import {
   deleteOwnVisitor,
   getCurrentVisitor,
   isCardColor,
+  takeVisitCreateSlot,
   updateVisitor,
   writeVisitorId,
 } from "../../lib/visitor-server";
@@ -88,6 +89,12 @@ export async function POST(ctx: APIContext) {
       signature: sig.signature,
     });
     return Response.json(updated ?? existing);
+  }
+
+  if (!(await takeVisitCreateSlot(ctx))) {
+    return new Response("Too many new cards from this network today — try again tomorrow", {
+      status: 429,
+    });
   }
 
   const visitor = await createVisitor(ctx, {
