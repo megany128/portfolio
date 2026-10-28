@@ -19,6 +19,35 @@ export const prerender = false;
 const SIGNATURE_MAX_BYTES = 60_000;
 /** Quick structural check — "data:image/png;base64,..." with at least one base64 char. */
 const SIGNATURE_DATA_URL_RE = /^data:image\/png;base64,[A-Za-z0-9+/=]+$/;
+const SIGNATURE_DATA_URL_PREFIX = "data:image/png;base64,";
+/** Max compressed PNG bytes per pixel. Line art is mostly empty canvas and
+ *  compresses to almost nothing: every real card so far is ≤ 0.19 (median
+ *  0.04). Random-pixel noise doesn't compress at all and lands at ~1–4. */
+const SIGNATURE_MAX_BYTES_PER_PIXEL = 0.5;
+const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+
+/** Read width × height from the PNG's IHDR chunk (always first, bytes 16–23). */
+function pngPixelCount(base64: string): number | null {
+  let header: string;
+  try {
+    header = atob(base64.slice(0, 32)); // 24 bytes
+  } catch {
+    return null;
+  }
+  if (header.length < 24) return null;
+  for (let i = 0; i < PNG_MAGIC.length; i++) {
+    if (header.charCodeAt(i) !== PNG_MAGIC[i]) return null;
+  }
+  if (header.slice(12, 16) !== "IHDR") return null;
+  const u32 = (o: number) =>
+    ((header.charCodeAt(o) << 24) |
+      (header.charCodeAt(o + 1) << 16) |
+      (header.charCodeAt(o + 2) << 8) |
+      header.charCodeAt(o + 3)) >>>
+    0;
+  const pixels = u32(16) * u32(20);
+  return pixels > 0 ? pixels : null;
+}
 
 type SignatureValidation =
   | { ok: true; signature: string | null }
@@ -37,6 +66,16 @@ function validateSignature(raw: unknown): SignatureValidation {
   }
   if (!SIGNATURE_DATA_URL_RE.test(raw)) {
     return { ok: false, status: 400, message: "Invalid signature format" };
+  }
+  const base64 = raw.slice(SIGNATURE_DATA_URL_PREFIX.length);
+  const pixels = pngPixelCount(base64);
+  if (pixels === null) {
+    return { ok: false, status: 400, message: "Invalid signature format" };
+  }
+  // Rejects random-pixel noise, which a script submitted ~5,000 times in Oct 2026.
+  const pngBytes = (base64.length * 3) / 4;
+  if (pngBytes / pixels > SIGNATURE_MAX_BYTES_PER_PIXEL) {
+    return { ok: false, status: 400, message: "Signature doesn't look like a drawing" };
   }
   return { ok: true, signature: raw };
 }
