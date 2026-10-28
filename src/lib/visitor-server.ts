@@ -85,6 +85,43 @@ export function db(_ctx: APIContext): D1Database {
 }
 
 /* ------------------------------------------------------------------ */
+/*  New-card rate limit                                               */
+/* ------------------------------------------------------------------ */
+
+/** New cards one IP may create per UTC day. Real traffic is ~20 cards/day
+ *  site-wide, so this only bites scripts (and very busy shared networks). */
+export const VISIT_CREATES_PER_IP_PER_DAY = 10;
+
+async function sha256Hex(input: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * Count one card creation against the caller's IP for today and report
+ * whether it's within the daily cap. Also prunes rows from earlier days.
+ */
+export async function takeVisitCreateSlot(ctx: APIContext): Promise<boolean> {
+  const ip = ctx.request.headers.get("cf-connecting-ip") ?? "unknown";
+  const day = new Date().toISOString().slice(0, 10);
+  const ipHash = await sha256Hex(`${day}:${ip}`);
+
+  const d = db(ctx);
+  const [counted] = await d.batch([
+    d
+      .prepare(
+        `INSERT INTO visit_rate (day, ip_hash, count) VALUES (?, ?, 1)
+         ON CONFLICT(day, ip_hash) DO UPDATE SET count = count + 1
+         RETURNING count`
+      )
+      .bind(day, ipHash),
+    d.prepare(`DELETE FROM visit_rate WHERE day < ?`).bind(day),
+  ]);
+  const count = (counted as D1Result<{ count: number }>).results[0]?.count ?? 1;
+  return count <= VISIT_CREATES_PER_IP_PER_DAY;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Gallery stats counters                                            */
 /* ------------------------------------------------------------------ */
 /*
