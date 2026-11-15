@@ -180,8 +180,8 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
     cursor: default;
   }
   /* Suppress grid hover effects in the detail stage — tilt/gloss handled via JS. */
-  .gallery-detail__stage .mini-card-wrap:hover .mini-card {
-    box-shadow: none;
+  .gallery-detail__stage .mini-card-wrap:hover .mini-card::before {
+    opacity: 0;
   }
   .gallery-detail__stage .mini-card-wrap:hover .mini-gloss {
     opacity: 0;
@@ -189,7 +189,7 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
 
   @media (prefers-reduced-motion: reduce) {
     .mini-card-wrap,
-    .mini-card {
+    .mini-card::before {
       transition: none !important;
     }
   }
@@ -272,6 +272,9 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
 
     /* ---------- hover tilt + gloss (delegated) ------------------------- */
     // Single grid-level listeners instead of per-card to avoid 200+ listeners.
+    // Unscaled card size — the gloss disc is positioned in these units.
+    const CARD_W = 388;
+    const CARD_H = 252;
     type TiltState = { raf: number; pending: { x: number; y: number } | null };
     const tiltStates = new WeakMap<HTMLElement, TiltState>();
 
@@ -286,8 +289,8 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
       wrap.style.transform = `perspective(1000px) scale(1.04) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
       const gloss = wrap.querySelector<HTMLElement>("[data-mini-gloss]");
       if (gloss) {
-        gloss.style.setProperty("--gloss-x", `${(px * 100).toFixed(1)}%`);
-        gloss.style.setProperty("--gloss-y", `${(py * 100).toFixed(1)}%`);
+        gloss.style.setProperty("--gloss-x", `${(px * CARD_W).toFixed(1)}px`);
+        gloss.style.setProperty("--gloss-y", `${(py * CARD_H).toFixed(1)}px`);
       }
     }
 
@@ -433,8 +436,8 @@ const { visitors, youId, centered = false, totalReal, pageSize = 48 } = Astro.pr
         clone.style.transform = `perspective(1200px) scale(${baseScale}) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
         if (gloss) {
           gloss.style.opacity = "1";
-          gloss.style.setProperty("--gloss-x", `${(px * 100).toFixed(1)}%`);
-          gloss.style.setProperty("--gloss-y", `${(py * 100).toFixed(1)}%`);
+          gloss.style.setProperty("--gloss-x", `${(px * CARD_W).toFixed(1)}px`);
+          gloss.style.setProperty("--gloss-y", `${(py * CARD_H).toFixed(1)}px`);
         }
       };
 
