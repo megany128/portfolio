@@ -906,14 +906,19 @@ const reflections = [
     color: var(--gw-green-wrapped);
   }
   /* Cards rise + tilt on banner hover — per-card amounts via custom props,
-     `rotate`/`translate` properties so they animate independently */
+     `rotate`/`translate` properties so they animate independently.
+     Each card sits on its own compositor layer (will-change) so its text is
+     drawn once and the hover only moves the layer; redrawing the rotated
+     text every frame made the card titles flicker in some browsers. */
   .gw-card {
     rotate: var(--gw-rot, 0deg);
     transition: rotate 350ms var(--ease-out-soft);
+    will-change: rotate;
   }
   .gw-card .gw-card-inner {
     translate: 0 0;
     transition: translate 350ms var(--ease-out-soft);
+    will-change: translate;
   }
   .gw-stage:hover .gw-card {
     rotate: var(--gw-rot-hover, var(--gw-rot, 0deg));
@@ -943,7 +948,11 @@ const reflections = [
     padding: 16px;
     text-align: left;
     font-family: var(--gw-font-flex);
-    filter: drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.15)) drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.3));
+    /* box-shadow, not filter: drop-shadow — the card is a plain rounded
+       rect, and a filter forces its text through the filter raster path. */
+    box-shadow:
+      0px 2px 3px rgba(0, 0, 0, 0.15),
+      0px 1px 1px rgba(0, 0, 0, 0.3);
   }
   .gw-card-icon {
     width: 24px;
